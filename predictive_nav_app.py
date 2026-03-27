@@ -1,4 +1,4 @@
-# predictive_nav_app_minimal.py
+# predictive_nav_app_clean.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,9 +6,9 @@ import datetime
 import requests
 
 # --------------------------
-# Hide default Streamlit UI
+# Page config & styling
 # --------------------------
-st.set_page_config(page_title="Smart Predictive Navigation", layout="wide")
+st.set_page_config(page_title="MelloTech Predictive Navigation", layout="wide")
 st.markdown("""
 <style>
 body { background-color: #f4f4f9; font-family: 'Helvetica', sans-serif; }
@@ -21,11 +21,11 @@ h1, h2, h3 { color: #2c3e50; font-weight: 600; }
 # --------------------------
 # App title
 # --------------------------
-st.title("🚗 Smart Predictive Navigation")
+st.title("MelloTech Predictive Navigation")
 st.write("Predictive congestion, optimal departure, collective routes, and live weather.")
 
 # --------------------------
-# Traffic data simulation
+# Simulated traffic data
 # --------------------------
 np.random.seed(42)
 locations = ["Home", "Work", "School", "Gym", "Mall"]
@@ -46,7 +46,12 @@ def get_weather(lat, lon):
         "code": cw["weathercode"]
     }
 
-weather_map = {0:"Clear",2:"Partly Cloudy",3:"Overcast",45:"Fog",61:"Rain",63:"Moderate Rain",65:"Heavy Rain",71:"Snow",73:"Moderate Snow",75:"Heavy Snow",95:"Thunderstorm"}
+weather_map = {
+    0:"Clear", 2:"Partly Cloudy", 3:"Overcast", 45:"Fog",
+    61:"Rain", 63:"Moderate Rain", 65:"Heavy Rain",
+    71:"Snow", 73:"Moderate Snow", 75:"Heavy Snow",
+    95:"Thunderstorm"
+}
 
 # --------------------------
 # User inputs
@@ -64,7 +69,13 @@ preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
 # --------------------------
 # Coordinates (dummy)
 # --------------------------
-coords = {"Home":(-25.7461,28.1881),"Work":(-25.7580,28.1890),"School":(-25.7500,28.2000),"Gym":(-25.7400,28.1800),"Mall":(-25.7450,28.1950)}
+coords = {
+    "Home":(-25.7461,28.1881),
+    "Work":(-25.7580,28.1890),
+    "School":(-25.7500,28.2000),
+    "Gym":(-25.7400,28.1800),
+    "Mall":(-25.7450,28.1950)
+}
 start_lat, start_lon = coords[start]
 end_lat, end_lon = coords[end]
 
@@ -111,9 +122,3 @@ if route_choice=="Less congested collectively":
 if route_choice=="Less congested collectively" and best_time != preferred_leave_time:
     st.balloons()
     st.success("🎉 You earned 10 points for coordinated commuting!")
-
-# --------------------------
-# Footer
-# --------------------------
-st.write("---")
-st.write("⚠️ Real predictive routing requires GPS, traffic, and historical data. This is a minimal, clean prototype.")
