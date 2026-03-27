@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # --------------------------
-# Dark theme + "skin" layout CSS + floating logo + shiny title
+# Dark theme + "skin" layout CSS + shiny big title
 # --------------------------
 st.markdown("""
 <style>
@@ -44,27 +44,10 @@ body {
     position: relative;
 }
 
-/* Floating logo */
-#floating-logo {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 80px;
-    height: 80px;
-    z-index: 9999;
-    animation: float-spin 4s linear infinite;
-}
-
-@keyframes float-spin {
-    0% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(180deg); }
-    100% { transform: translateY(0px) rotate(360deg); }
-}
-
 /* Shiny title effect */
 .shiny-title {
     text-align: center;
-    font-size: 5rem; /* Bigger */
+    font-size: 7rem; /* Much bigger now */
     font-weight: bold;
     background: linear-gradient(270deg, #00f0ff, #0080ff, #00f0ff);
     background-size: 400% 400%;
@@ -102,12 +85,6 @@ h1, h2, h3, .css-1d391kg {
 }
 </style>
 """, unsafe_allow_html=True)
-
-# --------------------------
-# Floating logo via web URL
-# --------------------------
-logo_url = "https://i.imgur.com/2R8J7q9.png"  # Replace with your actual logo URL
-st.markdown(f'<img src="{logo_url}" id="floating-logo">', unsafe_allow_html=True)
 
 # --------------------------
 # App title in shiny blue, bigger
