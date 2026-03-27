@@ -7,6 +7,21 @@ import numpy as np
 import datetime
 
 # --------------------------
+# 🔥 HIDE TOOLBAR (ADD THIS)
+# --------------------------
+st.markdown("""
+<style>
+header, [data-testid="stHeader"], [data-testid="stToolbar"],
+#MainMenu, footer {
+    display: none !important;
+}
+.block-container {
+    padding-top: 1rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --------------------------
 # App Title
 # --------------------------
 st.title("🚗 Smart Predictive Navigation Prototype")
@@ -39,7 +54,6 @@ preferred_leave_time = st.slider("Preferred leave time:", 6, 22, 8)
 # Predictive congestion (dummy forecasting)
 # --------------------------
 def predict_congestion(start, end, hour):
-    """Predict congestion based on random data + rush hour patterns"""
     base = traffic_matrix.loc[start, hour]
     rush_hour = 1 if hour in [7, 8, 17, 18] else 0
     predicted = min(base + rush_hour * 0.5, 1.0)
@@ -62,6 +76,7 @@ st.success(f"✅ Optimal departure time to reduce your commute: {best_time}:00")
 routes = ["Route A (fastest individually)", "Route B (less congested collectively)"]
 st.subheader("Recommended route based on collective optimization")
 route_choice = st.radio("Choose your route:", routes)
+
 if route_choice == routes[1]:
     st.info("👍 You are helping reduce overall congestion!")
 
@@ -79,4 +94,4 @@ else:
 # Footer
 # --------------------------
 st.write("---")
-st.write("⚠️ This is a **simulation prototype**. Real predictive routing requires live GPS, weather, and historical traffic data.")  
+st.write("⚠️ This is a **simulation prototype**. Real predictive routing requires live GPS, weather, and historical traffic data.")
