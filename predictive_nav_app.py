@@ -6,14 +6,23 @@ import datetime
 import requests
 
 # --------------------------
-# Page config & styling
+# Page config & CSS
 # --------------------------
 st.set_page_config(page_title="MelloTech Predictive Navigation", layout="wide")
 st.markdown("""
 <style>
-body { background-color: #f4f4f9; font-family: 'Helvetica', sans-serif; }
-h1, h2, h3 { color: #2c3e50; font-weight: 600; }
+/* Hide Streamlit header, menu, toolbar, and footer (GitHub icon included) */
+header, [data-testid="stHeader"], [data-testid="stToolbar"], 
+#MainMenu, footer {
+    display: none !important;
+}
+
+/* Page container padding and font */
 .block-container { padding: 2rem; }
+body { background-color: #f4f4f9; font-family: 'Helvetica', sans-serif; }
+
+/* Titles and sliders color */
+h1, h2, h3 { color: #2c3e50; font-weight: 600; }
 .stSlider { color: #2c3e50; }
 </style>
 """, unsafe_allow_html=True)
