@@ -180,8 +180,35 @@ def predict_congestion(hour):
 
 forecast_hours = np.arange(preferred_leave_time, preferred_leave_time+3)
 forecast_data = {h: predict_congestion(h) for h in forecast_hours}
+
+# --------------------------
+# Convert to percentages and add traffic labels
+# --------------------------
+forecast_percent = {h: round(v*100) for h,v in forecast_data.items()}
+
+def traffic_label(value):
+    if value < 30:
+        return "🟢 Light traffic"
+    elif value < 60:
+        return "🟡 Moderate traffic"
+    else:
+        return "🔴 Heavy traffic"
+
+forecast_labels = {h: traffic_label(v) for h,v in forecast_percent.items()}
+
+# --------------------------
+# Display table for users
+# --------------------------
 st.subheader("Predicted Congestion")
-st.bar_chart(pd.Series(forecast_data), use_container_width=True)
+congestion_df = pd.DataFrame({
+    "Hour": list(forecast_percent.keys()),
+    "Congestion (%)": list(forecast_percent.values()),
+    "Traffic Level": list(forecast_labels.values())
+})
+st.table(congestion_df)
+
+# Optional: keep bar chart for visual comparison
+st.bar_chart(pd.Series(forecast_percent), use_container_width=True)
 
 # --------------------------
 # Optimal departure
