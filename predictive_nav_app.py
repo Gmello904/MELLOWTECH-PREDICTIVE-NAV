@@ -88,7 +88,7 @@ h1, h2, h3, .css-1d391kg {
 # --------------------------
 # Floating logo via web URL
 # --------------------------
-logo_url = "https://i.imgur.com/2R8J7q9.png"  # Replace with your actual logo URL
+logo_url = "https://drive.google.com/uc?export=view&id=1pkJLpuvzzaGvAd4ESAiPYiAIphe5JV-h"  # Replace with your actual logo URL
 st.markdown(f'<img src="{logo_url}" id="floating-logo">', unsafe_allow_html=True)
 
 # --------------------------
