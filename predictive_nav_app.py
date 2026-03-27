@@ -1,4 +1,4 @@
-# predictive_nav_app_clean.py
+# predictive_nav_app_streamlit_map.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,8 +6,6 @@ import datetime
 import requests
 import pytz
 from datetime import datetime as dt
-import folium
-from streamlit_folium import st_folium
 
 # --------------------------
 # Page config & CSS
@@ -16,22 +14,12 @@ st.set_page_config(page_title="MelloTech Predictive Navigation", layout="wide", 
 
 st.markdown("""
 <style>
-/* Hide Streamlit header, menu, toolbar, and footer */
 header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
     display: none !important;
 }
-
-/* Page container padding and font */
 .block-container { padding: 2rem; }
 body { background-color: #f4f4f9; font-family: 'Helvetica', sans-serif; }
-
-/* Titles and sliders color */
 h1, h2, h3 { color: #2c3e50; font-weight: 600; }
-.stSlider { color: #2c3e50; }
-
-/* Optional: card style for sections */
-.stApp { background-color: #f4f4f9; }
-.css-1d391kg { background-color: #ffffff !important; border-radius: 10px; padding: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -77,7 +65,6 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1: start = st.selectbox("Start location", locations)
 with col2: end = st.selectbox("Destination", locations)
 with col3: commute_day = st.date_input("Commute date", datetime.date.today())
-
 preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
 
 # --------------------------
@@ -150,11 +137,12 @@ if route_choice=="Less congested collectively" and best_time != preferred_leave_
     st.success("🎉 You earned 10 points for coordinated commuting!")
 
 # --------------------------
-# Map display
+# Map display (Streamlit native map)
 # --------------------------
 st.subheader("🗺 Route Map")
-m = folium.Map(location=[start_lat, start_lon], zoom_start=14)
-folium.Marker([start_lat, start_lon], popup=f"Start: {start}", icon=folium.Icon(color='green')).add_to(m)
-folium.Marker([end_lat, end_lon], popup=f"End: {end}", icon=folium.Icon(color='red')).add_to(m)
-folium.PolyLine([[start_lat, start_lon],[end_lat, end_lon]], color="blue", weight=4, opacity=0.7).add_to(m)
-st_folium(m, width=700, height=500)
+map_data = pd.DataFrame({
+    'lat': [start_lat, end_lat],
+    'lon': [start_lon, end_lon],
+    'name': [f"Start: {start}", f"End: {end}"]
+})
+st.map(map_data, zoom=14)
