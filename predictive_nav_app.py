@@ -147,7 +147,7 @@ st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
 if weather['code'] in [45,61,63,65,71,73,75,95]:
     st.warning("⚠️ Bad weather detected — traffic may be slower!")
 else:
-    st.success("✅ Weather conditions are good for travel.")
+    st.success(" Weather conditions are good for travel.")
 
 # --------------------------
 # Predictive congestion
@@ -192,7 +192,7 @@ st.line_chart(pd.Series(forecast_percent), use_container_width=True)
 # Optimal departure
 # --------------------------
 best_time = min(forecast_data, key=forecast_data.get)
-st.markdown(f"<h2 style='color:#00f0ff'>🚀 Optimal departure time: {best_time}:00</h2>", unsafe_allow_html=True)
+st.markdown(f"<h2 style='color:#00f0ff'> Optimal departure time: {best_time}:00</h2>", unsafe_allow_html=True)
 
 # --------------------------
 # Collective routes
