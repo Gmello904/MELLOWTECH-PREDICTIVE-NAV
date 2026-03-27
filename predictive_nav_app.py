@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # --------------------------
-# Dark theme + "skin" layout CSS + floating logo
+# Dark theme + "skin" layout CSS + floating logo + shiny title
 # --------------------------
 st.markdown("""
 <style>
@@ -26,15 +26,15 @@ header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
     display: none !important;
 }
 
-/* General background around the app */
+/* General background */
 body {
     background-color: #121212;
 }
 
-/* App container as a "skin" */
+/* App container */
 .block-container {
     max-width: 900px;
-    margin: 2rem auto;  /* center horizontally */
+    margin: 2rem auto;
     padding: 2rem;
     background-color: #1e1e1e;
     border-radius: 15px;
@@ -61,7 +61,25 @@ body {
     100% { transform: translateY(0px) rotate(360deg); }
 }
 
-/* Titles */
+/* Shiny title effect */
+.shiny-title {
+    text-align: center;
+    font-size: 5rem; /* Bigger */
+    font-weight: bold;
+    background: linear-gradient(270deg, #00f0ff, #0080ff, #00f0ff);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s ease infinite;
+}
+
+@keyframes shine {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Titles color fallback */
 h1, h2, h3, .css-1d391kg {
     color: #ffffff;
     font-weight: 600;
@@ -92,13 +110,11 @@ logo_url = "https://i.imgur.com/2R8J7q9.png"  # Replace with your actual logo UR
 st.markdown(f'<img src="{logo_url}" id="floating-logo">', unsafe_allow_html=True)
 
 # --------------------------
-# App title in middle, light blue, bold
+# App title in shiny blue, bigger
 # --------------------------
 st.markdown(
     """
-    <h1 style='text-align: center; color: #ADD8E6; font-weight: bold;'>
-        MELLOWTECH
-    </h1>
+    <h1 class="shiny-title">MELLOWTECH</h1>
     """,
     unsafe_allow_html=True
 )
