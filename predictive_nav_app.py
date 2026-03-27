@@ -6,6 +6,7 @@ import datetime
 import requests
 import pytz
 from datetime import datetime as dt
+import base64
 
 # --------------------------
 # Page config
@@ -13,11 +14,11 @@ from datetime import datetime as dt
 st.set_page_config(
     page_title="MelloTech Predictive Navigation",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
 )
 
 # --------------------------
-# Dark/dash CSS skin
+# Dark theme + "skin" layout CSS + floating logo
 # --------------------------
 st.markdown("""
 <style>
@@ -26,54 +27,75 @@ header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
     display: none !important;
 }
 
-/* General dark background and card style */
-body, .block-container {
+/* General background around the app */
+body {
     background-color: #121212;
+}
+
+/* App container as a "skin" */
+.block-container {
+    max-width: 900px;
+    margin: 2rem auto;  /* center horizontally */
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
     color: #e0e0e0;
     font-family: 'Helvetica', sans-serif;
-    padding: 1rem 2rem;
+    position: relative;
 }
-h1, h2, h3 {
+
+/* Floating logo */
+#floating-logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    z-index: 9999;
+    animation: float-spin 4s linear infinite;
+}
+
+@keyframes float-spin {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(180deg); }
+    100% { transform: translateY(0px) rotate(360deg); }
+}
+
+/* Titles */
+h1, h2, h3, .css-1d391kg {
     color: #ffffff;
     font-weight: 600;
 }
-.stButton>button {
-    background-color: #1f77b4;
-    color: white;
-    border-radius: 0.5rem;
-    padding: 0.4rem 1rem;
-    font-weight: 600;
-}
-.stSlider>div>div>div {
-    color: #e0e0e0;
-}
-.stSelectbox>div>div>div {
-    color: #e0e0e0;
+
+/* Charts background */
+.css-10trblm {  
+    background-color: #2c2c2c;
 }
 
-/* Card style sections */
-.section {
-    background-color: #1e1e1e;
-    padding: 1rem 1.5rem;
-    border-radius: 0.7rem;
-    margin-bottom: 1rem;
-}
-
-/* Streamlit bar chart */
-.css-10trblm {
-    background-color: #1e1e1e;
-}
+/* Map container rounded */
 .stMap {
-    border-radius: 0.7rem;
-    padding: 0.5rem;
+    border-radius: 10px;
+}
+
+/* Alerts and info boxes */
+.stAlert {
+    border-radius: 0.5rem;
+    font-size: 1rem;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --------------------------
-# Logo
+# Floating logo (base64 embedded)
 # --------------------------
-st.image("logo.png", width=120)
+def display_logo(path="logo.png", width=80):
+    with open(path, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    st.markdown(f'<img src="data:image/png;base64,{encoded}" id="floating-logo" width="{width}">', unsafe_allow_html=True)
+
+display_logo("logo.png", width=80)
 
 # --------------------------
 # App title
@@ -113,17 +135,14 @@ weather_map = {
 # --------------------------
 # User inputs
 # --------------------------
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1,1,1])
-    with col1: start = st.selectbox("Start location", locations)
-    with col2: end = st.selectbox("Destination", locations)
-    with col3: commute_day = st.date_input("Commute date", datetime.date.today())
-    preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
-    st.markdown('</div>', unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1,1,1])
+with col1: start = st.selectbox("Start location", locations)
+with col2: end = st.selectbox("Destination", locations)
+with col3: commute_day = st.date_input("Commute date", datetime.date.today())
+preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
 
 # --------------------------
-# Coordinates
+# Coordinates (dummy)
 # --------------------------
 coords = {
     "Home":(-25.7461,28.1881),
@@ -136,31 +155,25 @@ start_lat, start_lon = coords[start]
 end_lat, end_lon = coords[end]
 
 # --------------------------
-# Current time
+# Current Time display
 # --------------------------
 timezone = pytz.timezone("Africa/Johannesburg")
 current_time = dt.now(timezone).strftime("%H:%M:%S")
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.subheader("⏱ Current Time at Start Location")
-    st.write(current_time)
-    st.markdown('</div>', unsafe_allow_html=True)
+st.subheader("⏱ Current Time at Start Location")
+st.write(current_time)
 
 # --------------------------
-# Weather
+# Weather display
 # --------------------------
 weather = get_weather(start_lat, start_lon)
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.subheader("🌦 Live Weather at Start Location")
-    st.write(f"Temperature: {weather['temperature']}°C")
-    st.write(f"Wind: {weather['windspeed']} km/h, Direction: {weather['winddir']}°")
-    st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
-    if weather['code'] in [45,61,63,65,71,73,75,95]:
-        st.warning("⚠️ Bad weather detected — traffic may be slower!")
-    else:
-        st.success("✅ Weather conditions are good for travel.")
-    st.markdown('</div>', unsafe_allow_html=True)
+st.subheader("🌦 Live Weather at Start Location")
+st.write(f"Temperature: {weather['temperature']}°C")
+st.write(f"Wind: {weather['windspeed']} km/h, Direction: {weather['winddir']}°")
+st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
+if weather['code'] in [45,61,63,65,71,73,75,95]:
+    st.warning("⚠️ Bad weather detected — traffic may be slower!")
+else:
+    st.success("✅ Weather conditions are good for travel.")
 
 # --------------------------
 # Predictive congestion
@@ -173,31 +186,22 @@ def predict_congestion(hour):
 
 forecast_hours = np.arange(preferred_leave_time, preferred_leave_time+3)
 forecast_data = {h: predict_congestion(h) for h in forecast_hours}
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.subheader("Predicted Congestion")
-    st.bar_chart(pd.Series(forecast_data), use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+st.subheader("Predicted Congestion")
+st.bar_chart(pd.Series(forecast_data), use_container_width=True)
 
 # --------------------------
 # Optimal departure
 # --------------------------
 best_time = min(forecast_data, key=forecast_data.get)
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.success(f"Optimal departure time: {best_time}:00")
-    st.markdown('</div>', unsafe_allow_html=True)
+st.success(f"Optimal departure time: {best_time}:00")
 
 # --------------------------
 # Collective routes
 # --------------------------
 routes = ["Fastest individually", "Less congested collectively"]
 route_choice = st.radio("Recommended route", routes)
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    if route_choice=="Less congested collectively":
-        st.info("You are helping reduce overall congestion!")
-    st.markdown('</div>', unsafe_allow_html=True)
+if route_choice=="Less congested collectively":
+    st.info("You are helping reduce overall congestion!")
 
 # --------------------------
 # Rewards
@@ -209,13 +213,10 @@ if route_choice=="Less congested collectively" and best_time != preferred_leave_
 # --------------------------
 # Map display
 # --------------------------
-with st.container():
-    st.markdown('<div class="section">', unsafe_allow_html=True)
-    st.subheader("🗺 Route Map")
-    map_data = pd.DataFrame({
-        'lat': [start_lat, end_lat],
-        'lon': [start_lon, end_lon],
-        'name': [f"Start: {start}", f"End: {end}"]
-    })
-    st.map(map_data, zoom=14)
-    st.markdown('</div>', unsafe_allow_html=True)
+st.subheader("🗺 Route Map")
+map_data = pd.DataFrame({
+    'lat': [start_lat, end_lat],
+    'lon': [start_lon, end_lon],
+    'name': [f"Start: {start}", f"End: {end}"]
+})
+st.map(map_data, zoom=14)
