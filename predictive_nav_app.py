@@ -1,4 +1,4 @@
-# predictive_nav_app_skin_web_logo.py
+# predictive_nav_app_shiny.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,13 +11,13 @@ from datetime import datetime as dt
 # Page config
 # --------------------------
 st.set_page_config(
-    page_title="MELLOWTECH",
+    page_title="MELLOWTECH Navigation",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # --------------------------
-# Dark theme + "skin" layout CSS + shiny big title
+# CSS for dark theme + shiny title
 # --------------------------
 st.markdown("""
 <style>
@@ -29,6 +29,8 @@ header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
 /* General background */
 body {
     background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Helvetica', sans-serif;
 }
 
 /* App container */
@@ -39,33 +41,16 @@ body {
     background-color: #1e1e1e;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0,0,0,0.7);
-    color: #e0e0e0;
-    font-family: 'Helvetica', sans-serif;
-    position: relative;
 }
 
-/* Shiny title effect */
-.shiny-title {
+/* Shiny header for MELLOWTECH */
+#main-title {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #00f0ff;
     text-align: center;
-    font-size: 7rem; /* Much bigger now */
-    font-weight: bold;
-    background: linear-gradient(270deg, #00f0ff, #0080ff, #00f0ff);
-    background-size: 400% 400%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 3s ease infinite;
-}
-
-@keyframes shine {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Titles color fallback */
-h1, h2, h3, .css-1d391kg {
-    color: #ffffff;
-    font-weight: 600;
+    text-shadow: 0 0 5px #00f0ff, 0 0 10px #00b0ff, 0 0 20px #00a0ff;
+    margin-bottom: 1rem;
 }
 
 /* Charts background */
@@ -73,7 +58,7 @@ h1, h2, h3, .css-1d391kg {
     background-color: #2c2c2c;
 }
 
-/* Map container rounded */
+/* Map rounded */
 .stMap {
     border-radius: 10px;
 }
@@ -87,14 +72,9 @@ h1, h2, h3, .css-1d391kg {
 """, unsafe_allow_html=True)
 
 # --------------------------
-# App title in shiny blue, bigger
+# App title
 # --------------------------
-st.markdown(
-    """
-    <h1 class="shiny-title">MELLOWTECH</h1>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown('<div id="main-title">MELLOWTECH</div>', unsafe_allow_html=True)
 st.write("Predictive congestion, optimal departure, collective routes, live weather, time, and map visualization.")
 
 # --------------------------
@@ -197,7 +177,7 @@ def traffic_label(value):
 forecast_labels = {h: traffic_label(v) for h,v in forecast_percent.items()}
 
 # --------------------------
-# Display table for users
+# Display table & chart
 # --------------------------
 st.subheader("Predicted Congestion")
 congestion_df = pd.DataFrame({
@@ -206,15 +186,13 @@ congestion_df = pd.DataFrame({
     "Traffic Level": list(forecast_labels.values())
 })
 st.table(congestion_df)
-
-# Optional: keep bar chart for visual comparison
-st.bar_chart(pd.Series(forecast_percent), use_container_width=True)
+st.line_chart(pd.Series(forecast_percent), use_container_width=True)
 
 # --------------------------
 # Optimal departure
 # --------------------------
 best_time = min(forecast_data, key=forecast_data.get)
-st.success(f"Optimal departure time: {best_time}:00")
+st.markdown(f"<h2 style='color:#00f0ff'>🚀 Optimal departure time: {best_time}:00</h2>", unsafe_allow_html=True)
 
 # --------------------------
 # Collective routes
