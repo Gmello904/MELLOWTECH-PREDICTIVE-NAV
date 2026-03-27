@@ -6,13 +6,12 @@ import datetime
 import requests
 import pytz
 from datetime import datetime as dt
-import pydeck as pdk
 
 # --------------------------
 # Page config
 # --------------------------
 st.set_page_config(
-    page_title="MelloTech Predictive Navigation",
+    page_title="MELLOWTECH",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -35,7 +34,7 @@ body {
 /* App container as a "skin" */
 .block-container {
     max-width: 900px;
-    margin: 2rem auto;
+    margin: 2rem auto;  /* center horizontally */
     padding: 2rem;
     background-color: #1e1e1e;
     border-radius: 15px;
@@ -93,9 +92,16 @@ logo_url = "https://i.imgur.com/2R8J7q9.png"  # Replace with your actual logo UR
 st.markdown(f'<img src="{logo_url}" id="floating-logo">', unsafe_allow_html=True)
 
 # --------------------------
-# App title
+# App title in middle, light blue, bold
 # --------------------------
-st.title("MelloTech Predictive Navigation")
+st.markdown(
+    """
+    <h1 style='text-align: center; color: #ADD8E6; font-weight: bold;'>
+        MELLOWTECH
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 st.write("Predictive congestion, optimal departure, collective routes, live weather, time, and map visualization.")
 
 # --------------------------
@@ -208,6 +214,7 @@ congestion_df = pd.DataFrame({
 })
 st.table(congestion_df)
 
+# Optional: keep bar chart for visual comparison
 st.bar_chart(pd.Series(forecast_percent), use_container_width=True)
 
 # --------------------------
@@ -232,39 +239,12 @@ if route_choice=="Less congested collectively" and best_time != preferred_leave_
     st.success("🎉 You earned 10 points for coordinated commuting!")
 
 # --------------------------
-# Map display with MELLOWTECH in light blue bold
+# Map display
 # --------------------------
 st.subheader("🗺 Route Map")
-
 map_data = pd.DataFrame({
     'lat': [start_lat, end_lat],
     'lon': [start_lon, end_lon],
-    'label': ["MELLOWTECH", "MELLOWTECH"]
+    'name': [f"Start: {start}", f"End: {end}"]
 })
-
-layer = pdk.Layer(
-    "TextLayer",
-    data=map_data,
-    get_position='[lon, lat]',
-    get_text='label',
-    get_color='[173,216,230]',  # Light blue
-    get_size=40,
-    get_angle=0,
-    get_alignment_baseline="'bottom'",
-    pickable=True
-)
-
-view_state = pdk.ViewState(
-    latitude=(start_lat + end_lat)/2,
-    longitude=(start_lon + end_lon)/2,
-    zoom=14,
-    pitch=0
-)
-
-r = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    tooltip={"text": "{label}"}
-)
-
-st.pydeck_chart(r)
+st.map(map_data, zoom=14)
