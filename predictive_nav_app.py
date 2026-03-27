@@ -1,4 +1,4 @@
-# predictive_nav_app_skin.py
+# predictive_nav_app_skin_web_logo.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,7 +6,6 @@ import datetime
 import requests
 import pytz
 from datetime import datetime as dt
-import base64
 
 # --------------------------
 # Page config
@@ -87,15 +86,10 @@ h1, h2, h3, .css-1d391kg {
 """, unsafe_allow_html=True)
 
 # --------------------------
-# Floating logo (base64 embedded)
+# Floating logo via web URL
 # --------------------------
-def display_logo(path="logo.png", width=80):
-    with open(path, "rb") as f:
-        data = f.read()
-    encoded = base64.b64encode(data).decode()
-    st.markdown(f'<img src="data:image/png;base64,{encoded}" id="floating-logo" width="{width}">', unsafe_allow_html=True)
-
-display_logo("logo.png", width=80)
+logo_url = "https://i.imgur.com/2R8J7q9.png"  # Replace with your actual logo URL
+st.markdown(f'<img src="{logo_url}" id="floating-logo">', unsafe_allow_html=True)
 
 # --------------------------
 # App title
