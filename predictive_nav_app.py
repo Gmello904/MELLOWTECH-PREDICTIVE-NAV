@@ -1,4 +1,4 @@
-# predictive_nav_app_streamlit_map.py
+# predictive_nav_app_dark.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,18 +8,57 @@ import pytz
 from datetime import datetime as dt
 
 # --------------------------
-# Page config & CSS
+# Page config
 # --------------------------
-st.set_page_config(page_title="MelloTech Predictive Navigation", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="MelloTech Predictive Navigation",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
+# --------------------------
+# Dark theme CSS
+# --------------------------
 st.markdown("""
 <style>
+/* Hide Streamlit branding */
 header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
     display: none !important;
 }
-.block-container { padding: 2rem; }
-body { background-color: #f4f4f9; font-family: 'Helvetica', sans-serif; }
-h1, h2, h3 { color: #2c3e50; font-weight: 600; }
+
+/* General dark background */
+body, .block-container {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Helvetica', sans-serif;
+    padding: 2rem;
+}
+
+/* Titles */
+h1, h2, h3, .css-1d391kg {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Charts */
+.css-10trblm {  /* Streamlit bar chart background */
+    background-color: #1e1e1e;
+}
+
+/* Selectbox, slider text */
+.css-1d391kg, .st-bx {
+    color: #e0e0e0;
+}
+
+/* Success and info boxes */
+.stAlert {
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Streamlit map container */
+.stMap { border-radius: 0.5rem; }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -113,7 +152,7 @@ def predict_congestion(hour):
 forecast_hours = np.arange(preferred_leave_time, preferred_leave_time+3)
 forecast_data = {h: predict_congestion(h) for h in forecast_hours}
 st.subheader("Predicted Congestion")
-st.bar_chart(pd.Series(forecast_data))
+st.bar_chart(pd.Series(forecast_data), use_container_width=True)
 
 # --------------------------
 # Optimal departure
@@ -137,7 +176,7 @@ if route_choice=="Less congested collectively" and best_time != preferred_leave_
     st.success("🎉 You earned 10 points for coordinated commuting!")
 
 # --------------------------
-# Map display (Streamlit native map)
+# Map display
 # --------------------------
 st.subheader("🗺 Route Map")
 map_data = pd.DataFrame({
