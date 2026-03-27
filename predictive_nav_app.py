@@ -1,9 +1,13 @@
-# predictive_nav_app_clean.py
+# predictive_nav_app_full_map.py
 import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
 import requests
+import pytz
+from datetime import datetime as dt
+import folium
+from streamlit_folium import st_folium
 
 # --------------------------
 # Page config & CSS
@@ -31,7 +35,7 @@ h1, h2, h3 { color: #2c3e50; font-weight: 600; }
 # App title
 # --------------------------
 st.title("MelloTech Predictive Navigation")
-st.write("Predictive congestion, optimal departure, collective routes, and live weather.")
+st.write("Predictive congestion, optimal departure, collective routes, live weather, time, and map visualization.")
 
 # --------------------------
 # Simulated traffic data
@@ -89,6 +93,14 @@ start_lat, start_lon = coords[start]
 end_lat, end_lon = coords[end]
 
 # --------------------------
+# Current Time display
+# --------------------------
+timezone = pytz.timezone("Africa/Johannesburg")
+current_time = dt.now(timezone).strftime("%H:%M:%S")
+st.subheader("⏱ Current Time at Start Location")
+st.write(current_time)
+
+# --------------------------
 # Weather display
 # --------------------------
 weather = get_weather(start_lat, start_lon)
@@ -96,6 +108,10 @@ st.subheader("🌦 Live Weather at Start Location")
 st.write(f"Temperature: {weather['temperature']}°C")
 st.write(f"Wind: {weather['windspeed']} km/h, Direction: {weather['winddir']}°")
 st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
+if weather['code'] in [45,61,63,65,71,73,75,95]:
+    st.warning("⚠️ Bad weather detected — traffic may be slower!")
+else:
+    st.success("✅ Weather conditions are good for travel.")
 
 # --------------------------
 # Predictive congestion
@@ -131,3 +147,16 @@ if route_choice=="Less congested collectively":
 if route_choice=="Less congested collectively" and best_time != preferred_leave_time:
     st.balloons()
     st.success("🎉 You earned 10 points for coordinated commuting!")
+
+# --------------------------
+# Map display
+# --------------------------
+st.subheader("🗺 Route Map")
+m = folium.Map(location=[start_lat, start_lon], zoom_start=14)
+# Add markers
+folium.Marker([start_lat, start_lon], popup=f"Start: {start}", icon=folium.Icon(color='green')).add_to(m)
+folium.Marker([end_lat, end_lon], popup=f"End: {end}", icon=folium.Icon(color='red')).add_to(m)
+# Draw a line
+folium.PolyLine([[start_lat, start_lon],[end_lat, end_lon]], color="blue", weight=4, opacity=0.7).add_to(m)
+# Render map in Streamlit
+st_folium(m, width=700, height=500)
