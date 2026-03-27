@@ -1,4 +1,4 @@
-# predictive_nav_app_dark.py
+# predictive_nav_app_skin.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -13,11 +13,11 @@ from datetime import datetime as dt
 st.set_page_config(
     page_title="MelloTech Predictive Navigation",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="collapsed"
 )
 
 # --------------------------
-# Dark theme CSS
+# Dark/dash CSS skin
 # --------------------------
 st.markdown("""
 <style>
@@ -26,41 +26,54 @@ header, [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer {
     display: none !important;
 }
 
-/* General dark background */
+/* General dark background and card style */
 body, .block-container {
     background-color: #121212;
     color: #e0e0e0;
     font-family: 'Helvetica', sans-serif;
-    padding: 2rem;
+    padding: 1rem 2rem;
 }
-
-/* Titles */
-h1, h2, h3, .css-1d391kg {
+h1, h2, h3 {
     color: #ffffff;
     font-weight: 600;
 }
-
-/* Charts */
-.css-10trblm {  /* Streamlit bar chart background */
-    background-color: #1e1e1e;
+.stButton>button {
+    background-color: #1f77b4;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.4rem 1rem;
+    font-weight: 600;
 }
-
-/* Selectbox, slider text */
-.css-1d391kg, .st-bx {
+.stSlider>div>div>div {
+    color: #e0e0e0;
+}
+.stSelectbox>div>div>div {
     color: #e0e0e0;
 }
 
-/* Success and info boxes */
-.stAlert {
-    border-radius: 0.5rem;
-    font-size: 1rem;
+/* Card style sections */
+.section {
+    background-color: #1e1e1e;
+    padding: 1rem 1.5rem;
+    border-radius: 0.7rem;
+    margin-bottom: 1rem;
 }
 
-/* Streamlit map container */
-.stMap { border-radius: 0.5rem; }
-
+/* Streamlit bar chart */
+.css-10trblm {
+    background-color: #1e1e1e;
+}
+.stMap {
+    border-radius: 0.7rem;
+    padding: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# --------------------------
+# Logo
+# --------------------------
+st.image("logo.png", width=120)
 
 # --------------------------
 # App title
@@ -100,14 +113,17 @@ weather_map = {
 # --------------------------
 # User inputs
 # --------------------------
-col1, col2, col3 = st.columns([1,1,1])
-with col1: start = st.selectbox("Start location", locations)
-with col2: end = st.selectbox("Destination", locations)
-with col3: commute_day = st.date_input("Commute date", datetime.date.today())
-preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1,1,1])
+    with col1: start = st.selectbox("Start location", locations)
+    with col2: end = st.selectbox("Destination", locations)
+    with col3: commute_day = st.date_input("Commute date", datetime.date.today())
+    preferred_leave_time = st.slider("Preferred leave time", 6, 22, 8)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
-# Coordinates (dummy)
+# Coordinates
 # --------------------------
 coords = {
     "Home":(-25.7461,28.1881),
@@ -120,25 +136,31 @@ start_lat, start_lon = coords[start]
 end_lat, end_lon = coords[end]
 
 # --------------------------
-# Current Time display
+# Current time
 # --------------------------
 timezone = pytz.timezone("Africa/Johannesburg")
 current_time = dt.now(timezone).strftime("%H:%M:%S")
-st.subheader("⏱ Current Time at Start Location")
-st.write(current_time)
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.subheader("⏱ Current Time at Start Location")
+    st.write(current_time)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
-# Weather display
+# Weather
 # --------------------------
 weather = get_weather(start_lat, start_lon)
-st.subheader("🌦 Live Weather at Start Location")
-st.write(f"Temperature: {weather['temperature']}°C")
-st.write(f"Wind: {weather['windspeed']} km/h, Direction: {weather['winddir']}°")
-st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
-if weather['code'] in [45,61,63,65,71,73,75,95]:
-    st.warning("⚠️ Bad weather detected — traffic may be slower!")
-else:
-    st.success("✅ Weather conditions are good for travel.")
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.subheader("🌦 Live Weather at Start Location")
+    st.write(f"Temperature: {weather['temperature']}°C")
+    st.write(f"Wind: {weather['windspeed']} km/h, Direction: {weather['winddir']}°")
+    st.write(f"Condition: {weather_map.get(weather['code'], 'Unknown')}")
+    if weather['code'] in [45,61,63,65,71,73,75,95]:
+        st.warning("⚠️ Bad weather detected — traffic may be slower!")
+    else:
+        st.success("✅ Weather conditions are good for travel.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
 # Predictive congestion
@@ -151,22 +173,31 @@ def predict_congestion(hour):
 
 forecast_hours = np.arange(preferred_leave_time, preferred_leave_time+3)
 forecast_data = {h: predict_congestion(h) for h in forecast_hours}
-st.subheader("Predicted Congestion")
-st.bar_chart(pd.Series(forecast_data), use_container_width=True)
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.subheader("Predicted Congestion")
+    st.bar_chart(pd.Series(forecast_data), use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
 # Optimal departure
 # --------------------------
 best_time = min(forecast_data, key=forecast_data.get)
-st.success(f"Optimal departure time: {best_time}:00")
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.success(f"Optimal departure time: {best_time}:00")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
 # Collective routes
 # --------------------------
 routes = ["Fastest individually", "Less congested collectively"]
 route_choice = st.radio("Recommended route", routes)
-if route_choice=="Less congested collectively":
-    st.info("You are helping reduce overall congestion!")
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    if route_choice=="Less congested collectively":
+        st.info("You are helping reduce overall congestion!")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------
 # Rewards
@@ -178,10 +209,13 @@ if route_choice=="Less congested collectively" and best_time != preferred_leave_
 # --------------------------
 # Map display
 # --------------------------
-st.subheader("🗺 Route Map")
-map_data = pd.DataFrame({
-    'lat': [start_lat, end_lat],
-    'lon': [start_lon, end_lon],
-    'name': [f"Start: {start}", f"End: {end}"]
-})
-st.map(map_data, zoom=14)
+with st.container():
+    st.markdown('<div class="section">', unsafe_allow_html=True)
+    st.subheader("🗺 Route Map")
+    map_data = pd.DataFrame({
+        'lat': [start_lat, end_lat],
+        'lon': [start_lon, end_lon],
+        'name': [f"Start: {start}", f"End: {end}"]
+    })
+    st.map(map_data, zoom=14)
+    st.markdown('</div>', unsafe_allow_html=True)
