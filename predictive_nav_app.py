@@ -12,16 +12,16 @@ from datetime import datetime as dt
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # --------------------------------------------------
-# PREMIUM UI DESIGN
+# PREMIUM DESIGN
 # --------------------------------------------------
 st.markdown("""
 <style>
 
-/* Remove Streamlit branding */
+/* Hide Streamlit branding */
 header, footer, #MainMenu {visibility:hidden;}
 
 /* Background */
@@ -29,20 +29,21 @@ body {
     background: linear-gradient(180deg,#0b0f17,#05070c);
 }
 
-/* Main card */
+/* Main container */
 .block-container{
-    max-width:1100px;
-    margin:auto;
-    padding:2.5rem;
-    background:#121826;
-    border-radius:20px;
-    box-shadow:0 0 40px rgba(0,0,0,0.8);
+    padding:2rem;
+    max-width:1200px;
 }
 
-/* MELLOWTECH TITLE */
+/* Sidebar styling */
+section[data-testid="stSidebar"]{
+    background:#0f1624;
+}
+
+/* Title */
 .title{
     text-align:center;
-    font-size:70px;
+    font-size:60px;
     font-weight:900;
     color:#00eaff;
     text-shadow:
@@ -55,37 +56,36 @@ body {
 .subtitle{
     text-align:center;
     color:#9aa4b2;
-    margin-bottom:30px;
-    font-size:18px;
+    margin-bottom:20px;
 }
 
-/* Cards */
-.metric-card{
-    background:#1b2335;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-}
-
-/* Mobile responsiveness */
+/* Mobile */
 @media(max-width:768px){
-.title{font-size:42px;}
+.title{font-size:40px;}
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# HEADER
+# SIDEBAR NAVIGATION
 # --------------------------------------------------
-st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>AI Predictive Navigation & Smart Mobility Intelligence</div>", unsafe_allow_html=True)
+st.sidebar.title("MELLOWTECH")
+
+menu = st.sidebar.radio(
+    "Navigation",
+    ["Dashboard",
+     "Predict Traffic",
+     "Smart Routes",
+     "Live Map",
+     "Reports",
+     "Profile"]
+)
 
 # --------------------------------------------------
-# SIMULATED DATA ENGINE
+# DATA ENGINE
 # --------------------------------------------------
 np.random.seed(42)
-
 locations = ["Home","Work","School","Gym","Mall"]
 hours = np.arange(6,22)
 
@@ -95,8 +95,16 @@ traffic_matrix = pd.DataFrame(
     columns=hours
 )
 
+coords={
+"Home":(-25.7461,28.1881),
+"Work":(-25.7580,28.1890),
+"School":(-25.7500,28.2000),
+"Gym":(-25.7400,28.1800),
+"Mall":(-25.7450,28.1950)
+}
+
 # --------------------------------------------------
-# WEATHER API
+# WEATHER
 # --------------------------------------------------
 def get_weather(lat,lon):
     url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
@@ -114,124 +122,134 @@ weather_map={
 95:"Thunderstorm"
 }
 
-# --------------------------------------------------
-# INPUT SECTION
-# --------------------------------------------------
-col1,col2,col3=st.columns(3)
-
-with col1:
-    start=st.selectbox("Start Location",locations)
-
-with col2:
-    end=st.selectbox("Destination",locations)
-
-with col3:
-    commute_date=st.date_input("Travel Date",datetime.date.today())
-
-leave_time=st.slider("Preferred Departure Time",6,22,8)
-
-# --------------------------------------------------
-# COORDINATES
-# --------------------------------------------------
-coords={
-"Home":(-25.7461,28.1881),
-"Work":(-25.7580,28.1890),
-"School":(-25.7500,28.2000),
-"Gym":(-25.7400,28.1800),
-"Mall":(-25.7450,28.1950)
-}
-
-lat,lon=coords[start]
-
-# --------------------------------------------------
-# LIVE STATUS DASHBOARD
-# --------------------------------------------------
-timezone=pytz.timezone("Africa/Johannesburg")
-current_time=dt.now(timezone).strftime("%H:%M:%S")
-
-colA,colB=st.columns(2)
-
-with colA:
-    st.subheader("Current Time")
-    st.success(current_time)
-
-with colB:
-    weather=get_weather(lat,lon)
-    st.subheader("Live Weather")
-    st.info(weather_map.get(weather["weathercode"],"Unknown"))
-
-# --------------------------------------------------
-# TRAFFIC AI PREDICTION
-# --------------------------------------------------
 bad_weather=[45,61,63,65,95]
 
-def predict(hour):
-    base=traffic_matrix.loc[start,hour]
-    rush=0.5 if hour in [7,8,17,18] else 0
-    weather_penalty=0.2 if weather["weathercode"] in bad_weather else 0
-    return min(base+rush+weather_penalty,1)
+# ==================================================
+# DASHBOARD
+# ==================================================
+if menu=="Dashboard":
 
-forecast_hours=np.arange(leave_time,leave_time+3)
-forecast={h:round(predict(h)*100) for h in forecast_hours}
+    st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>AI Mobility Intelligence Dashboard</div>", unsafe_allow_html=True)
 
-# Traffic Lights
-def traffic_label(v):
-    if v<30:
-        return "🟢 Light Traffic"
-    elif v<60:
-        return "🟡 Moderate Traffic"
-    else:
-        return "🔴 Heavy Traffic"
+    timezone=pytz.timezone("Africa/Johannesburg")
+    current_time=dt.now(timezone).strftime("%H:%M:%S")
 
-labels={h:traffic_label(v) for h,v in forecast.items()}
+    col1,col2,col3=st.columns(3)
 
-df=pd.DataFrame({
-"Hour":forecast.keys(),
-"Congestion %":forecast.values(),
-"Traffic":labels.values()
-})
+    col1.metric("System Status","ONLINE")
+    col2.metric("Current Time",current_time)
+    col3.metric("Active AI Engine","Running")
 
-st.subheader("AI Traffic Forecast")
-st.table(df)
+# ==================================================
+# PREDICT TRAFFIC
+# ==================================================
+elif menu=="Predict Traffic":
 
-st.line_chart(pd.Series(forecast),use_container_width=True)
+    st.header("AI Traffic Prediction")
 
-# --------------------------------------------------
-# OPTIMAL DEPARTURE
-# --------------------------------------------------
-best=min(forecast,key=forecast.get)
+    col1,col2,col3=st.columns(3)
 
-st.markdown(
-f"<h2 style='text-align:center;color:#00eaff'>Optimal Departure Time: {best}:00</h2>",
-unsafe_allow_html=True
-)
+    with col1:
+        start=st.selectbox("Start Location",locations)
 
-# --------------------------------------------------
-# SMART ROUTE SYSTEM
-# --------------------------------------------------
-route=st.radio(
-"Route Optimization Mode",
-["Fastest Route","Collective Smart Route"]
-)
+    with col2:
+        end=st.selectbox("Destination",locations)
 
-if route=="Collective Smart Route":
-    st.info("You contribute to reducing Gauteng congestion.")
+    with col3:
+        leave_time=st.slider("Departure Time",6,22,8)
 
-# --------------------------------------------------
-# REWARD SYSTEM
-# --------------------------------------------------
-if route=="Collective Smart Route" and best!=leave_time:
-    st.balloons()
-    st.success("🎉 Smart Mobility Reward +10 Points")
+    lat,lon=coords[start]
+    weather=get_weather(lat,lon)
 
-# --------------------------------------------------
-# MAP VISUALIZATION
-# --------------------------------------------------
-st.subheader("Live Route Map")
+    st.info(f"Weather: {weather_map.get(weather['weathercode'],'Unknown')}")
 
-map_data=pd.DataFrame({
-"lat":[coords[start][0],coords[end][0]],
-"lon":[coords[start][1],coords[end][1]]
-})
+    def predict(hour):
+        base=traffic_matrix.loc[start,hour]
+        rush=0.5 if hour in [7,8,17,18] else 0
+        penalty=0.2 if weather["weathercode"] in bad_weather else 0
+        return min(base+rush+penalty,1)
 
-st.map(map_data,zoom=14)
+    forecast_hours=np.arange(leave_time,leave_time+3)
+    forecast={h:round(predict(h)*100) for h in forecast_hours}
+
+    def label(v):
+        if v<30:
+            return "🟢 Light"
+        elif v<60:
+            return "🟡 Moderate"
+        else:
+            return "🔴 Heavy"
+
+    df=pd.DataFrame({
+        "Hour":forecast.keys(),
+        "Congestion %":forecast.values(),
+        "Traffic":[label(v) for v in forecast.values()]
+    })
+
+    st.table(df)
+    st.line_chart(pd.Series(forecast),use_container_width=True)
+
+    best=min(forecast,key=forecast.get)
+    st.success(f"Optimal Departure: {best}:00")
+
+# ==================================================
+# SMART ROUTES
+# ==================================================
+elif menu=="Smart Routes":
+
+    st.header("Smart Route Optimization")
+
+    route=st.radio(
+        "Select Mode",
+        ["Fastest Individual Route",
+         "Collective Smart Route"]
+    )
+
+    if route=="Collective Smart Route":
+        st.info("You are reducing congestion across Gauteng.")
+        st.balloons()
+        st.success("Reward +10 Smart Mobility Points")
+
+# ==================================================
+# LIVE MAP
+# ==================================================
+elif menu=="Live Map":
+
+    st.header("Live Route Map")
+
+    start,end="Home","Work"
+
+    map_data=pd.DataFrame({
+        "lat":[coords[start][0],coords[end][0]],
+        "lon":[coords[start][1],coords[end][1]]
+    })
+
+    st.map(map_data,zoom=14)
+
+# ==================================================
+# REPORTS
+# ==================================================
+elif menu=="Reports":
+
+    st.header("Report Traffic Issue")
+
+    issue=st.selectbox(
+        "Issue Type",
+        ["Accident","Traffic Jam","Roadblock","Pothole"]
+    )
+
+    if st.button("Submit Report"):
+        st.success("Report Successfully Submitted")
+
+# ==================================================
+# PROFILE
+# ==================================================
+elif menu=="Profile":
+
+    st.header("User Profile")
+
+    st.text_input("Home Location")
+    st.text_input("Work Location")
+
+    st.success("Profile Active")
