@@ -15,38 +15,49 @@ st.set_page_config(
 )
 
 # --------------------------
-# STYLE
+# STYLE (BLUE + RED LIGHT BACK)
 # --------------------------
 st.markdown("""
 <style>
 
-/* Hide Streamlit menu */
-header, #MainMenu, footer {
-    visibility:hidden;
-}
+/* Hide Streamlit branding */
+header, #MainMenu, footer {visibility:hidden;}
 
-/* Dark Theme */
+/* Background */
 body{
-    background:#121212;
-    color:white;
+background:#121212;
+color:white;
 }
 
-/* Center container */
+/* App container */
 .block-container{
-    max-width:1100px;
-    margin:auto;
-    background:#1e1e1e;
-    padding:2rem;
-    border-radius:18px;
+max-width:900px;
+margin:auto;
+background:#1e1e1e;
+padding:2rem;
+border-radius:18px;
+box-shadow:0 0 25px rgba(0,0,0,0.8);
 }
 
-/* Glowing title */
+/* SHINY TITLE */
 #title{
 font-size:4rem;
 font-weight:900;
 text-align:center;
 color:#00f0ff;
-text-shadow:0 0 5px #00f0ff,0 0 15px #0099ff;
+text-shadow:
+0 0 5px #00f0ff,
+0 0 15px #00b0ff,
+0 0 30px #0099ff;
+}
+
+/* Section cards */
+.section{
+background:#2a2a2a;
+padding:25px;
+border-radius:15px;
+margin-top:40px;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
 }
 
 </style>
@@ -56,17 +67,7 @@ text-shadow:0 0 5px #00f0ff,0 0 15px #0099ff;
 # TITLE
 # --------------------------
 st.markdown('<div id="title">MELLOWTECH</div>', unsafe_allow_html=True)
-
-# --------------------------
-# SWIPE PAGES (TABS)
-# --------------------------
-tabs = st.tabs([
-"🏠 Dashboard",
-"🚦 Predict",
-"🗺 Map",
-"📊 Analytics",
-"👤 Profile"
-])
+st.write("AI Predictive Mobility Intelligence Platform")
 
 # --------------------------
 # DATA
@@ -86,98 +87,121 @@ def get_weather(lat,lon):
     url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
     return requests.get(url).json()["current_weather"]
 
+def traffic_light(value):
+    if value < 30:
+        return "🟢 Light Traffic"
+    elif value < 60:
+        return "🟡 Moderate Traffic"
+    else:
+        return "🔴 Heavy Traffic"
+
 # =====================================================
 # PAGE 1 — DASHBOARD
 # =====================================================
-with tabs[0]:
+st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    timezone=pytz.timezone("Africa/Johannesburg")
-    current_time=dt.now(timezone).strftime("%H:%M:%S")
+st.header("Dashboard")
 
-    st.subheader("System Status")
-    st.metric("Current Time",current_time)
-    st.success("Traffic Intelligence Online")
+timezone=pytz.timezone("Africa/Johannesburg")
+current_time=dt.now(timezone).strftime("%H:%M:%S")
+
+st.metric("Current Time",current_time)
+st.success("Traffic Intelligence Online")
+
+st.markdown("</div>",unsafe_allow_html=True)
 
 # =====================================================
 # PAGE 2 — PREDICT TRAFFIC
 # =====================================================
-with tabs[1]:
+st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    col1,col2,col3=st.columns(3)
+st.header("Predict Traffic")
 
-    with col1:
-        start=st.selectbox("Start",locations)
+col1,col2=st.columns(2)
 
-    with col2:
-        end=st.selectbox("Destination",locations)
+with col1:
+    start=st.selectbox("Start Location",locations)
 
-    with col3:
-        leave_time=st.slider("Leave Time",6,22,8)
+with col2:
+    end=st.selectbox("Destination",locations)
 
-    start_lat,start_lon=coords[start]
+leave_time=st.slider("Preferred Leave Time",6,22,8)
 
-    weather=get_weather(start_lat,start_lon)
+start_lat,start_lon=coords[start]
 
-    st.write(f"🌦 Temperature: {weather['temperature']}°C")
+weather=get_weather(start_lat,start_lon)
 
-    congestion=np.random.randint(10,90,3)
+st.write(f"🌦 Temperature: {weather['temperature']}°C")
 
-    df=pd.DataFrame({
-        "Hour":[leave_time+i for i in range(3)],
-        "Congestion %":congestion
-    })
+congestion=np.random.randint(10,90,3)
 
-    st.table(df)
-    st.line_chart(df.set_index("Hour"))
+df=pd.DataFrame({
+"Hour":[leave_time+i for i in range(3)],
+"Congestion %":congestion
+})
 
-    best=df.loc[df["Congestion %"].idxmin(),"Hour"]
+df["Traffic Level"]=df["Congestion %"].apply(traffic_light)
 
-    st.markdown(
-        f"<h2 style='color:#00f0ff'>Optimal Departure: {best}:00</h2>",
-        unsafe_allow_html=True
-    )
+st.table(df)
+
+st.line_chart(df.set_index("Hour")["Congestion %"])
+
+best=df.loc[df["Congestion %"].idxmin(),"Hour"]
+
+st.markdown(
+f"<h2 style='color:#00f0ff'>Optimal Departure Time: {best}:00</h2>",
+unsafe_allow_html=True
+)
+
+st.markdown("</div>",unsafe_allow_html=True)
 
 # =====================================================
 # PAGE 3 — MAP
 # =====================================================
-with tabs[2]:
+st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    st.subheader("Navigation Map")
+st.header("Live Navigation Map")
 
-    map_data=pd.DataFrame({
-        "lat":[coords["Home"][0],coords["Work"][0]],
-        "lon":[coords["Home"][1],coords["Work"][1]]
-    })
+map_data=pd.DataFrame({
+"lat":[coords[start][0],coords[end][0]],
+"lon":[coords[start][1],coords[end][1]]
+})
 
-    st.map(map_data,zoom=14)
+st.map(map_data,zoom=14)
+
+st.markdown("</div>",unsafe_allow_html=True)
 
 # =====================================================
 # PAGE 4 — ANALYTICS
 # =====================================================
-with tabs[3]:
+st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    st.subheader("Traffic Analytics")
+st.header("Traffic Analytics")
 
-    data=np.random.randint(20,100,24)
+data=np.random.randint(20,100,24)
 
-    analytics=pd.DataFrame({
-        "Hour":range(24),
-        "Traffic Level":data
-    })
+analytics=pd.DataFrame({
+"Hour":range(24),
+"Traffic":data
+})
 
-    st.line_chart(analytics.set_index("Hour"))
+st.line_chart(analytics.set_index("Hour"))
 
-    st.info("AI predicts congestion peaks during rush hours.")
+st.info("AI predicts rush hour congestion patterns.")
+
+st.markdown("</div>",unsafe_allow_html=True)
 
 # =====================================================
 # PAGE 5 — PROFILE
 # =====================================================
-with tabs[4]:
+st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    st.subheader("User Profile")
+st.header("Profile")
 
-    st.write("User: MELLOWTECH Driver")
-    st.success("Reward Points: 120")
+st.write("Driver: MELLOWTECH User")
+st.success("Reward Points: 120")
 
-    if st.button("Sync Data"):
-        st.balloons()
+if st.button("Sync Mobility Data"):
+    st.balloons()
+
+st.markdown("</div>",unsafe_allow_html=True)
