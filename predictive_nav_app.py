@@ -1,207 +1,150 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import requests
-import pytz
-from datetime import datetime as dt
 
-# --------------------------
+# ----------------------------
 # PAGE CONFIG
-# --------------------------
+# ----------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --------------------------
-# STYLE (BLUE + RED LIGHT BACK)
-# --------------------------
+# ----------------------------
+# SESSION LOGIN STATE
+# ----------------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# ----------------------------
+# MODERN CSS DESIGN
+# ----------------------------
 st.markdown("""
 <style>
 
-/* Hide Streamlit branding */
-header, #MainMenu, footer {visibility:hidden;}
-
-/* Background */
-body{
-background:#121212;
-color:white;
+html, body, [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg,#05070d,#0b132b);
+    color:white;
+    overflow-x:hidden;
 }
 
-/* App container */
-.block-container{
-max-width:900px;
-margin:auto;
-background:#1e1e1e;
-padding:2rem;
-border-radius:18px;
-box-shadow:0 0 25px rgba(0,0,0,0.8);
+/* Remove Streamlit menu */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+/* LOGIN CARD */
+.login-card{
+    max-width:420px;
+    margin:auto;
+    margin-top:120px;
+    background:#111827;
+    padding:40px;
+    border-radius:18px;
+    box-shadow:0 0 40px rgba(0,255,200,0.15);
 }
 
-/* SHINY TITLE */
-#title{
-font-size:4rem;
-font-weight:900;
-text-align:center;
-color:#00f0ff;
-text-shadow:
-0 0 5px #00f0ff,
-0 0 15px #00b0ff,
-0 0 30px #0099ff;
+/* APP HEADER */
+.app-title{
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:#00ffd0;
+    margin-bottom:20px;
 }
 
-/* Section cards */
-.section{
-background:#2a2a2a;
-padding:25px;
-border-radius:15px;
-margin-top:40px;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
+/* SWIPE CONTAINER */
+.swipe-container{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:20px;
+    padding:20px;
+}
+
+/* EACH PAGE */
+.page{
+    flex:0 0 90%;
+    height:75vh;
+    background:#111827;
+    border-radius:20px;
+    padding:30px;
+    scroll-snap-align:center;
+    box-shadow:0 0 25px rgba(0,255,200,0.1);
+}
+
+/* Hide scrollbar */
+.swipe-container::-webkit-scrollbar{
+    display:none;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# --------------------------
-# TITLE
-# --------------------------
-st.markdown('<div id="title">MELLOWTECH</div>', unsafe_allow_html=True)
-st.write("AI Predictive Mobility Intelligence Platform")
+# ----------------------------
+# LOGIN PAGE
+# ----------------------------
+if not st.session_state.logged_in:
 
-# --------------------------
-# DATA
-# --------------------------
-np.random.seed(42)
-locations=["Home","Work","School","Gym","Mall"]
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
-coords={
-"Home":(-25.7461,28.1881),
-"Work":(-25.7580,28.1890),
-"School":(-25.7500,28.2000),
-"Gym":(-25.7400,28.1800),
-"Mall":(-25.7450,28.1950)
-}
+    st.markdown(
+        "<h1 style='text-align:center;color:#00ffd0;'>MELLOWTECH</h1>",
+        unsafe_allow_html=True
+    )
 
-def get_weather(lat,lon):
-    url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    return requests.get(url).json()["current_weather"]
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-def traffic_light(value):
-    if value < 30:
-        return "🟢 Light Traffic"
-    elif value < 60:
-        return "🟡 Moderate Traffic"
-    else:
-        return "🔴 Heavy Traffic"
+    if st.button("Login", use_container_width=True):
+        if username == "admin" and password == "1234":
+            st.session_state.logged_in = True
+            st.rerun()
+        else:
+            st.error("Invalid login")
 
-# =====================================================
-# PAGE 1 — DASHBOARD
-# =====================================================
-st.markdown("<div class='section'>",unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-st.header("Dashboard")
+# ----------------------------
+# MAIN APP AFTER LOGIN
+# ----------------------------
+else:
 
-timezone=pytz.timezone("Africa/Johannesburg")
-current_time=dt.now(timezone).strftime("%H:%M:%S")
+    st.markdown('<div class="app-title">MELLOWTECH</div>', unsafe_allow_html=True)
 
-st.metric("Current Time",current_time)
-st.success("Traffic Intelligence Online")
+    # Swipe Layout
+    st.markdown("""
+    <div class="swipe-container">
 
-st.markdown("</div>",unsafe_allow_html=True)
+        <div class="page">
+            <h2>🏠 Dashboard</h2>
+            <p>Welcome to MELLOWTECH Cybersecurity Platform.</p>
+            <p>Monitor threats, analytics and system performance.</p>
+        </div>
 
-# =====================================================
-# PAGE 2 — PREDICT TRAFFIC
-# =====================================================
-st.markdown("<div class='section'>",unsafe_allow_html=True)
+        <div class="page">
+            <h2>🧠 AI Security</h2>
+            <p>AI Threat Detection Engine.</p>
+            <ul>
+            <li>Malware Prediction</li>
+            <li>Network Monitoring</li>
+            <li>Risk Scoring</li>
+            </ul>
+        </div>
 
-st.header("Predict Traffic")
+        <div class="page">
+            <h2>📊 Analytics</h2>
+            <p>Real-time Cybersecurity Intelligence Dashboard.</p>
+            <p>Visualise attack patterns and vulnerabilities.</p>
+        </div>
 
-col1,col2=st.columns(2)
+        <div class="page">
+            <h2>⚙ Settings</h2>
+            <p>User profile, integrations and configurations.</p>
+        </div>
 
-with col1:
-    start=st.selectbox("Start Location",locations)
+    </div>
+    """, unsafe_allow_html=True)
 
-with col2:
-    end=st.selectbox("Destination",locations)
-
-leave_time=st.slider("Preferred Leave Time",6,22,8)
-
-start_lat,start_lon=coords[start]
-
-weather=get_weather(start_lat,start_lon)
-
-st.write(f"🌦 Temperature: {weather['temperature']}°C")
-
-congestion=np.random.randint(10,90,3)
-
-df=pd.DataFrame({
-"Hour":[leave_time+i for i in range(3)],
-"Congestion %":congestion
-})
-
-df["Traffic Level"]=df["Congestion %"].apply(traffic_light)
-
-st.table(df)
-
-st.line_chart(df.set_index("Hour")["Congestion %"])
-
-best=df.loc[df["Congestion %"].idxmin(),"Hour"]
-
-st.markdown(
-f"<h2 style='color:#00f0ff'>Optimal Departure Time: {best}:00</h2>",
-unsafe_allow_html=True
-)
-
-st.markdown("</div>",unsafe_allow_html=True)
-
-# =====================================================
-# PAGE 3 — MAP
-# =====================================================
-st.markdown("<div class='section'>",unsafe_allow_html=True)
-
-st.header("Live Navigation Map")
-
-map_data=pd.DataFrame({
-"lat":[coords[start][0],coords[end][0]],
-"lon":[coords[start][1],coords[end][1]]
-})
-
-st.map(map_data,zoom=14)
-
-st.markdown("</div>",unsafe_allow_html=True)
-
-# =====================================================
-# PAGE 4 — ANALYTICS
-# =====================================================
-st.markdown("<div class='section'>",unsafe_allow_html=True)
-
-st.header("Traffic Analytics")
-
-data=np.random.randint(20,100,24)
-
-analytics=pd.DataFrame({
-"Hour":range(24),
-"Traffic":data
-})
-
-st.line_chart(analytics.set_index("Hour"))
-
-st.info("AI predicts rush hour congestion patterns.")
-
-st.markdown("</div>",unsafe_allow_html=True)
-
-# =====================================================
-# PAGE 5 — PROFILE
-# =====================================================
-st.markdown("<div class='section'>",unsafe_allow_html=True)
-
-st.header("Profile")
-
-st.write("Driver: MELLOWTECH User")
-st.success("Reward Points: 120")
-
-if st.button("Sync Mobility Data"):
-    st.balloons()
-
-st.markdown("</div>",unsafe_allow_html=True)
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
