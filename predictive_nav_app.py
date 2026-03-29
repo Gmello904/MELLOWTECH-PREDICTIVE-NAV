@@ -1,205 +1,150 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import requests
-import pytz
-from datetime import datetime as dt
 
-# ------------------------------------------------
+# ----------------------------
 # PAGE CONFIG
-# ------------------------------------------------
+# ----------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# ------------------------------------------------
-# STYLE (BLUE GLOW + CLEAN UI)
-# ------------------------------------------------
+# ----------------------------
+# SESSION LOGIN STATE
+# ----------------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# ----------------------------
+# MODERN CSS DESIGN
+# ----------------------------
 st.markdown("""
 <style>
 
-/* remove streamlit branding */
-header, footer, #MainMenu {visibility:hidden;}
-
-body{
-background:#0b0f17;
-color:white;
+html, body, [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg,#05070d,#0b132b);
+    color:white;
+    overflow-x:hidden;
 }
 
-/* title glow */
-.title{
-text-align:center;
-font-size:60px;
-font-weight:900;
-color:#00eaff;
-text-shadow:0 0 20px #00eaff;
-margin-bottom:20px;
+/* Remove Streamlit menu */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+/* LOGIN CARD */
+.login-card{
+    max-width:420px;
+    margin:auto;
+    margin-top:120px;
+    background:#111827;
+    padding:40px;
+    border-radius:18px;
+    box-shadow:0 0 40px rgba(0,255,200,0.15);
 }
 
-/* sidebar */
-section[data-testid="stSidebar"]{
-background:#111827;
+/* APP HEADER */
+.app-title{
+    text-align:center;
+    font-size:40px;
+    font-weight:bold;
+    color:#00ffd0;
+    margin-bottom:20px;
 }
 
-/* cards */
-.block-container{
-padding-top:2rem;
+/* SWIPE CONTAINER */
+.swipe-container{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:20px;
+    padding:20px;
+}
+
+/* EACH PAGE */
+.page{
+    flex:0 0 90%;
+    height:75vh;
+    background:#111827;
+    border-radius:20px;
+    padding:30px;
+    scroll-snap-align:center;
+    box-shadow:0 0 25px rgba(0,255,200,0.1);
+}
+
+/* Hide scrollbar */
+.swipe-container::-webkit-scrollbar{
+    display:none;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------
-# APP TITLE
-# ------------------------------------------------
-st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
+# ----------------------------
+# LOGIN PAGE
+# ----------------------------
+if not st.session_state.logged_in:
 
-# ------------------------------------------------
-# SIDEBAR NAVIGATION ⭐ (MAIN FIX)
-# ------------------------------------------------
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "Dashboard",
-        "Predict Traffic",
-        "Smart Routes",
-        "Live Map",
-        "Reports",
-        "Profile"
-    ]
-)
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
-# ------------------------------------------------
-# DATA
-# ------------------------------------------------
-locations=["Home","Work","School","Gym","Mall"]
-
-coords={
-"Home":(-25.7461,28.1881),
-"Work":(-25.7580,28.1890),
-"School":(-25.7500,28.2000),
-"Gym":(-25.7400,28.1800),
-"Mall":(-25.7450,28.1950)
-}
-
-np.random.seed(42)
-hours=np.arange(6,22)
-traffic=pd.DataFrame(
-np.random.rand(len(locations),len(hours)),
-index=locations,
-columns=hours
-)
-
-def weather(lat,lon):
-    url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    return requests.get(url).json()["current_weather"]
-
-# =====================================================
-# DASHBOARD
-# =====================================================
-if page=="Dashboard":
-
-    st.header("AI Mobility Dashboard")
-
-    tz=pytz.timezone("Africa/Johannesburg")
-    time=dt.now(tz).strftime("%H:%M:%S")
-
-    c1,c2,c3=st.columns(3)
-
-    c1.metric("System","ONLINE")
-    c2.metric("Time",time)
-    c3.metric("AI Engine","Running")
-
-# =====================================================
-# PREDICT TRAFFIC
-# =====================================================
-elif page=="Predict Traffic":
-
-    st.header("Predict Traffic Congestion")
-
-    col1,col2,col3=st.columns(3)
-
-    start=col1.selectbox("Start",locations)
-    end=col2.selectbox("Destination",locations)
-    leave=col3.slider("Departure Time",6,22,8)
-
-    lat,lon=coords[start]
-    w=weather(lat,lon)
-
-    st.info(f"Temperature: {w['temperature']}°C")
-
-    def predict(hour):
-        rush=0.5 if hour in [7,8,17,18] else 0
-        return min(traffic.loc[start,hour]+rush,1)
-
-    forecast={h:round(predict(h)*100) for h in range(leave,leave+3)}
-
-    df=pd.DataFrame({
-        "Hour":forecast.keys(),
-        "Congestion %":forecast.values()
-    })
-
-    st.table(df)
-    st.line_chart(pd.Series(forecast))
-
-    best=min(forecast,key=forecast.get)
-    st.success(f"Optimal departure: {best}:00")
-
-# =====================================================
-# SMART ROUTES
-# =====================================================
-elif page=="Smart Routes":
-
-    st.header("Smart Route AI")
-
-    mode=st.radio(
-        "Route Mode",
-        ["Fastest Route","Collective AI Route"]
+    st.markdown(
+        "<h1 style='text-align:center;color:#00ffd0;'>MELLOWTECH</h1>",
+        unsafe_allow_html=True
     )
 
-    if mode=="Collective AI Route":
-        st.success("You helped reduce congestion")
-        st.balloons()
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-# =====================================================
-# LIVE MAP
-# =====================================================
-elif page=="Live Map":
+    if st.button("Login", use_container_width=True):
+        if username == "admin" and password == "1234":
+            st.session_state.logged_in = True
+            st.rerun()
+        else:
+            st.error("Invalid login")
 
-    st.header("Live Navigation")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    map_data=pd.DataFrame({
-        "lat":[coords["Home"][0],coords["Work"][0]],
-        "lon":[coords["Home"][1],coords["Work"][1]]
-    })
+# ----------------------------
+# MAIN APP AFTER LOGIN
+# ----------------------------
+else:
 
-    st.map(map_data,zoom=14)
+    st.markdown('<div class="app-title">MELLOWTECH</div>', unsafe_allow_html=True)
 
-# =====================================================
-# REPORTS
-# =====================================================
-elif page=="Reports":
+    # Swipe Layout
+    st.markdown("""
+    <div class="swipe-container">
 
-    st.header("Report Road Issue")
+        <div class="page">
+            <h2>🏠 Dashboard</h2>
+            <p>Welcome to MELLOWTECH Cybersecurity Platform.</p>
+            <p>Monitor threats, analytics and system performance.</p>
+        </div>
 
-    issue=st.selectbox(
-        "Issue Type",
-        ["Accident","Traffic Jam","Roadblock","Pothole"]
-    )
+        <div class="page">
+            <h2>🧠 AI Security</h2>
+            <p>AI Threat Detection Engine.</p>
+            <ul>
+            <li>Malware Prediction</li>
+            <li>Network Monitoring</li>
+            <li>Risk Scoring</li>
+            </ul>
+        </div>
 
-    if st.button("Submit"):
-        st.success("Report Sent")
+        <div class="page">
+            <h2>📊 Analytics</h2>
+            <p>Real-time Cybersecurity Intelligence Dashboard.</p>
+            <p>Visualise attack patterns and vulnerabilities.</p>
+        </div>
 
-# =====================================================
-# PROFILE
-# =====================================================
-elif page=="Profile":
+        <div class="page">
+            <h2>⚙ Settings</h2>
+            <p>User profile, integrations and configurations.</p>
+        </div>
 
-    st.header("User Profile")
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.text_input("Home Location")
-    st.text_input("Work Location")
-
-    st.success("Profile Active")
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
