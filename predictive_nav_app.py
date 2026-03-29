@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import datetime
 import requests
 import pytz
 from datetime import datetime as dt
@@ -16,80 +15,66 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# PREMIUM DESIGN
+# SESSION NAVIGATION FIX ⭐⭐⭐
+# --------------------------------------------------
+if "page" not in st.session_state:
+    st.session_state.page = "Dashboard"
+
+# --------------------------------------------------
+# PREMIUM STYLE
 # --------------------------------------------------
 st.markdown("""
 <style>
-
-/* Hide Streamlit branding */
 header, footer, #MainMenu {visibility:hidden;}
 
-/* Background */
 body {
     background: linear-gradient(180deg,#0b0f17,#05070c);
 }
 
-/* Main container */
-.block-container{
-    padding:2rem;
-    max-width:1200px;
+.title{
+    text-align:center;
+    font-size:55px;
+    font-weight:900;
+    color:#00eaff;
+    text-shadow:0 0 15px #00eaff;
 }
 
-/* Sidebar styling */
 section[data-testid="stSidebar"]{
     background:#0f1624;
 }
-
-/* Title */
-.title{
-    text-align:center;
-    font-size:60px;
-    font-weight:900;
-    color:#00eaff;
-    text-shadow:
-        0 0 10px #00eaff,
-        0 0 25px #00bfff,
-        0 0 50px #0077ff;
-}
-
-/* Subtitle */
-.subtitle{
-    text-align:center;
-    color:#9aa4b2;
-    margin-bottom:20px;
-}
-
-/* Mobile */
-@media(max-width:768px){
-.title{font-size:40px;}
-}
-
 </style>
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR (NEVER DISAPPEARS)
 # --------------------------------------------------
 st.sidebar.title("MELLOWTECH")
 
-menu = st.sidebar.radio(
+pages = [
+    "Dashboard",
+    "Predict Traffic",
+    "Smart Routes",
+    "Live Map",
+    "Reports",
+    "Profile"
+]
+
+selected = st.sidebar.radio(
     "Navigation",
-    ["Dashboard",
-     "Predict Traffic",
-     "Smart Routes",
-     "Live Map",
-     "Reports",
-     "Profile"]
+    pages,
+    index=pages.index(st.session_state.page)
 )
+
+st.session_state.page = selected
 
 # --------------------------------------------------
 # DATA ENGINE
 # --------------------------------------------------
 np.random.seed(42)
-locations = ["Home","Work","School","Gym","Mall"]
-hours = np.arange(6,22)
+locations=["Home","Work","School","Gym","Mall"]
+hours=np.arange(6,22)
 
-traffic_matrix = pd.DataFrame(
+traffic_matrix=pd.DataFrame(
     np.random.rand(len(locations),len(hours)),
     index=locations,
     columns=hours
@@ -103,23 +88,14 @@ coords={
 "Mall":(-25.7450,28.1950)
 }
 
-# --------------------------------------------------
-# WEATHER
-# --------------------------------------------------
 def get_weather(lat,lon):
     url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    data=requests.get(url).json()
-    return data["current_weather"]
+    return requests.get(url).json()["current_weather"]
 
 weather_map={
-0:"Clear",
-2:"Partly Cloudy",
-3:"Overcast",
-45:"Fog",
-61:"Rain",
-63:"Moderate Rain",
-65:"Heavy Rain",
-95:"Thunderstorm"
+0:"Clear",2:"Partly Cloudy",3:"Overcast",
+45:"Fog",61:"Rain",63:"Moderate Rain",
+65:"Heavy Rain",95:"Thunderstorm"
 }
 
 bad_weather=[45,61,63,65,95]
@@ -127,37 +103,30 @@ bad_weather=[45,61,63,65,95]
 # ==================================================
 # DASHBOARD
 # ==================================================
-if menu=="Dashboard":
+if st.session_state.page=="Dashboard":
 
-    st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>AI Mobility Intelligence Dashboard</div>", unsafe_allow_html=True)
+    st.markdown("<div class='title'>MELLOWTECH</div>",unsafe_allow_html=True)
 
     timezone=pytz.timezone("Africa/Johannesburg")
     current_time=dt.now(timezone).strftime("%H:%M:%S")
 
-    col1,col2,col3=st.columns(3)
-
-    col1.metric("System Status","ONLINE")
-    col2.metric("Current Time",current_time)
-    col3.metric("Active AI Engine","Running")
+    c1,c2,c3=st.columns(3)
+    c1.metric("System","ONLINE")
+    c2.metric("Time",current_time)
+    c3.metric("AI Engine","Running")
 
 # ==================================================
 # PREDICT TRAFFIC
 # ==================================================
-elif menu=="Predict Traffic":
+elif st.session_state.page=="Predict Traffic":
 
     st.header("AI Traffic Prediction")
 
     col1,col2,col3=st.columns(3)
 
-    with col1:
-        start=st.selectbox("Start Location",locations)
-
-    with col2:
-        end=st.selectbox("Destination",locations)
-
-    with col3:
-        leave_time=st.slider("Departure Time",6,22,8)
+    start=col1.selectbox("Start",locations)
+    end=col2.selectbox("Destination",locations)
+    leave_time=col3.slider("Departure",6,22,8)
 
     lat,lon=coords[start]
     weather=get_weather(lat,lon)
@@ -173,18 +142,9 @@ elif menu=="Predict Traffic":
     forecast_hours=np.arange(leave_time,leave_time+3)
     forecast={h:round(predict(h)*100) for h in forecast_hours}
 
-    def label(v):
-        if v<30:
-            return "🟢 Light"
-        elif v<60:
-            return "🟡 Moderate"
-        else:
-            return "🔴 Heavy"
-
     df=pd.DataFrame({
         "Hour":forecast.keys(),
-        "Congestion %":forecast.values(),
-        "Traffic":[label(v) for v in forecast.values()]
+        "Congestion %":forecast.values()
     })
 
     st.table(df)
@@ -196,33 +156,29 @@ elif menu=="Predict Traffic":
 # ==================================================
 # SMART ROUTES
 # ==================================================
-elif menu=="Smart Routes":
+elif st.session_state.page=="Smart Routes":
 
     st.header("Smart Route Optimization")
 
     route=st.radio(
-        "Select Mode",
-        ["Fastest Individual Route",
-         "Collective Smart Route"]
+        "Route Mode",
+        ["Fastest Route","Collective AI Route"]
     )
 
-    if route=="Collective Smart Route":
-        st.info("You are reducing congestion across Gauteng.")
+    if route=="Collective AI Route":
+        st.success("You helped reduce city congestion")
         st.balloons()
-        st.success("Reward +10 Smart Mobility Points")
 
 # ==================================================
 # LIVE MAP
 # ==================================================
-elif menu=="Live Map":
+elif st.session_state.page=="Live Map":
 
-    st.header("Live Route Map")
-
-    start,end="Home","Work"
+    st.header("Live Navigation Map")
 
     map_data=pd.DataFrame({
-        "lat":[coords[start][0],coords[end][0]],
-        "lon":[coords[start][1],coords[end][1]]
+        "lat":[coords["Home"][0],coords["Work"][0]],
+        "lon":[coords["Home"][1],coords["Work"][1]]
     })
 
     st.map(map_data,zoom=14)
@@ -230,26 +186,26 @@ elif menu=="Live Map":
 # ==================================================
 # REPORTS
 # ==================================================
-elif menu=="Reports":
+elif st.session_state.page=="Reports":
 
     st.header("Report Traffic Issue")
 
     issue=st.selectbox(
-        "Issue Type",
+        "Issue",
         ["Accident","Traffic Jam","Roadblock","Pothole"]
     )
 
-    if st.button("Submit Report"):
-        st.success("Report Successfully Submitted")
+    if st.button("Submit"):
+        st.success("Report Submitted")
 
 # ==================================================
 # PROFILE
 # ==================================================
-elif menu=="Profile":
+elif st.session_state.page=="Profile":
 
     st.header("User Profile")
 
-    st.text_input("Home Location")
-    st.text_input("Work Location")
+    st.text_input("Home Address")
+    st.text_input("Work Address")
 
     st.success("Profile Active")
