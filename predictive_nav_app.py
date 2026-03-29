@@ -1,150 +1,206 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
+import datetime
+import requests
+import pytz
+from datetime import datetime as dt
 
-# ----------------------------
+# --------------------------
 # PAGE CONFIG
-# ----------------------------
+# --------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ----------------------------
-# SESSION LOGIN STATE
-# ----------------------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-# ----------------------------
-# MODERN CSS DESIGN
-# ----------------------------
+# --------------------------
+# SHINY DARK THEME
+# --------------------------
 st.markdown("""
 <style>
 
-html, body, [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg,#05070d,#0b132b);
+/* REMOVE STREAMLIT UI */
+header, #MainMenu, footer {
+    visibility: hidden;
+}
+
+/* Background */
+body {
+    background:#121212;
     color:white;
-    overflow-x:hidden;
 }
 
-/* Remove Streamlit menu */
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
-
-/* LOGIN CARD */
-.login-card{
-    max-width:420px;
+/* App container */
+.block-container{
+    max-width:1000px;
     margin:auto;
-    margin-top:120px;
-    background:#111827;
-    padding:40px;
-    border-radius:18px;
-    box-shadow:0 0 40px rgba(0,255,200,0.15);
+    background:#1e1e1e;
+    padding:2rem;
+    border-radius:15px;
+    box-shadow:0 0 25px rgba(0,0,0,0.8);
 }
 
-/* APP HEADER */
-.app-title{
+/* MELLOWTECH glowing title */
+#main-title{
+    font-size:4rem;
+    font-weight:900;
     text-align:center;
-    font-size:40px;
-    font-weight:bold;
-    color:#00ffd0;
-    margin-bottom:20px;
+    color:#00f0ff;
+    text-shadow:
+        0 0 5px #00f0ff,
+        0 0 10px #0099ff,
+        0 0 20px #0066ff;
 }
 
-/* SWIPE CONTAINER */
-.swipe-container{
-    display:flex;
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    gap:20px;
-    padding:20px;
-}
-
-/* EACH PAGE */
-.page{
-    flex:0 0 90%;
-    height:75vh;
-    background:#111827;
-    border-radius:20px;
-    padding:30px;
-    scroll-snap-align:center;
-    box-shadow:0 0 25px rgba(0,255,200,0.1);
-}
-
-/* Hide scrollbar */
-.swipe-container::-webkit-scrollbar{
-    display:none;
-}
+/* Traffic colors */
+.light{color:#00ff9f;font-weight:bold;}
+.medium{color:#ffd000;font-weight:bold;}
+.heavy{color:#ff3b3b;font-weight:bold;}
 
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------------------
-# LOGIN PAGE
-# ----------------------------
-if not st.session_state.logged_in:
+# --------------------------
+# TITLE
+# --------------------------
+st.markdown('<div id="main-title">MELLOWTECH</div>', unsafe_allow_html=True)
+st.write("Predictive congestion • Smart departure • Live weather • Navigation intelligence")
 
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+# --------------------------
+# DATA SIMULATION
+# --------------------------
+np.random.seed(42)
 
-    st.markdown(
-        "<h1 style='text-align:center;color:#00ffd0;'>MELLOWTECH</h1>",
-        unsafe_allow_html=True
-    )
+locations = ["Home","Work","School","Gym","Mall"]
+hours = np.arange(6,22)
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+traffic_matrix = pd.DataFrame(
+    np.random.rand(len(locations),len(hours)),
+    index=locations,
+    columns=hours
+)
 
-    if st.button("Login", use_container_width=True):
-        if username == "admin" and password == "1234":
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("Invalid login")
+# --------------------------
+# WEATHER API
+# --------------------------
+def get_weather(lat,lon):
+    url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+    data=requests.get(url).json()
+    cw=data["current_weather"]
+    return cw
 
-    st.markdown("</div>", unsafe_allow_html=True)
+# --------------------------
+# USER INPUTS
+# --------------------------
+col1,col2,col3=st.columns(3)
 
-# ----------------------------
-# MAIN APP AFTER LOGIN
-# ----------------------------
-else:
+with col1:
+    start=st.selectbox("Start",locations)
 
-    st.markdown('<div class="app-title">MELLOWTECH</div>', unsafe_allow_html=True)
+with col2:
+    end=st.selectbox("Destination",locations)
 
-    # Swipe Layout
-    st.markdown("""
-    <div class="swipe-container">
+with col3:
+    leave_time=st.slider("Leave Time",6,22,8)
 
-        <div class="page">
-            <h2>🏠 Dashboard</h2>
-            <p>Welcome to MELLOWTECH Cybersecurity Platform.</p>
-            <p>Monitor threats, analytics and system performance.</p>
-        </div>
+coords={
+"Home":(-25.7461,28.1881),
+"Work":(-25.7580,28.1890),
+"School":(-25.7500,28.2000),
+"Gym":(-25.7400,28.1800),
+"Mall":(-25.7450,28.1950)
+}
 
-        <div class="page">
-            <h2>🧠 AI Security</h2>
-            <p>AI Threat Detection Engine.</p>
-            <ul>
-            <li>Malware Prediction</li>
-            <li>Network Monitoring</li>
-            <li>Risk Scoring</li>
-            </ul>
-        </div>
+start_lat,start_lon=coords[start]
+end_lat,end_lon=coords[end]
 
-        <div class="page">
-            <h2>📊 Analytics</h2>
-            <p>Real-time Cybersecurity Intelligence Dashboard.</p>
-            <p>Visualise attack patterns and vulnerabilities.</p>
-        </div>
+# --------------------------
+# CURRENT TIME
+# --------------------------
+timezone=pytz.timezone("Africa/Johannesburg")
+current_time=dt.now(timezone).strftime("%H:%M:%S")
 
-        <div class="page">
-            <h2>⚙ Settings</h2>
-            <p>User profile, integrations and configurations.</p>
-        </div>
+st.subheader("Current Time")
+st.success(current_time)
 
-    </div>
-    """, unsafe_allow_html=True)
+# --------------------------
+# WEATHER DISPLAY
+# --------------------------
+weather=get_weather(start_lat,start_lon)
 
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+st.subheader("Live Weather")
+st.write(f"Temperature: {weather['temperature']}°C")
+st.write(f"Wind Speed: {weather['windspeed']} km/h")
+
+# --------------------------
+# TRAFFIC PREDICTION
+# --------------------------
+def predict(hour):
+    base=traffic_matrix.loc[start,hour]
+    rush=0.5 if hour in [7,8,17,18] else 0
+    return min(base+rush,1)
+
+forecast_hours=np.arange(leave_time,leave_time+3)
+
+forecast={h:predict(h) for h in forecast_hours}
+forecast_percent={h:int(v*100) for h,v in forecast.items()}
+
+def traffic_label(v):
+    if v<30:
+        return "🟢 Light traffic"
+    elif v<60:
+        return "🟡 Moderate traffic"
+    else:
+        return "🔴 Heavy traffic"
+
+labels={h:traffic_label(v) for h,v in forecast_percent.items()}
+
+# --------------------------
+# TABLE + CHART
+# --------------------------
+st.subheader("Predicted Congestion")
+
+df=pd.DataFrame({
+"Hour":list(forecast_percent.keys()),
+"Congestion %":list(forecast_percent.values()),
+"Traffic":list(labels.values())
+})
+
+st.table(df)
+st.line_chart(df.set_index("Hour"))
+
+# --------------------------
+# BEST TIME
+# --------------------------
+best_time=min(forecast,key=forecast.get)
+
+st.markdown(
+f"<h2 style='color:#00f0ff;text-align:center;'>Optimal Departure Time: {best_time}:00</h2>",
+unsafe_allow_html=True
+)
+
+# --------------------------
+# ROUTE SELECTION
+# --------------------------
+route=st.radio(
+"Recommended Route",
+["Fastest Individually","Less Congested Collectively"]
+)
+
+if route=="Less Congested Collectively":
+    st.info("You are helping reduce city congestion!")
+    st.balloons()
+
+# --------------------------
+# MAP
+# --------------------------
+st.subheader("Route Map")
+
+map_df=pd.DataFrame({
+"lat":[start_lat,end_lat],
+"lon":[start_lon,end_lon]
+})
+
+st.map(map_df,zoom=14)
