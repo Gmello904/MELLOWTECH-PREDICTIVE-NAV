@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import datetime
 import requests
 import pytz
 from datetime import datetime as dt
@@ -16,48 +15,39 @@ st.set_page_config(
 )
 
 # --------------------------
-# SHINY DARK THEME
+# STYLE
 # --------------------------
 st.markdown("""
 <style>
 
-/* REMOVE STREAMLIT UI */
+/* Hide Streamlit menu */
 header, #MainMenu, footer {
-    visibility: hidden;
+    visibility:hidden;
 }
 
-/* Background */
-body {
+/* Dark Theme */
+body{
     background:#121212;
     color:white;
 }
 
-/* App container */
+/* Center container */
 .block-container{
-    max-width:1000px;
+    max-width:1100px;
     margin:auto;
     background:#1e1e1e;
     padding:2rem;
-    border-radius:15px;
-    box-shadow:0 0 25px rgba(0,0,0,0.8);
+    border-radius:18px;
 }
 
-/* MELLOWTECH glowing title */
-#main-title{
-    font-size:4rem;
-    font-weight:900;
-    text-align:center;
-    color:#00f0ff;
-    text-shadow:
-        0 0 5px #00f0ff,
-        0 0 10px #0099ff,
-        0 0 20px #0066ff;
+/* Glowing title */
+#title{
+font-size:4rem;
+font-weight:900;
+text-align:center;
+color:#00f0ff;
+text-shadow:0 0 5px #00f0ff,0 0 15px #0099ff;
 }
-
-/* Traffic colors */
-.light{color:#00ff9f;font-weight:bold;}
-.medium{color:#ffd000;font-weight:bold;}
-.heavy{color:#ff3b3b;font-weight:bold;}
 
 </style>
 """, unsafe_allow_html=True)
@@ -65,45 +55,24 @@ body {
 # --------------------------
 # TITLE
 # --------------------------
-st.markdown('<div id="main-title">MELLOWTECH</div>', unsafe_allow_html=True)
-st.write("Predictive congestion • Smart departure • Live weather • Navigation intelligence")
+st.markdown('<div id="title">MELLOWTECH</div>', unsafe_allow_html=True)
 
 # --------------------------
-# DATA SIMULATION
+# SWIPE PAGES (TABS)
+# --------------------------
+tabs = st.tabs([
+"🏠 Dashboard",
+"🚦 Predict",
+"🗺 Map",
+"📊 Analytics",
+"👤 Profile"
+])
+
+# --------------------------
+# DATA
 # --------------------------
 np.random.seed(42)
-
-locations = ["Home","Work","School","Gym","Mall"]
-hours = np.arange(6,22)
-
-traffic_matrix = pd.DataFrame(
-    np.random.rand(len(locations),len(hours)),
-    index=locations,
-    columns=hours
-)
-
-# --------------------------
-# WEATHER API
-# --------------------------
-def get_weather(lat,lon):
-    url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    data=requests.get(url).json()
-    cw=data["current_weather"]
-    return cw
-
-# --------------------------
-# USER INPUTS
-# --------------------------
-col1,col2,col3=st.columns(3)
-
-with col1:
-    start=st.selectbox("Start",locations)
-
-with col2:
-    end=st.selectbox("Destination",locations)
-
-with col3:
-    leave_time=st.slider("Leave Time",6,22,8)
+locations=["Home","Work","School","Gym","Mall"]
 
 coords={
 "Home":(-25.7461,28.1881),
@@ -113,94 +82,102 @@ coords={
 "Mall":(-25.7450,28.1950)
 }
 
-start_lat,start_lon=coords[start]
-end_lat,end_lon=coords[end]
+def get_weather(lat,lon):
+    url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+    return requests.get(url).json()["current_weather"]
 
-# --------------------------
-# CURRENT TIME
-# --------------------------
-timezone=pytz.timezone("Africa/Johannesburg")
-current_time=dt.now(timezone).strftime("%H:%M:%S")
+# =====================================================
+# PAGE 1 — DASHBOARD
+# =====================================================
+with tabs[0]:
 
-st.subheader("Current Time")
-st.success(current_time)
+    timezone=pytz.timezone("Africa/Johannesburg")
+    current_time=dt.now(timezone).strftime("%H:%M:%S")
 
-# --------------------------
-# WEATHER DISPLAY
-# --------------------------
-weather=get_weather(start_lat,start_lon)
+    st.subheader("System Status")
+    st.metric("Current Time",current_time)
+    st.success("Traffic Intelligence Online")
 
-st.subheader("Live Weather")
-st.write(f"Temperature: {weather['temperature']}°C")
-st.write(f"Wind Speed: {weather['windspeed']} km/h")
+# =====================================================
+# PAGE 2 — PREDICT TRAFFIC
+# =====================================================
+with tabs[1]:
 
-# --------------------------
-# TRAFFIC PREDICTION
-# --------------------------
-def predict(hour):
-    base=traffic_matrix.loc[start,hour]
-    rush=0.5 if hour in [7,8,17,18] else 0
-    return min(base+rush,1)
+    col1,col2,col3=st.columns(3)
 
-forecast_hours=np.arange(leave_time,leave_time+3)
+    with col1:
+        start=st.selectbox("Start",locations)
 
-forecast={h:predict(h) for h in forecast_hours}
-forecast_percent={h:int(v*100) for h,v in forecast.items()}
+    with col2:
+        end=st.selectbox("Destination",locations)
 
-def traffic_label(v):
-    if v<30:
-        return "🟢 Light traffic"
-    elif v<60:
-        return "🟡 Moderate traffic"
-    else:
-        return "🔴 Heavy traffic"
+    with col3:
+        leave_time=st.slider("Leave Time",6,22,8)
 
-labels={h:traffic_label(v) for h,v in forecast_percent.items()}
+    start_lat,start_lon=coords[start]
 
-# --------------------------
-# TABLE + CHART
-# --------------------------
-st.subheader("Predicted Congestion")
+    weather=get_weather(start_lat,start_lon)
 
-df=pd.DataFrame({
-"Hour":list(forecast_percent.keys()),
-"Congestion %":list(forecast_percent.values()),
-"Traffic":list(labels.values())
-})
+    st.write(f"🌦 Temperature: {weather['temperature']}°C")
 
-st.table(df)
-st.line_chart(df.set_index("Hour"))
+    congestion=np.random.randint(10,90,3)
 
-# --------------------------
-# BEST TIME
-# --------------------------
-best_time=min(forecast,key=forecast.get)
+    df=pd.DataFrame({
+        "Hour":[leave_time+i for i in range(3)],
+        "Congestion %":congestion
+    })
 
-st.markdown(
-f"<h2 style='color:#00f0ff;text-align:center;'>Optimal Departure Time: {best_time}:00</h2>",
-unsafe_allow_html=True
-)
+    st.table(df)
+    st.line_chart(df.set_index("Hour"))
 
-# --------------------------
-# ROUTE SELECTION
-# --------------------------
-route=st.radio(
-"Recommended Route",
-["Fastest Individually","Less Congested Collectively"]
-)
+    best=df.loc[df["Congestion %"].idxmin(),"Hour"]
 
-if route=="Less Congested Collectively":
-    st.info("You are helping reduce city congestion!")
-    st.balloons()
+    st.markdown(
+        f"<h2 style='color:#00f0ff'>Optimal Departure: {best}:00</h2>",
+        unsafe_allow_html=True
+    )
 
-# --------------------------
-# MAP
-# --------------------------
-st.subheader("Route Map")
+# =====================================================
+# PAGE 3 — MAP
+# =====================================================
+with tabs[2]:
 
-map_df=pd.DataFrame({
-"lat":[start_lat,end_lat],
-"lon":[start_lon,end_lon]
-})
+    st.subheader("Navigation Map")
 
-st.map(map_df,zoom=14)
+    map_data=pd.DataFrame({
+        "lat":[coords["Home"][0],coords["Work"][0]],
+        "lon":[coords["Home"][1],coords["Work"][1]]
+    })
+
+    st.map(map_data,zoom=14)
+
+# =====================================================
+# PAGE 4 — ANALYTICS
+# =====================================================
+with tabs[3]:
+
+    st.subheader("Traffic Analytics")
+
+    data=np.random.randint(20,100,24)
+
+    analytics=pd.DataFrame({
+        "Hour":range(24),
+        "Traffic Level":data
+    })
+
+    st.line_chart(analytics.set_index("Hour"))
+
+    st.info("AI predicts congestion peaks during rush hours.")
+
+# =====================================================
+# PAGE 5 — PROFILE
+# =====================================================
+with tabs[4]:
+
+    st.subheader("User Profile")
+
+    st.write("User: MELLOWTECH Driver")
+    st.success("Reward Points: 120")
+
+    if st.button("Sync Data"):
+        st.balloons()
