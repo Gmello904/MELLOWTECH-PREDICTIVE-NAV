@@ -1,3 +1,5 @@
+# MELLOETECH PREDICTIVE NAVIGATION APP
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,7 +8,7 @@ import pytz
 from datetime import datetime as dt
 
 # -----------------------------
-# Page config
+# PAGE CONFIG
 # -----------------------------
 st.set_page_config(
     page_title="MELLOETECH",
@@ -14,7 +16,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# Session state
+# SESSION STATE
 # -----------------------------
 if "page" not in st.session_state:
     st.session_state.page = "login"
@@ -26,23 +28,27 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # -----------------------------
-# Styling / Dark Skin
+# CSS STYLING
 # -----------------------------
 st.markdown("""
 <style>
-/* Hide Streamlit branding and toolbar */
-header, #MainMenu, footer, [data-testid="stToolbar"] {display:none !important;}
+/* Hide default Streamlit header/footer */
+header, #MainMenu, footer {visibility: hidden;}
 
-/* General background and font */
-body {background:#121212; color:white; font-family:'Helvetica', sans-serif;}
+/* General body */
+body {background:#121212;color:white;font-family:Helvetica, sans-serif;}
 
-/* Main card container */
-.block-container {
-    background:#1e1e1e; border-radius:15px; padding:2rem; max-width:600px; margin:auto;
+/* Card container */
+.block-container{
+    background:#1e1e1e;
+    border-radius:12px;
+    padding:2rem;
+    max-width:900px;
+    margin:auto;
 }
 
-/* Title style */
-.title {
+/* Title styling */
+.title{
     text-align:center;
     font-size:40px;
     font-weight:bold;
@@ -50,30 +56,35 @@ body {background:#121212; color:white; font-family:'Helvetica', sans-serif;}
     margin-bottom:1rem;
 }
 
-/* Center login card */
-.login-card {
-    background:#2a2a2a; padding:2rem; border-radius:12px; text-align:center; margin:auto;
+/* Buttons */
+.stButton>button {
+    background-color: #1f77b4;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
 }
 
-/* Buttons */
-.stButton>button{
-    background-color:#1f77b4 !important;
-    color:white !important;
-    border-radius:0.5rem;
-    padding:0.5rem 1rem;
-    font-weight:600;
+/* Table headers */
+.css-1v3fvcr th {
+    color: #00f0ff !important;
+}
+
+/* Line chart */
+.css-10trblm {
+    background-color: #1e1e1e;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# Login Page
+# LOGIN PAGE
 # -----------------------------
 def login_page():
+    st.markdown('<div class="block-container">', unsafe_allow_html=True)
     st.markdown("<div class='title'>MELLOETECH</div>", unsafe_allow_html=True)
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
-
     st.subheader("Login")
+
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
@@ -94,20 +105,20 @@ def login_page():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
-# Signup Page
+# SIGNUP PAGE
 # -----------------------------
 def signup_page():
+    st.markdown('<div class="block-container">', unsafe_allow_html=True)
     st.markdown("<div class='title'>MELLOETECH</div>", unsafe_allow_html=True)
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
-
     st.subheader("Create Account")
+
     new_email = st.text_input("Email")
     new_password = st.text_input("Password", type="password")
 
     if st.button("Sign Up"):
         if new_email and new_password:
             st.session_state.users[new_email] = new_password
-            st.success("Account created! Please login.")
+            st.success("Account created!")
             st.session_state.page = "login"
             st.rerun()
 
@@ -118,9 +129,10 @@ def signup_page():
     st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
-# Dashboard and Pages
+# DASHBOARD AND PAGES
 # -----------------------------
 def dashboard():
+    st.markdown('<div class="block-container">', unsafe_allow_html=True)
     st.sidebar.success(f"Logged in as {st.session_state.user}")
 
     menu = st.sidebar.radio(
@@ -128,6 +140,9 @@ def dashboard():
         ["Dashboard","Predict Traffic","Map","Reports","Profile"]
     )
 
+    # -----------------------------
+    # DASHBOARD
+    # -----------------------------
     if menu == "Dashboard":
         st.header("MELLOETECH Dashboard")
         timezone = pytz.timezone("Africa/Johannesburg")
@@ -135,6 +150,9 @@ def dashboard():
         st.metric("Current Time", current_time)
         st.success("Traffic Intelligence Online")
 
+    # -----------------------------
+    # PREDICT TRAFFIC
+    # -----------------------------
     if menu == "Predict Traffic":
         locations = ["Home","Work","School","Mall"]
         start = st.selectbox("Start", locations)
@@ -153,6 +171,9 @@ def dashboard():
         best_time = df.loc[df["Congestion %"].idxmin(),"Hour"]
         st.success(f"Best departure time: {best_time}:00")
 
+    # -----------------------------
+    # MAP PAGE
+    # -----------------------------
     if menu == "Map":
         st.header("Navigation Map")
         map_data = pd.DataFrame({
@@ -161,11 +182,17 @@ def dashboard():
         })
         st.map(map_data)
 
+    # -----------------------------
+    # REPORTS PAGE
+    # -----------------------------
     if menu == "Reports":
         issue = st.selectbox("Report Issue", ["Accident","Traffic Jam","Roadblock"])
         if st.button("Submit"):
             st.success("Report Sent")
 
+    # -----------------------------
+    # PROFILE PAGE
+    # -----------------------------
     if menu == "Profile":
         st.write("User:", st.session_state.user)
         if st.button("Logout"):
@@ -173,8 +200,10 @@ def dashboard():
             st.session_state.user = None
             st.rerun()
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # -----------------------------
-# Page routing
+# PAGE ROUTING
 # -----------------------------
 if st.session_state.page == "login":
     login_page()
