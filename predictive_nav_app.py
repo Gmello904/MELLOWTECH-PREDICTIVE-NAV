@@ -1,99 +1,135 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import datetime
 import requests
 import pytz
 from datetime import datetime as dt
 
-# --------------------------------------------------
+# --------------------------
 # PAGE CONFIG
-# --------------------------------------------------
+# --------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# --------------------------------------------------
-# PREMIUM DESIGN
-# --------------------------------------------------
+# --------------------------
+# SESSION STATE
+# --------------------------
+if "page" not in st.session_state:
+    st.session_state.page = "Dashboard"
+
+if "menu_open" not in st.session_state:
+    st.session_state.menu_open = False
+
+# --------------------------
+# STYLE (BLUE + RED LIGHT)
+# --------------------------
 st.markdown("""
 <style>
 
 /* Hide Streamlit branding */
-header, footer, #MainMenu {visibility:hidden;}
+header, #MainMenu, footer {visibility:hidden;}
 
-/* Background */
-body {
-    background: linear-gradient(180deg,#0b0f17,#05070c);
+body{
+background:#121212;
+color:white;
 }
 
-/* Main container */
+/* MAIN CARD */
 .block-container{
-    padding:2rem;
-    max-width:1200px;
+max-width:950px;
+margin:auto;
+background:#1e1e1e;
+padding:2rem;
+border-radius:20px;
+box-shadow:
+0 0 20px rgba(0,255,255,0.2),
+0 0 40px rgba(255,0,60,0.15);
 }
 
-/* Sidebar styling */
-section[data-testid="stSidebar"]{
-    background:#0f1624;
+/* TITLE */
+#title{
+font-size:4rem;
+font-weight:900;
+text-align:center;
+color:#00f0ff;
+text-shadow:
+0 0 10px #00f0ff,
+0 0 25px #0099ff,
+0 0 45px #ff003c;
 }
 
-/* Title */
-.title{
-    text-align:center;
-    font-size:60px;
-    font-weight:900;
-    color:#00eaff;
-    text-shadow:
-        0 0 10px #00eaff,
-        0 0 25px #00bfff,
-        0 0 50px #0077ff;
+/* MENU BUTTON */
+.menu-btn button{
+background:#2a2a2a;
+border-radius:10px;
+font-size:22px;
 }
 
-/* Subtitle */
-.subtitle{
-    text-align:center;
-    color:#9aa4b2;
-    margin-bottom:20px;
+/* MENU STYLE */
+.menu{
+background:#181818;
+padding:20px;
+border-radius:15px;
+box-shadow:0 0 25px rgba(0,0,0,0.8);
 }
 
-/* Mobile */
-@media(max-width:768px){
-.title{font-size:40px;}
+/* SECTION CARD */
+.section{
+background:#2b2b2b;
+padding:25px;
+border-radius:15px;
+margin-top:25px;
+box-shadow:0 0 15px rgba(0,0,0,0.6);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# --------------------------------------------------
-# SIDEBAR NAVIGATION
-# --------------------------------------------------
-st.sidebar.title("MELLOWTECH")
+# --------------------------
+# HEADER
+# --------------------------
+col1,col2 = st.columns([1,6])
 
-menu = st.sidebar.radio(
-    "Navigation",
-    ["Dashboard",
-     "Predict Traffic",
-     "Smart Routes",
-     "Live Map",
-     "Reports",
-     "Profile"]
-)
+with col1:
+    if st.button("☰"):
+        st.session_state.menu_open = not st.session_state.menu_open
 
-# --------------------------------------------------
-# DATA ENGINE
-# --------------------------------------------------
+with col2:
+    st.markdown("<div id='title'>MELLOWTECH</div>",unsafe_allow_html=True)
+
+# --------------------------
+# GMAIL STYLE MENU
+# --------------------------
+if st.session_state.menu_open:
+
+    st.markdown("<div class='menu'>",unsafe_allow_html=True)
+
+    if st.button("🏠 Dashboard"):
+        st.session_state.page="Dashboard"
+
+    if st.button("🚦 Predict Traffic"):
+        st.session_state.page="Predict"
+
+    if st.button("🗺 Navigation Map"):
+        st.session_state.page="Map"
+
+    if st.button("📊 Analytics"):
+        st.session_state.page="Analytics"
+
+    if st.button("👤 Profile"):
+        st.session_state.page="Profile"
+
+    st.markdown("</div>",unsafe_allow_html=True)
+
+# --------------------------
+# DATA
+# --------------------------
 np.random.seed(42)
-locations = ["Home","Work","School","Gym","Mall"]
-hours = np.arange(6,22)
 
-traffic_matrix = pd.DataFrame(
-    np.random.rand(len(locations),len(hours)),
-    index=locations,
-    columns=hours
-)
+locations=["Home","Work","School","Gym","Mall"]
 
 coords={
 "Home":(-25.7461,28.1881),
@@ -103,52 +139,44 @@ coords={
 "Mall":(-25.7450,28.1950)
 }
 
-# --------------------------------------------------
-# WEATHER
-# --------------------------------------------------
 def get_weather(lat,lon):
     url=f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    data=requests.get(url).json()
-    return data["current_weather"]
+    return requests.get(url).json()["current_weather"]
 
-weather_map={
-0:"Clear",
-2:"Partly Cloudy",
-3:"Overcast",
-45:"Fog",
-61:"Rain",
-63:"Moderate Rain",
-65:"Heavy Rain",
-95:"Thunderstorm"
-}
+def traffic_light(v):
+    if v<30:
+        return "🟢 Light Traffic"
+    elif v<60:
+        return "🟡 Moderate Traffic"
+    else:
+        return "🔴 Heavy Traffic"
 
-bad_weather=[45,61,63,65,95]
+# =====================================================
+# PAGE ROUTING
+# =====================================================
 
-# ==================================================
-# DASHBOARD
-# ==================================================
-if menu=="Dashboard":
+# ---------------- DASHBOARD ----------------
+if st.session_state.page=="Dashboard":
 
-    st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>AI Mobility Intelligence Dashboard</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section'>",unsafe_allow_html=True)
 
     timezone=pytz.timezone("Africa/Johannesburg")
     current_time=dt.now(timezone).strftime("%H:%M:%S")
 
-    col1,col2,col3=st.columns(3)
+    st.header("Dashboard")
+    st.metric("Current Time",current_time)
+    st.success("Traffic Intelligence Online")
 
-    col1.metric("System Status","ONLINE")
-    col2.metric("Current Time",current_time)
-    col3.metric("Active AI Engine","Running")
+    st.markdown("</div>",unsafe_allow_html=True)
 
-# ==================================================
-# PREDICT TRAFFIC
-# ==================================================
-elif menu=="Predict Traffic":
+# ---------------- PREDICT ----------------
+elif st.session_state.page=="Predict":
 
-    st.header("AI Traffic Prediction")
+    st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    col1,col2,col3=st.columns(3)
+    st.header("Predict Traffic")
+
+    col1,col2=st.columns(2)
 
     with col1:
         start=st.selectbox("Start Location",locations)
@@ -156,69 +184,43 @@ elif menu=="Predict Traffic":
     with col2:
         end=st.selectbox("Destination",locations)
 
-    with col3:
-        leave_time=st.slider("Departure Time",6,22,8)
+    leave_time=st.slider("Leave Time",6,22,8)
 
     lat,lon=coords[start]
     weather=get_weather(lat,lon)
 
-    st.info(f"Weather: {weather_map.get(weather['weathercode'],'Unknown')}")
+    st.write(f"🌦 Temperature: {weather['temperature']}°C")
 
-    def predict(hour):
-        base=traffic_matrix.loc[start,hour]
-        rush=0.5 if hour in [7,8,17,18] else 0
-        penalty=0.2 if weather["weathercode"] in bad_weather else 0
-        return min(base+rush+penalty,1)
-
-    forecast_hours=np.arange(leave_time,leave_time+3)
-    forecast={h:round(predict(h)*100) for h in forecast_hours}
-
-    def label(v):
-        if v<30:
-            return "🟢 Light"
-        elif v<60:
-            return "🟡 Moderate"
-        else:
-            return "🔴 Heavy"
+    congestion=np.random.randint(10,90,3)
 
     df=pd.DataFrame({
-        "Hour":forecast.keys(),
-        "Congestion %":forecast.values(),
-        "Traffic":[label(v) for v in forecast.values()]
+        "Hour":[leave_time+i for i in range(3)],
+        "Congestion %":congestion
     })
 
+    df["Traffic"]=df["Congestion %"].apply(traffic_light)
+
     st.table(df)
-    st.line_chart(pd.Series(forecast),use_container_width=True)
+    st.line_chart(df.set_index("Hour"))
 
-    best=min(forecast,key=forecast.get)
-    st.success(f"Optimal Departure: {best}:00")
+    best=df.loc[df["Congestion %"].idxmin(),"Hour"]
 
-# ==================================================
-# SMART ROUTES
-# ==================================================
-elif menu=="Smart Routes":
-
-    st.header("Smart Route Optimization")
-
-    route=st.radio(
-        "Select Mode",
-        ["Fastest Individual Route",
-         "Collective Smart Route"]
+    st.markdown(
+        f"<h2 style='color:#00f0ff'>Optimal Departure: {best}:00</h2>",
+        unsafe_allow_html=True
     )
 
-    if route=="Collective Smart Route":
-        st.info("You are reducing congestion across Gauteng.")
-        st.balloons()
-        st.success("Reward +10 Smart Mobility Points")
+    st.markdown("</div>",unsafe_allow_html=True)
 
-# ==================================================
-# LIVE MAP
-# ==================================================
-elif menu=="Live Map":
+# ---------------- MAP ----------------
+elif st.session_state.page=="Map":
 
-    st.header("Live Route Map")
+    st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    start,end="Home","Work"
+    st.header("Live Navigation")
+
+    start="Home"
+    end="Work"
 
     map_data=pd.DataFrame({
         "lat":[coords[start][0],coords[end][0]],
@@ -227,29 +229,39 @@ elif menu=="Live Map":
 
     st.map(map_data,zoom=14)
 
-# ==================================================
-# REPORTS
-# ==================================================
-elif menu=="Reports":
+    st.markdown("</div>",unsafe_allow_html=True)
 
-    st.header("Report Traffic Issue")
+# ---------------- ANALYTICS ----------------
+elif st.session_state.page=="Analytics":
 
-    issue=st.selectbox(
-        "Issue Type",
-        ["Accident","Traffic Jam","Roadblock","Pothole"]
-    )
+    st.markdown("<div class='section'>",unsafe_allow_html=True)
 
-    if st.button("Submit Report"):
-        st.success("Report Successfully Submitted")
+    st.header("Traffic Analytics")
 
-# ==================================================
-# PROFILE
-# ==================================================
-elif menu=="Profile":
+    data=np.random.randint(20,100,24)
 
-    st.header("User Profile")
+    analytics=pd.DataFrame({
+        "Hour":range(24),
+        "Traffic":data
+    })
 
-    st.text_input("Home Location")
-    st.text_input("Work Location")
+    st.line_chart(analytics.set_index("Hour"))
 
-    st.success("Profile Active")
+    st.info("AI predicts congestion behaviour.")
+
+    st.markdown("</div>",unsafe_allow_html=True)
+
+# ---------------- PROFILE ----------------
+elif st.session_state.page=="Profile":
+
+    st.markdown("<div class='section'>",unsafe_allow_html=True)
+
+    st.header("Profile")
+
+    st.write("User: MELLOWTECH Driver")
+    st.success("Reward Points: 120")
+
+    if st.button("Sync Mobility Data"):
+        st.balloons()
+
+    st.markdown("</div>",unsafe_allow_html=True)
