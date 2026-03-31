@@ -75,6 +75,12 @@ body { background-color:#0f172a; }
     background-color: #00cfff !important;
 }
 
+/* Make main slider full width & big */
+.stSlider > div[data-baseweb="slider"] {
+    width: 100% !important;
+    height: 60px !important;
+}
+
 /* Remove Streamlit top-right menu, GitHub icon & footer */
 #MainMenu {visibility: hidden !important;}
 header {visibility: hidden !important;}
@@ -83,7 +89,7 @@ footer {visibility: hidden !important;}
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR WITH SESSION STATE
+# SIDEBAR
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
@@ -116,30 +122,38 @@ if menu == "Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC
+# TRAFFIC (Full Slide Page)
 # -----------------------------
 elif menu == "Traffic":
-    st.title("Traffic Prediction")
-
+    st.markdown("<div class='title'>TRAFFIC PREDICTION</div>", unsafe_allow_html=True)
+    
+    st.subheader("Select Your Departure Time")
+    leave_time = st.slider(
+        "Departure Time (Hour of the Day)", 
+        min_value=6, 
+        max_value=22, 
+        value=8, 
+        step=1,
+        key="full_slider"
+    )
+    
     locations = ["Home", "Work", "School", "Mall"]
-    start = st.selectbox("Start", locations)
-    end = st.selectbox("Destination", locations)
-    leave_time = st.slider("Departure Time", 6, 22, 8, key="departure")
-
-    # Dynamic congestion based on departure time
+    
+    # Congestion simulation based on departure time
     np.random.seed(leave_time)
     base_congestion = np.random.randint(10, 80, len(locations))
     congestion = [c + 20 if 7 <= leave_time <= 9 or 16 <= leave_time <= 18 else c for c in base_congestion]
     congestion = [min(100, c) for c in congestion]
-
+    
     df = pd.DataFrame({
         "Location": locations,
         "Congestion %": congestion
     })
-
+    
+    # Display Data
     st.dataframe(df, use_container_width=True)
-
-    # 🔴🔵 Traffic light indicator
+    
+    # Traffic Lights Indicator
     st.subheader("Traffic Lights")
     for i in range(len(df)):
         level = df.loc[i, "Congestion %"]
@@ -150,10 +164,10 @@ elif menu == "Traffic":
             color = "🔵"
             status = "Low Traffic"
         st.markdown(f"**{df.loc[i, 'Location']}** → {color} {status}")
-
+    
     # Line chart
     st.line_chart(df.set_index("Location"))
-
+    
     best_location = df.loc[df["Congestion %"].idxmin(), "Location"]
     st.success(f"Best Location to Start From: {best_location}")
 
@@ -162,12 +176,10 @@ elif menu == "Traffic":
 # -----------------------------
 elif menu == "Navigation":
     st.title("Live Navigation")
-
     map_data = pd.DataFrame({
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
-
     st.map(map_data)
 
 # -----------------------------
@@ -175,13 +187,11 @@ elif menu == "Navigation":
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
         "Traffic Flow (cars/min)": [40, 50, 35, 55, 45],
         "Congestion Level (%)": [20, 35, 10, 50, 25]
     }, index=["Home", "Work", "School", "Mall", "Station"])
-
     st.table(data)
     st.bar_chart(data)
 
