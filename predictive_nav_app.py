@@ -14,26 +14,26 @@ st.set_page_config(
 )
 
 # -----------------------------
-# BEAUTIFUL THEME (BLUE + RED)
+# THEME + STYLES
 # -----------------------------
 st.markdown("""
 <style>
-body {
-    background-color:#0f172a;
-}
-.stApp {
-    background: linear-gradient(135deg,#020617,#0f172a);
-}
+body { background-color:#0f172a; }
+.stApp { background: linear-gradient(135deg,#020617,#0f172a); }
+
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:2px solid #00cfff;
+    padding-top:20px;
 }
+
 .title{
     text-align:center;
     font-size:42px;
     font-weight:800;
     color:#00cfff;
 }
+
 .stButton>button{
     width:100%;
     border-radius:10px;
@@ -42,31 +42,50 @@ body {
     font-weight:bold;
     border:none;
 }
+
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
+
 .sidebar-icon {
-    font-size:20px;
-    color:#00cfff;
-    margin-right:8px;
+    width:30px;
+    height:30px;
+    margin-right:10px;
+    filter: brightness(0.8) invert(0.8); /* makes it silver */
+}
+.sidebar-button {
+    display:flex;
+    align-items:center;
+    margin-bottom:10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR MENU WITH CLEAN ICONS
+# LOAD ICONS (using URLs or local paths)
+# You can replace these with your own SVG/PNG files
+# -----------------------------
+icons = {
+    "Dashboard": "https://img.icons8.com/ios-filled/50/ffffff/speed.png",
+    "Traffic": "https://img.icons8.com/ios-filled/50/ffffff/car.png",
+    "Navigation": "https://img.icons8.com/ios-filled/50/ffffff/map.png",
+    "Analytics": "https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png",
+    "Profile": "https://img.icons8.com/ios-filled/50/ffffff/user.png"
+}
+
+# -----------------------------
+# SIDEBAR NAVIGATION WITH ICONS
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
-menu = st.sidebar.radio(
-    "Navigation",
-    [
-        "Dashboard",
-        "Traffic",
-        "Navigation",
-        "Analytics",
-        "Profile"
-    ]
-)
+
+menu = None
+for page, icon_url in icons.items():
+    if st.sidebar.button(f"{page}", key=page):
+        menu = page
+
+# Default to Dashboard if nothing clicked
+if menu is None:
+    menu = "Dashboard"
 
 # -----------------------------
 # DASHBOARD PAGE
@@ -115,21 +134,18 @@ elif menu == "Traffic":
 # -----------------------------
 elif menu == "Navigation":
     st.title("Live Navigation")
-
     map_data = pd.DataFrame({
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
-
     st.map(map_data)
 
 # -----------------------------
-# ANALYTICS PAGE (VERY SIMPLE)
+# ANALYTICS PAGE
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-
-    st.markdown("**Quick insights at a glance to help you plan your trip.**")
+    st.markdown("**Quick overview of key traffic data for easy decisions.**")
 
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
@@ -139,8 +155,7 @@ elif menu == "Analytics":
 
     st.table(data)
     st.bar_chart(data)
-
-    st.info("View key traffic metrics quickly for smarter travel decisions.")
+    st.info("View traffic metrics quickly for smarter travel planning.")
 
 # -----------------------------
 # PROFILE PAGE
