@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import pytz
 from datetime import datetime as dt
-from streamlit_option_menu import option_menu  # pip install streamlit-option-menu
 
 # -----------------------------
 # PAGE CONFIG
@@ -50,27 +49,17 @@ body {
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR MENU WITH ICONS
+# SIDEBAR MENU WITH EMOJIS
 # -----------------------------
-with st.sidebar:
-    selected = option_menu(
-        menu_title="MELLOWTECH",
-        options=["Dashboard","Traffic","Navigation","Analytics","Profile"],
-        icons=["speedometer","car-front","map","bar-chart","person-circle"],  # real icons
-        menu_icon="app-indicator",
-        default_index=0,
-        styles={
-            "container": {"padding": "5px", "background-color": "#020617"},
-            "icon": {"color": "#00cfff", "font-size": "20px"},
-            "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#ff0033"},
-            "nav-link-selected": {"background-color": "#00cfff"},
-        }
-    )
+menu = st.sidebar.radio(
+    "MELLOWTECH",
+    ["🏠 Dashboard", "🚗 Traffic", "🗺️ Navigation", "📊 Analytics", "👤 Profile"]
+)
 
 # -----------------------------
 # DASHBOARD PAGE
 # -----------------------------
-if selected == "Dashboard":
+if menu == "🏠 Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.title("Smart Mobility Dashboard")
 
@@ -87,10 +76,10 @@ if selected == "Dashboard":
 # -----------------------------
 # TRAFFIC PAGE
 # -----------------------------
-elif selected == "Traffic":
+elif menu == "🚗 Traffic":
     st.title("Traffic Prediction")
 
-    locations = ["Home","Work","School","Mall"]
+    locations = ["Home", "Work", "School", "Mall"]
     start = st.selectbox("Start", locations)
     end = st.selectbox("Destination", locations)
     leave_time = st.slider("Departure Time", 6, 22, 8)
@@ -112,7 +101,7 @@ elif selected == "Traffic":
 # -----------------------------
 # NAVIGATION PAGE
 # -----------------------------
-elif selected == "Navigation":
+elif menu == "🗺️ Navigation":
     st.title("Live Navigation")
 
     map_data = pd.DataFrame({
@@ -125,25 +114,25 @@ elif selected == "Navigation":
 # -----------------------------
 # ANALYTICS PAGE (EASY VERSION)
 # -----------------------------
-elif selected == "Analytics":
+elif menu == "📊 Analytics":
     st.title("Traffic Analytics - Quick Overview")
 
-    st.markdown("**Here’s a simple view of traffic speed, flow, and density.**")
+    st.markdown("**Simple view of traffic speed, flow, and density for easy understanding.**")
 
     data = pd.DataFrame(
-        np.random.randint(30, 100, size=(10,3)),  # simplified data
+        np.random.randint(30, 100, size=(10,3)),
         columns=["Speed (km/h)", "Flow (cars/min)", "Density (cars/km)"]
     )
 
-    st.table(data)  # easy-to-read table
-    st.bar_chart(data)  # simple bar chart
+    st.table(data)
+    st.bar_chart(data)
 
     st.info("Quick insights help users plan their travel faster.")
 
 # -----------------------------
 # PROFILE PAGE
 # -----------------------------
-elif selected == "Profile":
+elif menu == "👤 Profile":
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard!")
-    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily with icons.")
+    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar icons.")
