@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ------------------------------------------------
-# LOADING
+# LOADING SCREEN
 # ------------------------------------------------
 with st.spinner("Launching MELLOWTECH AI Engine..."):
     time.sleep(1)
@@ -26,38 +26,37 @@ with st.spinner("Launching MELLOWTECH AI Engine..."):
 st.markdown("""
 <style>
 
-/* Background */
+/* ---------------- APP BACKGROUND ---------------- */
 .stApp{
     background:linear-gradient(135deg,#020617,#0f172a);
     color:white;
 }
 
-/* Remove Streamlit branding */
+/* ---------------- REMOVE BRANDING ---------------- */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
-header {visibility:hidden;}
 
-/* Keep sidebar toggle */
-[data-testid="collapsedControl"]{
-    visibility:visible;
+/* KEEP HEADER FOR SIDEBAR SLIDE BUTTON */
+header{
+    background:transparent;
 }
 
-/* Sidebar */
+/* ---------------- SIDEBAR ---------------- */
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:1px solid #1e293b;
 }
 
-/* Title */
+/* Sidebar title */
 .sidebar-title{
     font-size:22px;
     font-weight:700;
     margin-bottom:15px;
+    color:white;
 }
 
-/* Radio menu styling */
+/* Radio buttons style */
 div[role="radiogroup"] > label{
-    background:transparent;
     padding:12px;
     border-radius:10px;
     margin-bottom:6px;
@@ -70,14 +69,14 @@ div[role="radiogroup"] > label:hover{
     color:white;
 }
 
-/* Selected menu */
+/* Active page */
 div[role="radiogroup"] > label[data-selected="true"]{
     background:#111827;
     color:#00cfff;
     border-left:4px solid #00cfff;
 }
 
-/* Glow title */
+/* Title Glow */
 .title{
     text-align:center;
     font-size:48px;
@@ -88,26 +87,26 @@ div[role="radiogroup"] > label[data-selected="true"]{
         0 0 20px #00ffff;
 }
 
-/* Metrics */
+/* Metric color */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
 
-/* Animation */
+/* Smooth page animation */
 section.main > div{
     animation:fadeIn 0.4s ease-in-out;
 }
 
 @keyframes fadeIn{
-    from{opacity:0; transform:translateY(10px);}
-    to{opacity:1; transform:translateY(0);}
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------
-# SIDEBAR WITH REAL ICONS
+# SIDEBAR WITH ICONS
 # ------------------------------------------------
 st.sidebar.markdown(
     "<div class='sidebar-title'>MELLOWTECH</div>",
@@ -126,7 +125,7 @@ menu = st.sidebar.radio(
 )
 
 # ------------------------------------------------
-# DASHBOARD
+# DASHBOARD PAGE
 # ------------------------------------------------
 if menu == "🏠 Dashboard":
 
@@ -136,16 +135,16 @@ if menu == "🏠 Dashboard":
     timezone = pytz.timezone("Africa/Johannesburg")
     current_time = dt.now(timezone).strftime("%H:%M:%S")
 
-    c1, c2, c3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-    c1.metric("Current Time", current_time)
-    c2.metric("System Status", "Online")
-    c3.metric("AI Engine", "Active")
+    col1.metric("Current Time", current_time)
+    col2.metric("System Status", "Online")
+    col3.metric("AI Engine", "Active")
 
     st.success("🟢 Predictive Traffic Intelligence Running")
 
 # ------------------------------------------------
-# TRAFFIC
+# TRAFFIC PAGE
 # ------------------------------------------------
 elif menu == "🚦 Traffic":
 
@@ -158,6 +157,7 @@ elif menu == "🚦 Traffic":
     leave_time = st.slider("Departure Time", 6, 22, 8)
 
     np.random.seed(leave_time)
+
     base = np.random.randint(10, 80, len(locations))
 
     congestion = [
@@ -174,6 +174,8 @@ elif menu == "🚦 Traffic":
 
     st.dataframe(df, use_container_width=True)
 
+    st.subheader("Traffic Lights")
+
     for i in range(len(df)):
         level = df.loc[i, "Congestion %"]
         icon = "🔴" if level > 60 else "🔵"
@@ -182,8 +184,11 @@ elif menu == "🚦 Traffic":
 
     st.line_chart(df.set_index("Location"))
 
+    best = df.loc[df["Congestion %"].idxmin(), "Location"]
+    st.success(f"Best Location to Start From: {best}")
+
 # ------------------------------------------------
-# NAVIGATION
+# NAVIGATION PAGE
 # ------------------------------------------------
 elif menu == "🧭 Navigation":
 
@@ -197,7 +202,7 @@ elif menu == "🧭 Navigation":
     st.map(map_data)
 
 # ------------------------------------------------
-# ANALYTICS
+# ANALYTICS PAGE
 # ------------------------------------------------
 elif menu == "📊 Analytics":
 
@@ -214,7 +219,7 @@ elif menu == "📊 Analytics":
     st.bar_chart(data)
 
 # ------------------------------------------------
-# PROFILE
+# PROFILE PAGE
 # ------------------------------------------------
 elif menu == "👤 Profile":
 
