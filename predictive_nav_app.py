@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# THEME + STYLES (Sidebar + Glow + Clean)
+# THEME + STYLES
 # -----------------------------
 st.markdown("""
 <style>
@@ -28,7 +28,7 @@ body { background-color:#0f172a; }
     padding-top:20px;
 }
 
-/* Sidebar buttons as equal rectangles */
+/* Sidebar buttons equal */
 .stButton>button {
     width: 100%;
     height: 70px;
@@ -42,7 +42,6 @@ body { background-color:#0f172a; }
     align-items: center;
     justify-content: center;
     margin-bottom: 15px;
-    box-sizing: border-box;
 }
 
 /* Hover effect */
@@ -71,7 +70,12 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* Remove Streamlit top-right menu, GitHub/Share icon & footer */
+/* Blue slider */
+.css-1n76uvr.edgvbvh3 {
+    background-color: #00cfff !important;
+}
+
+/* Remove Streamlit top-right menu, GitHub icon & footer */
 #MainMenu {visibility: hidden !important;}
 header {visibility: hidden !important;}
 footer {visibility: hidden !important;}
@@ -120,7 +124,7 @@ elif menu == "Traffic":
     locations = ["Home", "Work", "School", "Mall"]
     start = st.selectbox("Start", locations)
     end = st.selectbox("Destination", locations)
-    leave_time = st.slider("Departure Time", 6, 22, 8)
+    leave_time = st.slider("Departure Time", 6, 22, 8, key="departure")
 
     # Dynamic congestion based on departure time
     np.random.seed(leave_time)
