@@ -26,15 +26,22 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # -----------------------------
-# THEME (UPDATED MINIMALLY)
+# IMPROVED UI
 # -----------------------------
 st.markdown("""
 <style>
 
-/* REMOVE STREAMLIT DEFAULT UI */
+/* REMOVE STREAMLIT DEFAULT */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+
+/* GLOBAL WIDTH CONTROL (IMPORTANT FIX) */
+.block-container {
+    max-width: 1100px;
+    padding-left: 4rem;
+    padding-right: 4rem;
+}
 
 /* Background */
 .stApp {
@@ -47,21 +54,22 @@ header {visibility: hidden;}
     border-right:2px solid #00cfff;
 }
 
-/* Titles */
+/* TITLE (SHINE EFFECT) */
 .title{
     text-align:center;
-    font-size:42px;
-    font-weight:800;
+    font-size:44px;
+    font-weight:900;
     color:#00cfff;
+    text-shadow:0px 0px 10px #00cfff, 0px 0px 20px #00cfff;
 }
 
-/* Login Card (THINNER) */
+/* LOGIN CARD (CENTER + SLIM) */
 .card{
     background:#020617;
-    padding:35px;
+    padding:30px;
     border-radius:18px;
-    max-width:340px;
-    margin:auto;
+    max-width:320px;
+    margin:60px auto;
     box-shadow:0px 0px 25px rgba(0,207,255,0.3);
 }
 
@@ -75,20 +83,25 @@ header {visibility: hidden;}
     border:none;
 }
 
-/* Social Login Buttons */
+/* SOCIAL BUTTONS */
 .social-btn{
     display:flex;
     align-items:center;
     justify-content:center;
     gap:10px;
     padding:10px;
-    margin-top:8px;
+    margin-top:10px;
     border-radius:10px;
     background:#0f172a;
     border:1px solid #00cfff;
     color:white;
     cursor:pointer;
-    text-align:center;
+}
+
+/* ICON SIZE */
+.icon{
+    width:18px;
+    height:18px;
 }
 
 /* Metrics */
@@ -123,12 +136,31 @@ def login_page():
 
     st.divider()
 
-    # SOCIAL LOGIN UI
-    st.markdown("### Or login with")
+    st.markdown("### Or login with", unsafe_allow_html=True)
 
-    st.markdown("<div class='social-btn'>🔵 Google</div>", unsafe_allow_html=True)
-    st.markdown("<div class='social-btn'>🍎 Apple</div>", unsafe_allow_html=True)
-    st.markdown("<div class='social-btn'>📱 Phone Number</div>", unsafe_allow_html=True)
+    # GOOGLE
+    st.markdown("""
+    <div class='social-btn'>
+        <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg'>
+        Google
+    </div>
+    """, unsafe_allow_html=True)
+
+    # APPLE
+    st.markdown("""
+    <div class='social-btn'>
+        <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
+        Apple
+    </div>
+    """, unsafe_allow_html=True)
+
+    # PHONE
+    st.markdown("""
+    <div class='social-btn'>
+        <img class='icon' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
+        Phone Number
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
 
@@ -164,6 +196,7 @@ def signup_page():
         st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # -----------------------------
 # DASHBOARD
