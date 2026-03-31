@@ -74,20 +74,20 @@ body { background-color:#0f172a; }
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR
+# SIDEBAR WITH SESSION STATE
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
+if 'menu' not in st.session_state:
+    st.session_state.menu = "Dashboard"
+
 pages = ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
 
-menu = None
 for page in pages:
     if st.sidebar.button(page):
-        menu = page
+        st.session_state.menu = page
 
-# Default
-if menu is None:
-    menu = "Dashboard"
+menu = st.session_state.menu
 
 # -----------------------------
 # DASHBOARD
@@ -117,11 +117,11 @@ elif menu == "Traffic":
     end = st.selectbox("Destination", locations)
     leave_time = st.slider("Departure Time", 6, 22, 8)
 
-    # Simulate congestion dynamically based on departure time
-    np.random.seed(leave_time)  # dynamic results
+    # Dynamic congestion based on departure time
+    np.random.seed(leave_time)
     base_congestion = np.random.randint(10, 80, len(locations))
     congestion = [c + 20 if 7 <= leave_time <= 9 or 16 <= leave_time <= 18 else c for c in base_congestion]
-    congestion = [min(100, c) for c in congestion]  # cap at 100%
+    congestion = [min(100, c) for c in congestion]
 
     df = pd.DataFrame({
         "Location": locations,
@@ -142,7 +142,7 @@ elif menu == "Traffic":
             status = "Low Traffic"
         st.markdown(f"**{df.loc[i, 'Location']}** → {color} {status}")
 
-    # Line chart
+    # Chart
     st.line_chart(df.set_index("Location"))
 
     best_location = df.loc[df["Congestion %"].idxmin(), "Location"]
