@@ -20,17 +20,20 @@ st.markdown("""
 <style>
 body { background-color:#0f172a; }
 .stApp { background: linear-gradient(135deg,#020617,#0f172a); }
+
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:2px solid #00cfff;
     padding-top:20px;
 }
+
 .title{
     text-align:center;
     font-size:42px;
     font-weight:800;
     color:#00cfff;
 }
+
 .stButton>button{
     width:100%;
     border-radius:10px;
@@ -40,16 +43,20 @@ body { background-color:#0f172a; }
     border:none;
     padding:10px 0px;
 }
-[data-testid="stMetricValue"]{
-    color:#00cfff;
-}
+
 .metric-box{
     background:#020617;
     padding:25px;
     border-radius:15px;
     text-align:center;
     box-shadow:0px 0px 25px rgba(0,207,255,0.3);
+    margin-bottom:20px;
 }
+
+[data-testid="stMetricValue"]{
+    color:#00cfff;
+}
+
 .traffic-light-red{
     width:25px; height:25px; border-radius:50%; background:red; display:inline-block; margin-right:5px;
 }
@@ -63,14 +70,13 @@ body { background-color:#0f172a; }
 # SIDEBAR MENU
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
-
 menu = st.sidebar.radio(
     "Navigation",
     ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
 )
 
 # -----------------------------
-# DASHBOARD PAGE (EQUAL BOXES)
+# DASHBOARD PAGE
 # -----------------------------
 if menu == "Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
@@ -79,22 +85,15 @@ if menu == "Dashboard":
     timezone = pytz.timezone("Africa/Johannesburg")
     current_time = dt.now(timezone).strftime("%H:%M:%S")
 
-    # Equal boxes
     col1, col2, col3 = st.columns(3)
     col1.markdown(f"<div class='metric-box'><h3>Current Time</h3><h2>{current_time}</h2></div>", unsafe_allow_html=True)
     col2.markdown(f"<div class='metric-box'><h3>System Status</h3><h2>Online</h2></div>", unsafe_allow_html=True)
     col3.markdown(f"<div class='metric-box'><h3>AI Engine</h3><h2>Active</h2></div>", unsafe_allow_html=True)
 
-    st.success("🔹 Unique Features of MELLOWTECH 🔹")
-    st.markdown("""
-- **Predictive congestion forecasting**: see traffic hours in advance using multiple data layers (weather, events, commuter patterns).  
-- **Personalized departure time optimization**: know the exact best minute to leave to reduce your commute AND overall traffic.  
-- **Collective route shaping**: coordinate many users' routes to minimize overall congestion, not just fastest individual paths.  
-- **Rewards for coordinated behavior**: users get incentives for making traffic-smart choices.
-""")
+    st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC PAGE WITH RED & BLUE LIGHTS
+# TRAFFIC PAGE
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -112,16 +111,17 @@ elif menu == "Traffic":
         "Congestion %": congestion
     })
 
-    # Show traffic lights
+    # Show traffic lights for each hour
     st.markdown("### Congestion Levels")
     for i, row in df.iterrows():
         light_color = "traffic-light-red" if row["Congestion %"] > 50 else "traffic-light-blue"
         st.markdown(f"<span class='{light_color}'></span> Hour {row['Hour']}: {row['Congestion %']}%", unsafe_allow_html=True)
 
-    st.line_chart(df.set_index("Hour"))
+    col1, col2 = st.columns(2)
+    col1.markdown(f"<div class='metric-box'><h3>Best Time to Leave</h3><h2>{df.loc[df['Congestion %'].idxmin(), 'Hour']}:00</h2></div>", unsafe_allow_html=True)
+    col2.markdown(f"<div class='metric-box'><h3>Average Congestion</h3><h2>{int(df['Congestion %'].mean())}%</h2></div>", unsafe_allow_html=True)
 
-    best = df.loc[df["Congestion %"].idxmin(), "Hour"]
-    st.success(f"🚦 Best Time To Leave: {best}:00")
+    st.line_chart(df.set_index("Hour"))
 
 # -----------------------------
 # NAVIGATION PAGE
@@ -132,14 +132,17 @@ elif menu == "Navigation":
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
-    st.map(map_data)
+
+    col1, col2 = st.columns(2)
+    col1.map(map_data)
+    col2.markdown("<div class='metric-box'><h3>Navigation Status</h3><h2>Active</h2></div>", unsafe_allow_html=True)
 
 # -----------------------------
-# ANALYTICS PAGE (VERY SIMPLE)
+# ANALYTICS PAGE
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-    st.markdown("**Quick glance of traffic metrics for smarter travel decisions.**")
+    st.markdown("**Quick glance of key traffic metrics for smarter travel decisions.**")
 
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
@@ -147,13 +150,17 @@ elif menu == "Analytics":
         "Congestion Level (%)": [20, 35, 10, 50, 25]
     }, index=["Home", "Work", "School", "Mall", "Station"])
 
-    st.table(data)
-    st.bar_chart(data)
+    col1, col2 = st.columns(2)
+    col1.table(data)
+    col2.bar_chart(data)
 
 # -----------------------------
 # PROFILE PAGE
 # -----------------------------
 elif menu == "Profile":
     st.title("User Profile")
-    st.write("Welcome to MELLOWTECH Dashboard!")
+    col1, col2 = st.columns(2)
+    col1.markdown("<div class='metric-box'><h3>Username</h3><h2>Guest</h2></div>", unsafe_allow_html=True)
+    col2.markdown("<div class='metric-box'><h3>Status</h3><h2>Active</h2></div>", unsafe_allow_html=True)
+
     st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")
