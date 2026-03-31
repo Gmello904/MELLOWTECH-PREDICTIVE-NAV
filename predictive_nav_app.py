@@ -26,25 +26,32 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # -----------------------------
-# BEAUTIFUL THEME (BLUE + RED)
+# UPDATED THEME (BLACK + WHITE + ANIMATION)
 # -----------------------------
 st.markdown("""
 <style>
 
+/* Hide Streamlit default menu/footer */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
 /* Background */
-body {
-    background-color:#0f172a;
+.stApp {
+    background: linear-gradient(135deg,#000000,#111111);
+    animation: fadeIn 1s ease-in-out;
 }
 
-/* Main App */
-.stApp {
-    background: linear-gradient(135deg,#020617,#0f172a);
+/* Fade animation */
+@keyframes fadeIn {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1; transform:translateY(0);}
 }
 
 /* Sidebar */
 [data-testid="stSidebar"]{
-    background:#020617;
-    border-right:2px solid #00cfff;
+    background:#000;
+    border-right:1px solid #fff;
 }
 
 /* Titles */
@@ -52,39 +59,55 @@ body {
     text-align:center;
     font-size:42px;
     font-weight:800;
-    color:#00cfff;
+    color:#ffffff;
 }
 
-/* Login Card */
+/* Login Card (THINNER) */
 .card{
-    background:#020617;
-    padding:40px;
-    border-radius:18px;
-    max-width:420px;
+    background:#000;
+    padding:30px;
+    border-radius:14px;
+    max-width:320px;
     margin:auto;
-    box-shadow:0px 0px 25px rgba(0,207,255,0.3);
+    border:1px solid #fff;
+    animation: slideUp 0.8s ease;
+}
+
+/* Card animation */
+@keyframes slideUp {
+    from {opacity:0; transform:translateY(40px);}
+    to {opacity:1; transform:translateY(0);}
 }
 
 /* Buttons */
 .stButton>button{
     width:100%;
-    border-radius:10px;
-    background:linear-gradient(90deg,#00cfff,#ff0033);
-    color:white;
+    border-radius:8px;
+    background:white;
+    color:black;
     font-weight:bold;
     border:none;
+    transition:0.3s;
 }
 
-/* Metrics */
-[data-testid="stMetricValue"]{
-    color:#00cfff;
+.stButton>button:hover{
+    background:black;
+    color:white;
+    border:1px solid white;
 }
 
-/* Mobile Responsive */
-@media (max-width:768px){
-.card{
-    margin-top:20px;
+/* Inputs */
+input{
+    background:black !important;
+    color:white !important;
+    border:1px solid white !important;
 }
+
+/* Toggle container */
+.toggle-container{
+    display:flex;
+    justify-content:center;
+    margin-bottom:15px;
 }
 
 </style>
@@ -100,6 +123,11 @@ def login_page():
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
     st.subheader("Login")
+
+    # Toggle Switch (UI only)
+    st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
+    mode = st.toggle("Dark / Light Mode")
+    st.markdown("</div>", unsafe_allow_html=True)
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
@@ -148,11 +176,10 @@ def signup_page():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------------
-# DASHBOARD APP (LEFT SIDEBAR)
+# DASHBOARD APP
 # -----------------------------
 def dashboard():
 
-    # ---- SIDEBAR MENU ----
     st.sidebar.title("MELLOWTECH")
 
     menu = st.sidebar.radio(
@@ -162,7 +189,6 @@ def dashboard():
 
     st.sidebar.success(f"User: {st.session_state.user}")
 
-    # ---------------- DASHBOARD
     if menu == "Dashboard":
 
         st.title("Smart Mobility Dashboard")
@@ -178,7 +204,6 @@ def dashboard():
 
         st.success("MELLOWTECH Predictive Traffic Intelligence Running")
 
-    # ---------------- TRAFFIC
     elif menu == "Traffic":
 
         st.title("Traffic Prediction")
@@ -205,7 +230,6 @@ def dashboard():
 
         st.success(f"Best Time To Leave: {best}:00")
 
-    # ---------------- NAVIGATION
     elif menu == "Navigation":
 
         st.title("Live Navigation")
@@ -217,7 +241,6 @@ def dashboard():
 
         st.map(map_data)
 
-    # ---------------- ANALYTICS
     elif menu == "Analytics":
 
         st.title("Traffic Analytics")
@@ -231,7 +254,6 @@ def dashboard():
 
         st.info("AI analysing traffic patterns across Gauteng.")
 
-    # ---------------- PROFILE
     elif menu == "Profile":
 
         st.title("User Profile")
