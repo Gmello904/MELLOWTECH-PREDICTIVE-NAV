@@ -3,124 +3,202 @@ import pandas as pd
 import numpy as np
 import pytz
 from datetime import datetime as dt
+import time
 
-# -----------------------------
+# ------------------------------------------------
 # PAGE CONFIG
-# -----------------------------
+# ------------------------------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# -----------------------------
-# THEME + STYLES (Glowing Title & Equal Rect Buttons)
-# -----------------------------
-st.markdown("""
-<style>
-body { background-color:#0f172a; }
-.stApp { background: linear-gradient(135deg,#020617,#0f172a); }
+# ------------------------------------------------
+# LOADING
+# ------------------------------------------------
+with st.spinner("Launching MELLOWTECH AI Engine..."):
+    time.sleep(1)
 
-/* Sidebar */
+# ------------------------------------------------
+# PREMIUM STYLE + SILVER ICONS
+# ------------------------------------------------
+st.markdown("""
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+
+/* -------- BACKGROUND -------- */
+.stApp{
+    background:linear-gradient(135deg,#020617,#0f172a);
+    color:white;
+}
+
+/* -------- REMOVE STREAMLIT BRANDING -------- */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+[data-testid="collapsedControl"]{
+    visibility:visible;
+}
+
+/* -------- SIDEBAR -------- */
 [data-testid="stSidebar"]{
     background:#020617;
-    border-right:2px solid #00cfff;
-    padding-top:20px;
+    border-right:1px solid #1e293b;
 }
 
-/* Sidebar buttons as equal rectangles */
-.stButton>button {
-    width: 100%;
-    height: 70px;
-    border-radius: 12px;
-    background: linear-gradient(90deg,#00cfff,#ff0033);
-    color: white;
-    font-weight: bold;
-    font-size: 18px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-    box-sizing: border-box;
+/* Sidebar title */
+.sidebar-title{
+    font-size:22px;
+    font-weight:700;
+    padding-left:10px;
+    margin-bottom:20px;
 }
 
-/* Hover effect */
-.stButton>button:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 15px #00cfff, 0 0 30px #ff0033;
-    transition: 0.2s;
+/* Buttons */
+.stButton>button{
+    width:100%;
+    background:transparent;
+    border:none;
+    color:#cbd5e1;
+    text-align:left;
+    padding:14px 18px;
+    font-size:16px;
+    border-radius:10px;
 }
 
-/* Glowing title */
+/* Hover */
+.stButton>button:hover{
+    background:#0f172a;
+    color:white;
+}
+
+/* Active menu */
+.active-btn button{
+    background:#111827 !important;
+    color:#00cfff !important;
+    border-left:4px solid #00cfff;
+}
+
+/* Silver icons */
+.menu-icon{
+    font-family:'Material Icons';
+    font-size:20px;
+    margin-right:12px;
+    vertical-align:middle;
+    color:silver;
+}
+
+/* Active icon */
+.active-btn .menu-icon{
+    color:#00cfff;
+}
+
+/* Title glow */
 .title{
     text-align:center;
     font-size:48px;
     font-weight:900;
     color:#00ffff;
     text-shadow:
-        0 0 5px #00ffff,
         0 0 10px #00ffff,
         0 0 20px #00ffff,
-        0 0 40px #00ffff,
-        0 0 80px #00ffff;
+        0 0 40px #00ffff;
 }
 
-/* Metric color */
+/* Metrics */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
+
+/* Page animation */
+section.main > div{
+    animation:fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------
-# SIDEBAR WITH SESSION STATE
-# -----------------------------
-st.sidebar.title("MELLOWTECH")
+# ------------------------------------------------
+# SIDEBAR NAVIGATION
+# ------------------------------------------------
+st.sidebar.markdown(
+    "<div class='sidebar-title'>MELLOWTECH</div>",
+    unsafe_allow_html=True
+)
 
-if 'menu' not in st.session_state:
+if "menu" not in st.session_state:
     st.session_state.menu = "Dashboard"
 
-pages = ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
+menu_items = {
+    "Dashboard": ("dashboard", "Dashboard"),
+    "Traffic": ("traffic", "Traffic"),
+    "Navigation": ("explore", "Navigation"),
+    "Analytics": ("analytics", "Analytics"),
+    "Profile": ("person", "Profile")
+}
 
-for page in pages:
-    if st.sidebar.button(page):
-        st.session_state.menu = page
+for key, (icon, label) in menu_items.items():
+
+    btn_class = "active-btn" if st.session_state.menu == key else ""
+    st.sidebar.markdown(f"<div class='{btn_class}'>", unsafe_allow_html=True)
+
+    button_label = f"<span class='menu-icon'>{icon}</span>{label}"
+
+    if st.sidebar.button(button_label, key=key):
+        st.session_state.menu = key
+
+    st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
 menu = st.session_state.menu
 
-# -----------------------------
+# ------------------------------------------------
 # DASHBOARD
-# -----------------------------
+# ------------------------------------------------
 if menu == "Dashboard":
+
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.title("Smart Mobility Dashboard")
 
     timezone = pytz.timezone("Africa/Johannesburg")
     current_time = dt.now(timezone).strftime("%H:%M:%S")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Current Time", current_time)
-    col2.metric("System Status", "Online")
-    col3.metric("AI Engine", "Active")
+    c1, c2, c3 = st.columns(3)
 
-    st.success("Predictive Traffic Intelligence Running")
+    c1.metric("Current Time", current_time)
+    c2.metric("System Status", "Online")
+    c3.metric("AI Engine", "Active")
 
-# -----------------------------
-# TRAFFIC
-# -----------------------------
+    st.success("🟢 Predictive Traffic Intelligence Running")
+
+# ------------------------------------------------
+# TRAFFIC PAGE
+# ------------------------------------------------
 elif menu == "Traffic":
+
     st.title("Traffic Prediction")
 
     locations = ["Home", "Work", "School", "Mall"]
+
     start = st.selectbox("Start", locations)
     end = st.selectbox("Destination", locations)
     leave_time = st.slider("Departure Time", 6, 22, 8)
 
-    # Dynamic congestion based on departure time
     np.random.seed(leave_time)
-    base_congestion = np.random.randint(10, 80, len(locations))
-    congestion = [c + 20 if 7 <= leave_time <= 9 or 16 <= leave_time <= 18 else c for c in base_congestion]
+    base = np.random.randint(10, 80, len(locations))
+
+    congestion = [
+        c + 20 if 7 <= leave_time <= 9 or 16 <= leave_time <= 18 else c
+        for c in base
+    ]
+
     congestion = [min(100, c) for c in congestion]
 
     df = pd.DataFrame({
@@ -130,28 +208,26 @@ elif menu == "Traffic":
 
     st.dataframe(df, use_container_width=True)
 
-    # 🔴🔵 Traffic light indicator
     st.subheader("Traffic Lights")
+
     for i in range(len(df)):
         level = df.loc[i, "Congestion %"]
-        if level > 60:
-            color = "🔴"
-            status = "High Traffic"
-        else:
-            color = "🔵"
-            status = "Low Traffic"
-        st.markdown(f"**{df.loc[i, 'Location']}** → {color} {status}")
 
-    # Chart
+        color = "🔴" if level > 60 else "🔵"
+        status = "High Traffic" if level > 60 else "Low Traffic"
+
+        st.markdown(f"**{df.loc[i,'Location']}** → {color} {status}")
+
     st.line_chart(df.set_index("Location"))
 
-    best_location = df.loc[df["Congestion %"].idxmin(), "Location"]
-    st.success(f"Best Location to Start From: {best_location}")
+    best = df.loc[df["Congestion %"].idxmin(), "Location"]
+    st.success(f"Best Location to Start From: {best}")
 
-# -----------------------------
+# ------------------------------------------------
 # NAVIGATION
-# -----------------------------
+# ------------------------------------------------
 elif menu == "Navigation":
+
     st.title("Live Navigation")
 
     map_data = pd.DataFrame({
@@ -161,24 +237,27 @@ elif menu == "Navigation":
 
     st.map(map_data)
 
-# -----------------------------
+# ------------------------------------------------
 # ANALYTICS
-# -----------------------------
+# ------------------------------------------------
 elif menu == "Analytics":
+
     st.title("Traffic Analytics")
 
     data = pd.DataFrame({
-        "Average Speed (km/h)": [60, 55, 70, 50, 65],
-        "Traffic Flow (cars/min)": [40, 50, 35, 55, 45],
-        "Congestion Level (%)": [20, 35, 10, 50, 25]
-    }, index=["Home", "Work", "School", "Mall", "Station"])
+        "Average Speed (km/h)": [60,55,70,50,65],
+        "Traffic Flow (cars/min)": [40,50,35,55,45],
+        "Congestion Level (%)": [20,35,10,50,25]
+    },
+    index=["Home","Work","School","Mall","Station"])
 
     st.table(data)
     st.bar_chart(data)
 
-# -----------------------------
+# ------------------------------------------------
 # PROFILE
-# -----------------------------
+# ------------------------------------------------
 elif menu == "Profile":
+
     st.title("User Profile")
-    st.write("Welcome to MELLOWTECH Dashboard!")
+    st.write("Welcome to MELLOWTECH Dashboard.")
