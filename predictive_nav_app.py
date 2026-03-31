@@ -36,11 +36,11 @@ st.markdown("""
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-/* GLOBAL WIDTH CONTROL (IMPORTANT FIX) */
+/* GLOBAL WIDTH CONTROL */
 .block-container {
-    max-width: 1100px;
-    padding-left: 4rem;
-    padding-right: 4rem;
+    max-width: 900px;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 
 /* Background */
@@ -54,7 +54,7 @@ header {visibility: hidden;}
     border-right:2px solid #00cfff;
 }
 
-/* TITLE (SHINE EFFECT) */
+/* TITLE (SHINE + STRAIGHT) */
 .title{
     text-align:center;
     font-size:44px;
@@ -63,14 +63,18 @@ header {visibility: hidden;}
     text-shadow:0px 0px 10px #00cfff, 0px 0px 20px #00cfff;
 }
 
-/* LOGIN CARD (CENTER + SLIM) */
+/* LOGIN CARD (SQUISHED TOP-BOTTOM & LEFT-RIGHT) */
 .card{
     background:#020617;
-    padding:30px;
+    padding:20px;
     border-radius:18px;
-    max-width:320px;
-    margin:60px auto;
-    box-shadow:0px 0px 25px rgba(0,207,255,0.3);
+    max-width:280px;
+    max-height:480px;
+    margin:40px auto;
+    box-shadow:0px 0px 20px rgba(0,207,255,0.3);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
 }
 
 /* Buttons */
@@ -83,14 +87,14 @@ header {visibility: hidden;}
     border:none;
 }
 
-/* SOCIAL BUTTONS */
+/* SOCIAL BUTTONS (SQUISH TOP-BOTTOM & SILVER APPLE & PHONE) */
 .social-btn{
     display:flex;
     align-items:center;
     justify-content:center;
     gap:10px;
-    padding:10px;
-    margin-top:10px;
+    padding:8px;
+    margin-top:6px;
     border-radius:10px;
     background:#0f172a;
     border:1px solid #00cfff;
@@ -104,7 +108,11 @@ header {visibility: hidden;}
     height:18px;
 }
 
-/* Metrics */
+/* SILVER ICONS */
+.icon-silver{
+    filter: brightness(0) invert(0.8);
+}
+
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
@@ -116,13 +124,10 @@ header {visibility: hidden;}
 # LOGIN PAGE
 # -----------------------------
 def login_page():
-
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
-
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
     st.subheader("Login")
-
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
@@ -135,10 +140,9 @@ def login_page():
             st.error("Invalid login")
 
     st.divider()
-
     st.markdown("### Or login with", unsafe_allow_html=True)
 
-    # GOOGLE
+    # GOOGLE (original color)
     st.markdown("""
     <div class='social-btn'>
         <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg'>
@@ -146,41 +150,37 @@ def login_page():
     </div>
     """, unsafe_allow_html=True)
 
-    # APPLE
+    # APPLE (silver)
     st.markdown("""
     <div class='social-btn'>
-        <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
+        <img class='icon icon-silver' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
         Apple
     </div>
     """, unsafe_allow_html=True)
 
-    # PHONE
+    # PHONE (silver)
     st.markdown("""
     <div class='social-btn'>
-        <img class='icon' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
+        <img class='icon icon-silver' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
         Phone Number
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
-
     if st.button("Create Account"):
         st.session_state.page = "signup"
         st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 # -----------------------------
 # SIGNUP PAGE
 # -----------------------------
 def signup_page():
-
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.markdown("<div class='card'>", unsafe_allow_html=True)
 
     st.subheader("Create Account")
-
     new_email = st.text_input("Email")
     new_password = st.text_input("Password", type="password")
 
@@ -197,106 +197,72 @@ def signup_page():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 # -----------------------------
 # DASHBOARD
 # -----------------------------
 def dashboard():
-
     st.sidebar.title("MELLOWTECH")
-
     menu = st.sidebar.radio(
         "Navigation",
         ["Dashboard","Traffic","Navigation","Analytics","Profile"]
     )
-
     st.sidebar.success(f"User: {st.session_state.user}")
 
     if menu == "Dashboard":
-
         st.title("Smart Mobility Dashboard")
-
         timezone = pytz.timezone("Africa/Johannesburg")
         current_time = dt.now(timezone).strftime("%H:%M:%S")
-
         col1,col2,col3 = st.columns(3)
-
         col1.metric("Current Time", current_time)
         col2.metric("System Status","Online")
         col3.metric("AI Engine","Active")
-
         st.success("MELLOWTECH Predictive Traffic Intelligence Running")
 
     elif menu == "Traffic":
-
         st.title("Traffic Prediction")
-
         locations = ["Home","Work","School","Mall"]
-
         start = st.selectbox("Start",locations)
         end = st.selectbox("Destination",locations)
         leave_time = st.slider("Departure Time",6,22,8)
-
         np.random.seed(1)
-
         congestion = np.random.randint(10,90,5)
-
         df = pd.DataFrame({
             "Hour":[leave_time+i for i in range(5)],
             "Congestion %":congestion
         })
-
         st.dataframe(df,use_container_width=True)
         st.line_chart(df.set_index("Hour"))
-
         best = df.loc[df["Congestion %"].idxmin(),"Hour"]
-
         st.success(f"Best Time To Leave: {best}:00")
 
     elif menu == "Navigation":
-
         st.title("Live Navigation")
-
         map_data = pd.DataFrame({
             "lat":[-25.7461,-25.7580],
             "lon":[28.1881,28.1890]
         })
-
         st.map(map_data)
 
     elif menu == "Analytics":
-
         st.title("Traffic Analytics")
-
-        data = pd.DataFrame(
-            np.random.randn(50,3),
-            columns=["Speed","Flow","Density"]
-        )
-
+        data = pd.DataFrame(np.random.randn(50,3),columns=["Speed","Flow","Density"])
         st.area_chart(data)
-
         st.info("AI analysing traffic patterns across Gauteng.")
 
     elif menu == "Profile":
-
         st.title("User Profile")
-
         st.write("Logged in as:",st.session_state.user)
-
         if st.button("Logout"):
             st.session_state.user=None
             st.session_state.page="login"
             st.rerun()
-
 
 # -----------------------------
 # ROUTING
 # -----------------------------
 if st.session_state.page == "login":
     login_page()
-
 elif st.session_state.page == "signup":
     signup_page()
-
 elif st.session_state.page == "dashboard":
     dashboard()
