@@ -3,18 +3,25 @@ import pandas as pd
 import numpy as np
 import pytz
 from datetime import datetime as dt
+import time
 
 # ------------------------------------------------
-# PAGE CONFIG (IMPORTANT FOR PHONE)
+# PAGE CONFIG
 # ------------------------------------------------
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
-    initial_sidebar_state="collapsed"   # ⭐ collapsed by default on phone
+    initial_sidebar_state="collapsed"  # Collapsed by default for mobile
 )
 
 # ------------------------------------------------
-# MOBILE + PREMIUM STYLE
+# LOADING SCREEN
+# ------------------------------------------------
+with st.spinner("Launching MELLOWTECH AI Engine..."):
+    time.sleep(1)
+
+# ------------------------------------------------
+# PREMIUM STYLE
 # ------------------------------------------------
 st.markdown("""
 <style>
@@ -28,7 +35,7 @@ st.markdown("""
 /* Remove Streamlit branding */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
-header{background:transparent;}
+header{background:transparent;}  /* keep header for sidebar toggle */
 
 /* SIDEBAR */
 [data-testid="stSidebar"]{
@@ -39,19 +46,17 @@ header{background:transparent;}
 /* MOBILE RESPONSIVE */
 @media (max-width: 768px){
 
-    /* make sidebar full height mobile */
     [data-testid="stSidebar"]{
         width:260px !important;
     }
 
-    /* bigger tap buttons */
     div[role="radiogroup"] label{
         font-size:20px;
         padding:18px;
     }
 }
 
-/* Menu Style */
+/* Sidebar radio buttons */
 div[role="radiogroup"] label{
     padding:14px;
     border-radius:12px;
@@ -79,7 +84,6 @@ div[role="radiogroup"] label[data-selected="true"]{
     color:#00ffff;
     text-shadow:0 0 15px #00ffff;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -100,7 +104,7 @@ menu = st.sidebar.radio(
 )
 
 # ------------------------------------------------
-# DASHBOARD
+# DASHBOARD PAGE
 # ------------------------------------------------
 if menu == "🏠 Dashboard":
 
@@ -110,7 +114,6 @@ if menu == "🏠 Dashboard":
     time_now = dt.now(timezone).strftime("%H:%M:%S")
 
     c1, c2, c3 = st.columns(3)
-
     c1.metric("Time", time_now)
     c2.metric("System", "Online")
     c3.metric("AI Engine", "Active")
@@ -118,7 +121,7 @@ if menu == "🏠 Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # ------------------------------------------------
-# TRAFFIC
+# TRAFFIC PAGE (with RED & BLUE lights)
 # ------------------------------------------------
 elif menu == "🚦 Traffic":
 
@@ -128,10 +131,13 @@ elif menu == "🚦 Traffic":
 
     start = st.selectbox("Start", locations)
     end = st.selectbox("Destination", locations)
-    leave = st.slider("Departure",6,22,8)
+    leave = st.slider("Departure Time",6,22,8)
 
+    # AI Simulation for congestion
     np.random.seed(leave)
-    congestion = np.random.randint(20,90,len(locations))
+    base = np.random.randint(10,80,len(locations))
+    congestion = [c + 25 if 7 <= leave <= 9 or 16 <= leave <= 18 else c for c in base]
+    congestion = [min(100,c) for c in congestion]
 
     df = pd.DataFrame({
         "Location":locations,
@@ -139,10 +145,26 @@ elif menu == "🚦 Traffic":
     })
 
     st.dataframe(df,use_container_width=True)
+
+    st.subheader("AI Traffic Lights")
+
+    for i in range(len(df)):
+        level = df.loc[i,"Congestion %"]
+        if level > 65:
+            light = "🔴"
+            status = "Heavy Traffic"
+        else:
+            light = "🔵"
+            status = "Smooth Flow"
+        st.markdown(f"### {light} {df.loc[i,'Location']} — {status}")
+
     st.line_chart(df.set_index("Location"))
 
+    best = df.loc[df["Congestion %"].idxmin(),"Location"]
+    st.success(f"✅ Recommended Route Start: {best}")
+
 # ------------------------------------------------
-# NAVIGATION
+# NAVIGATION PAGE
 # ------------------------------------------------
 elif menu == "🧭 Navigation":
 
@@ -156,7 +178,7 @@ elif menu == "🧭 Navigation":
     st.map(map_data)
 
 # ------------------------------------------------
-# ANALYTICS
+# ANALYTICS PAGE
 # ------------------------------------------------
 elif menu == "📊 Analytics":
 
@@ -168,12 +190,13 @@ elif menu == "📊 Analytics":
         "Congestion":[20,35,10,50,25]
     })
 
+    st.table(data)
     st.bar_chart(data)
 
 # ------------------------------------------------
-# PROFILE
+# PROFILE PAGE
 # ------------------------------------------------
 elif menu == "👤 Profile":
 
     st.title("User Profile")
-    st.write("Welcome to MELLOWTECH.")
+    st.write("Welcome to MELLOWTECH Dashboard.")
