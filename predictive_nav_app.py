@@ -163,4 +163,4 @@ elif menu == "Analytics":
 elif menu == "Profile":
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard!")
-    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")   I SAID THOSE BOXES SHOLD BE EQUAL AND IN THIS SIZE
+    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")   
