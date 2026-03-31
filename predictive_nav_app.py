@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pytz
 from datetime import datetime as dt
+import time
 
 # -----------------------------
 # PAGE CONFIG
@@ -26,7 +27,7 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # -----------------------------
-# STYLING (BRIGHT SHINY BLUE)
+# STYLING (SHINY BLUE + LOGIN CARD)
 # -----------------------------
 st.markdown("""
 <style>
@@ -37,7 +38,7 @@ header {visibility: hidden;}
 [data-testid="stSidebar"]{background:#020617;border-right:2px solid #00cfff;}
 .title{
     text-align:center;
-    font-size:50px;
+    font-size:52px;
     font-weight:900;
     color:#00ffff;
     text-shadow:0px 0px 10px #00ffff,0px 0px 20px #00ffff,0px 0px 30px #00ffff;
@@ -52,6 +53,7 @@ header {visibility: hidden;}
     display:flex;
     flex-direction:column;
     justify-content:space-between;
+    transition: all 0.5s ease-in-out;
 }
 .stButton>button{
     width:100%;
@@ -81,24 +83,28 @@ header {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# PAGE CONTAINER (FOR SLIDE EFFECT)
+# PAGE CONTAINER FOR SLIDE EFFECT
 # -----------------------------
-container = st.container()
+page_container = st.empty()
 
 # -----------------------------
 # LOGIN PAGE
 # -----------------------------
 def login_page():
-    with container:
+    with page_container.container():
         st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-
+        
         st.subheader("Login")
         email = st.text_input("Email", key="login_email")
         password = st.text_input("Password", type="password", key="login_password")
 
         if st.button("Login"):
             if email in st.session_state.users and st.session_state.users[email] == password:
+                # Animate slide effect
+                for i in range(20):
+                    st.markdown(f"<div style='opacity:{i/20}'></div>", unsafe_allow_html=True)
+                    time.sleep(0.01)
                 st.session_state.user = email
                 st.session_state.page = "dashboard"
                 st.experimental_rerun()
@@ -116,7 +122,7 @@ def login_page():
         </div>
         """, unsafe_allow_html=True)
 
-        # APPLE (silver)
+        # APPLE
         st.markdown("""
         <div class='social-btn'>
             <img class='icon icon-silver' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
@@ -124,7 +130,7 @@ def login_page():
         </div>
         """, unsafe_allow_html=True)
 
-        # PHONE (silver)
+        # PHONE
         st.markdown("""
         <div class='social-btn'>
             <img class='icon icon-silver' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
@@ -135,6 +141,10 @@ def login_page():
         st.divider()
         if st.button("Create Account"):
             st.session_state.page = "signup"
+            # Animate slide
+            for i in range(20):
+                st.markdown(f"<div style='opacity:{i/20}'></div>", unsafe_allow_html=True)
+                time.sleep(0.01)
             st.experimental_rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -143,7 +153,7 @@ def login_page():
 # SIGNUP PAGE
 # -----------------------------
 def signup_page():
-    with container:
+    with page_container.container():
         st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
         st.markdown("<div class='card'>", unsafe_allow_html=True)
 
@@ -156,10 +166,12 @@ def signup_page():
                 st.session_state.users[new_email] = new_password
                 st.success("Account Created ✅")
                 st.session_state.page = "login"
+                time.sleep(0.3)  # small slide effect
                 st.experimental_rerun()
 
         if st.button("Back to Login"):
             st.session_state.page = "login"
+            time.sleep(0.3)
             st.experimental_rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -168,52 +180,54 @@ def signup_page():
 # DASHBOARD
 # -----------------------------
 def dashboard():
-    st.sidebar.title("MELLOWTECH")
-    menu = st.sidebar.radio("Navigation", ["Dashboard","Traffic","Navigation","Analytics","Profile"])
-    st.sidebar.success(f"User: {st.session_state.user}")
+    with page_container.container():
+        st.sidebar.title("MELLOWTECH")
+        menu = st.sidebar.radio("Navigation", ["Dashboard","Traffic","Navigation","Analytics","Profile"])
+        st.sidebar.success(f"User: {st.session_state.user}")
 
-    if menu == "Dashboard":
-        st.title("Smart Mobility Dashboard")
-        timezone = pytz.timezone("Africa/Johannesburg")
-        current_time = dt.now(timezone).strftime("%H:%M:%S")
-        col1,col2,col3 = st.columns(3)
-        col1.metric("Current Time", current_time)
-        col2.metric("System Status","Online")
-        col3.metric("AI Engine","Active")
-        st.success("MELLOWTECH Predictive Traffic Intelligence Running")
+        if menu == "Dashboard":
+            st.title("Smart Mobility Dashboard")
+            timezone = pytz.timezone("Africa/Johannesburg")
+            current_time = dt.now(timezone).strftime("%H:%M:%S")
+            col1,col2,col3 = st.columns(3)
+            col1.metric("Current Time", current_time)
+            col2.metric("System Status","Online")
+            col3.metric("AI Engine","Active")
+            st.success("MELLOWTECH Predictive Traffic Intelligence Running")
 
-    elif menu == "Traffic":
-        st.title("Traffic Prediction")
-        locations = ["Home","Work","School","Mall"]
-        start = st.selectbox("Start",locations)
-        end = st.selectbox("Destination",locations)
-        leave_time = st.slider("Departure Time",6,22,8)
-        np.random.seed(1)
-        congestion = np.random.randint(10,90,5)
-        df = pd.DataFrame({"Hour":[leave_time+i for i in range(5)],"Congestion %":congestion})
-        st.dataframe(df,use_container_width=True)
-        st.line_chart(df.set_index("Hour"))
-        best = df.loc[df["Congestion %"].idxmin(),"Hour"]
-        st.success(f"Best Time To Leave: {best}:00")
+        elif menu == "Traffic":
+            st.title("Traffic Prediction")
+            locations = ["Home","Work","School","Mall"]
+            start = st.selectbox("Start",locations)
+            end = st.selectbox("Destination",locations)
+            leave_time = st.slider("Departure Time",6,22,8)
+            np.random.seed(1)
+            congestion = np.random.randint(10,90,5)
+            df = pd.DataFrame({"Hour":[leave_time+i for i in range(5)],"Congestion %":congestion})
+            st.dataframe(df,use_container_width=True)
+            st.line_chart(df.set_index("Hour"))
+            best = df.loc[df["Congestion %"].idxmin(),"Hour"]
+            st.success(f"Best Time To Leave: {best}:00")
 
-    elif menu == "Navigation":
-        st.title("Live Navigation")
-        map_data = pd.DataFrame({"lat":[-25.7461,-25.7580],"lon":[28.1881,28.1890]})
-        st.map(map_data)
+        elif menu == "Navigation":
+            st.title("Live Navigation")
+            map_data = pd.DataFrame({"lat":[-25.7461,-25.7580],"lon":[28.1881,28.1890]})
+            st.map(map_data)
 
-    elif menu == "Analytics":
-        st.title("Traffic Analytics")
-        data = pd.DataFrame(np.random.randn(50,3),columns=["Speed","Flow","Density"])
-        st.area_chart(data)
-        st.info("AI analysing traffic patterns across Gauteng.")
+        elif menu == "Analytics":
+            st.title("Traffic Analytics")
+            data = pd.DataFrame(np.random.randn(50,3),columns=["Speed","Flow","Density"])
+            st.area_chart(data)
+            st.info("AI analysing traffic patterns across Gauteng.")
 
-    elif menu == "Profile":
-        st.title("User Profile")
-        st.write("Logged in as:",st.session_state.user)
-        if st.button("Logout"):
-            st.session_state.user=None
-            st.session_state.page="login"
-            st.experimental_rerun()
+        elif menu == "Profile":
+            st.title("User Profile")
+            st.write("Logged in as:",st.session_state.user)
+            if st.button("Logout"):
+                st.session_state.user=None
+                st.session_state.page="login"
+                time.sleep(0.3)
+                st.experimental_rerun()
 
 # -----------------------------
 # ROUTING
