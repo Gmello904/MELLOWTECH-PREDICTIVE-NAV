@@ -26,32 +26,25 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 # -----------------------------
-# UPDATED THEME (BLACK + WHITE + ANIMATION)
+# THEME (UPDATED MINIMALLY)
 # -----------------------------
 st.markdown("""
 <style>
 
-/* Hide Streamlit default menu/footer */
+/* REMOVE STREAMLIT DEFAULT UI */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
 /* Background */
 .stApp {
-    background: linear-gradient(135deg,#000000,#111111);
-    animation: fadeIn 1s ease-in-out;
-}
-
-/* Fade animation */
-@keyframes fadeIn {
-    from {opacity:0; transform:translateY(20px);}
-    to {opacity:1; transform:translateY(0);}
+    background: linear-gradient(135deg,#020617,#0f172a);
 }
 
 /* Sidebar */
 [data-testid="stSidebar"]{
-    background:#000;
-    border-right:1px solid #fff;
+    background:#020617;
+    border-right:2px solid #00cfff;
 }
 
 /* Titles */
@@ -59,55 +52,48 @@ header {visibility: hidden;}
     text-align:center;
     font-size:42px;
     font-weight:800;
-    color:#ffffff;
+    color:#00cfff;
 }
 
 /* Login Card (THINNER) */
 .card{
-    background:#000;
-    padding:30px;
-    border-radius:14px;
-    max-width:320px;
+    background:#020617;
+    padding:35px;
+    border-radius:18px;
+    max-width:340px;
     margin:auto;
-    border:1px solid #fff;
-    animation: slideUp 0.8s ease;
-}
-
-/* Card animation */
-@keyframes slideUp {
-    from {opacity:0; transform:translateY(40px);}
-    to {opacity:1; transform:translateY(0);}
+    box-shadow:0px 0px 25px rgba(0,207,255,0.3);
 }
 
 /* Buttons */
 .stButton>button{
     width:100%;
-    border-radius:8px;
-    background:white;
-    color:black;
+    border-radius:10px;
+    background:linear-gradient(90deg,#00cfff,#ff0033);
+    color:white;
     font-weight:bold;
     border:none;
-    transition:0.3s;
 }
 
-.stButton>button:hover{
-    background:black;
-    color:white;
-    border:1px solid white;
-}
-
-/* Inputs */
-input{
-    background:black !important;
-    color:white !important;
-    border:1px solid white !important;
-}
-
-/* Toggle container */
-.toggle-container{
+/* Social Login Buttons */
+.social-btn{
     display:flex;
+    align-items:center;
     justify-content:center;
-    margin-bottom:15px;
+    gap:10px;
+    padding:10px;
+    margin-top:8px;
+    border-radius:10px;
+    background:#0f172a;
+    border:1px solid #00cfff;
+    color:white;
+    cursor:pointer;
+    text-align:center;
+}
+
+/* Metrics */
+[data-testid="stMetricValue"]{
+    color:#00cfff;
 }
 
 </style>
@@ -124,11 +110,6 @@ def login_page():
 
     st.subheader("Login")
 
-    # Toggle Switch (UI only)
-    st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
-    mode = st.toggle("Dark / Light Mode")
-    st.markdown("</div>", unsafe_allow_html=True)
-
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
@@ -139,6 +120,15 @@ def login_page():
             st.rerun()
         else:
             st.error("Invalid login")
+
+    st.divider()
+
+    # SOCIAL LOGIN UI
+    st.markdown("### Or login with")
+
+    st.markdown("<div class='social-btn'>🔵 Google</div>", unsafe_allow_html=True)
+    st.markdown("<div class='social-btn'>🍎 Apple</div>", unsafe_allow_html=True)
+    st.markdown("<div class='social-btn'>📱 Phone Number</div>", unsafe_allow_html=True)
 
     st.divider()
 
@@ -176,7 +166,7 @@ def signup_page():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------------
-# DASHBOARD APP
+# DASHBOARD
 # -----------------------------
 def dashboard():
 
