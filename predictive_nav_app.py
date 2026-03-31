@@ -21,12 +21,14 @@ st.markdown("""
 body { background-color:#0f172a; }
 .stApp { background: linear-gradient(135deg,#020617,#0f172a); }
 
+/* SIDEBAR */
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:2px solid #00cfff;
     padding-top:20px;
 }
 
+/* TITLE */
 .title{
     text-align:center;
     font-size:42px;
@@ -34,61 +36,57 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
+/* ✅ PERFECT BOX BUTTONS */
 .stButton>button{
     width:100%;
-    border-radius:10px;
+    height:60px;
+    border-radius:15px;
     background:linear-gradient(90deg,#00cfff,#ff0033);
     color:white;
     font-weight:bold;
     border:none;
-}
+    font-size:16px;
 
-[data-testid="stMetricValue"]{
-    color:#00cfff;
-}
-
-.sidebar-icon {
-    width:30px;
-    height:30px;
-    margin-right:10px;
-    filter: brightness(0.8) invert(0.8); /* makes it silver */
-}
-.sidebar-button {
     display:flex;
     align-items:center;
-    margin-bottom:10px;
+    justify-content:flex-start;
+
+    padding-left:20px;
+    margin-bottom:15px;
+
+    box-sizing:border-box;   /* 🔥 ensures equal left-right */
+}
+
+/* HOVER */
+.stButton>button:hover{
+    transform:scale(1.02);
+    box-shadow:0 0 12px #00cfff;
+}
+
+/* METRIC COLOR */
+[data-testid="stMetricValue"]{
+    color:#00cfff;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# LOAD ICONS (using URLs or local paths)
-# You can replace these with your own SVG/PNG files
-# -----------------------------
-icons = {
-    "Dashboard": "https://img.icons8.com/ios-filled/50/ffffff/speed.png",
-    "Traffic": "https://img.icons8.com/ios-filled/50/ffffff/car.png",
-    "Navigation": "https://img.icons8.com/ios-filled/50/ffffff/map.png",
-    "Analytics": "https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png",
-    "Profile": "https://img.icons8.com/ios-filled/50/ffffff/user.png"
-}
-
-# -----------------------------
-# SIDEBAR NAVIGATION WITH ICONS
+# SIDEBAR
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
+pages = ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
+
 menu = None
-for page, icon_url in icons.items():
-    if st.sidebar.button(f"{page}", key=page):
+for page in pages:
+    if st.sidebar.button(page):
         menu = page
 
-# Default to Dashboard if nothing clicked
 if menu is None:
     menu = "Dashboard"
 
 # -----------------------------
-# DASHBOARD PAGE
+# DASHBOARD
 # -----------------------------
 if menu == "Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
@@ -105,7 +103,7 @@ if menu == "Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC PAGE
+# TRAFFIC (WITH RED/BLUE LIGHT)
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -124,28 +122,46 @@ elif menu == "Traffic":
     })
 
     st.dataframe(df, use_container_width=True)
+
+    # 🔴🔵 VISUAL LIGHT INDICATOR
+    st.subheader("Traffic Lights")
+
+    for i in range(len(df)):
+        level = df.loc[i, "Congestion %"]
+
+        if level > 60:
+            color = "🔴"
+            status = "High Traffic"
+        else:
+            color = "🔵"
+            status = "Low Traffic"
+
+        st.markdown(f"**{df.loc[i, 'Hour']}:00** → {color} {status}")
+
+    # Chart
     st.line_chart(df.set_index("Hour"))
 
     best = df.loc[df["Congestion %"].idxmin(), "Hour"]
     st.success(f"Best Time To Leave: {best}:00")
 
 # -----------------------------
-# NAVIGATION PAGE
+# NAVIGATION
 # -----------------------------
 elif menu == "Navigation":
     st.title("Live Navigation")
+
     map_data = pd.DataFrame({
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
+
     st.map(map_data)
 
 # -----------------------------
-# ANALYTICS PAGE
+# ANALYTICS
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-    st.markdown("**Quick overview of key traffic data for easy decisions.**")
 
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
@@ -155,12 +171,10 @@ elif menu == "Analytics":
 
     st.table(data)
     st.bar_chart(data)
-    st.info("View traffic metrics quickly for smarter travel planning.")
 
 # -----------------------------
-# PROFILE PAGE
+# PROFILE
 # -----------------------------
 elif menu == "Profile":
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard!")
-    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")   
