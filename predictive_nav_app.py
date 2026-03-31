@@ -27,7 +27,6 @@ body { background-color:#0f172a; }
     padding-top:20px;
 }
 
-/* TITLE */
 .title{
     text-align:center;
     font-size:42px;
@@ -35,29 +34,32 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* SIDEBAR BUTTONS */
+/* ✅ FIXED EQUAL BUTTONS */
 .stButton>button{
     width:100%;
-    height:60px;
+    height:65px;              /* SAME HEIGHT */
     border-radius:12px;
     background:linear-gradient(90deg,#00cfff,#ff0033);
     color:white;
     font-weight:bold;
     border:none;
-    text-align:left;
-    padding-left:20px;
     font-size:16px;
-    margin-bottom:10px;
-    transition:0.3s;
+
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+
+    padding-left:20px;
+    margin-bottom:12px;       /* SAME SPACING */
 }
 
-/* HOVER EFFECT */
+/* 🔥 HOVER EFFECT */
 .stButton>button:hover{
     transform:scale(1.03);
     box-shadow:0 0 10px #00cfff;
+    transition:0.3s;
 }
 
-/* METRICS */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
@@ -69,13 +71,20 @@ body { background-color:#0f172a; }
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
-pages = ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
+icons = {
+    "Dashboard": "speed",
+    "Traffic": "car",
+    "Navigation": "map",
+    "Analytics": "chart",
+    "Profile": "user"
+}
 
 menu = None
-for page in pages:
+for page in icons.keys():
     if st.sidebar.button(page):
         menu = page
 
+# Default
 if menu is None:
     menu = "Dashboard"
 
@@ -97,7 +106,7 @@ if menu == "Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC PAGE
+# TRAFFIC
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -117,10 +126,9 @@ elif menu == "Traffic":
 
     st.dataframe(df, use_container_width=True)
 
-    # Chart (no matplotlib)
     st.line_chart(df.set_index("Hour"))
 
-    # Simple indicator
+    # Indicator
     df["Level"] = df["Congestion %"].apply(
         lambda x: "🔴 High" if x > 60 else "🔵 Low"
     )
