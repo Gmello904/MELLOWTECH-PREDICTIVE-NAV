@@ -14,21 +14,21 @@ st.set_page_config(
 )
 
 # -----------------------------
-# THEME + STYLES
+# THEME + STYLES (Sidebar Buttons Equal)
 # -----------------------------
 st.markdown("""
 <style>
 body { background-color:#0f172a; }
 .stApp { background: linear-gradient(135deg,#020617,#0f172a); }
 
-/* SIDEBAR */
+/* Sidebar */
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:2px solid #00cfff;
     padding-top:20px;
 }
 
-/* TITLE */
+/* Title */
 .title{
     text-align:center;
     font-size:42px;
@@ -36,34 +36,33 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* ✅ PERFECT BOX BUTTONS */
-.stButton>button{
-    width:100%;
-    height:60px;
-    border-radius:15px;
-    background:linear-gradient(90deg,#00cfff,#ff0033);
-    color:white;
-    font-weight:bold;
-    border:none;
-    font-size:16px;
+/* Sidebar buttons all equal */
+.stButton>button {
+    width: 100%;           /* full width */
+    height: 60px;          /* fixed height */
+    border-radius: 12px;
+    background: linear-gradient(90deg,#00cfff,#ff0033);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
 
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 20px;
+    margin-bottom: 12px;
 
-    padding-left:20px;
-    margin-bottom:15px;
-
-    box-sizing:border-box;   /* 🔥 ensures equal left-right */
+    box-sizing: border-box; /* ensures equal left-right */
 }
 
-/* HOVER */
-.stButton>button:hover{
-    transform:scale(1.02);
-    box-shadow:0 0 12px #00cfff;
+/* Hover effect */
+.stButton>button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px #00cfff;
+    transition: 0.2s;
 }
 
-/* METRIC COLOR */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
@@ -82,6 +81,7 @@ for page in pages:
     if st.sidebar.button(page):
         menu = page
 
+# Default
 if menu is None:
     menu = "Dashboard"
 
@@ -103,7 +103,7 @@ if menu == "Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC (WITH RED/BLUE LIGHT)
+# TRAFFIC
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -123,19 +123,16 @@ elif menu == "Traffic":
 
     st.dataframe(df, use_container_width=True)
 
-    # 🔴🔵 VISUAL LIGHT INDICATOR
+    # 🔴🔵 Traffic light indicator
     st.subheader("Traffic Lights")
-
     for i in range(len(df)):
         level = df.loc[i, "Congestion %"]
-
         if level > 60:
             color = "🔴"
             status = "High Traffic"
         else:
             color = "🔵"
             status = "Low Traffic"
-
         st.markdown(f"**{df.loc[i, 'Hour']}:00** → {color} {status}")
 
     # Chart
