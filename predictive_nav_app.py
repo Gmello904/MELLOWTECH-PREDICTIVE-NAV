@@ -30,18 +30,38 @@ if "user" not in st.session_state:
 # -----------------------------
 st.markdown("""
 <style>
+/* Hide default Streamlit menu */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* App background */
 .stApp {background: linear-gradient(135deg,#020617,#0f172a);}
+
+/* Sidebar */
 [data-testid="stSidebar"]{background:#020617;border-right:2px solid #00cfff;}
-.title{text-align:center;font-size:42px;font-weight:800;color:#00cfff;text-shadow:0px 0px 10px #00cfff,0px 0px 20px #00cfff;}
-.card{background:#020617;padding:40px;border-radius:18px;max-width:420px;margin:auto;box-shadow:0px 0px 25px rgba(0,207,255,0.3);}
+
+/* Title */
+.title{text-align:center;font-size:44px;font-weight:900;color:#00cfff;text-shadow:0px 0px 10px #00cfff,0px 0px 20px #00cfff;}
+
+/* Login / Signup Card */
+.card{background:#020617;padding:30px;border-radius:18px;max-width:320px;margin:60px auto;box-shadow:0px 0px 25px rgba(0,207,255,0.3);display:flex;flex-direction:column;justify-content:space-between;}
+
+/* Buttons */
 .stButton>button{width:100%;border-radius:10px;background:linear-gradient(90deg,#00cfff,#ff0033);color:white;font-weight:bold;border:none;}
+
+/* Social login buttons */
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;margin-top:6px;border-radius:10px;background:#0f172a;border:1px solid #00cfff;color:white;cursor:pointer;}
+.icon{width:18px;height:18px;}
+.icon-silver{filter: brightness(0) invert(0.8);}
+
+/* Metrics */
 [data-testid="stMetricValue"]{color:#00cfff;}
-@media (max-width:768px){.card{margin-top:20px;}}
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# PAGE CONTAINER (simulate slide)
+# PAGE CONTAINER
 # -----------------------------
 page_container = st.empty()
 
@@ -64,6 +84,33 @@ def login_page():
                 st.experimental_rerun()
             else:
                 st.error("Invalid login")
+
+        st.divider()
+        st.markdown("### Or login with", unsafe_allow_html=True)
+
+        # GOOGLE (original color)
+        st.markdown("""
+        <div class='social-btn'>
+            <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg'>
+            Google
+        </div>
+        """, unsafe_allow_html=True)
+
+        # APPLE (silver)
+        st.markdown("""
+        <div class='social-btn'>
+            <img class='icon icon-silver' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
+            Apple
+        </div>
+        """, unsafe_allow_html=True)
+
+        # PHONE (silver)
+        st.markdown("""
+        <div class='social-btn'>
+            <img class='icon icon-silver' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
+            Phone Number
+        </div>
+        """, unsafe_allow_html=True)
 
         st.divider()
         if st.button("Create Account"):
