@@ -21,82 +21,63 @@ with st.spinner("Launching MELLOWTECH AI Engine..."):
     time.sleep(1)
 
 # ------------------------------------------------
-# PREMIUM STYLE + SILVER ICONS
+# PREMIUM STYLE
 # ------------------------------------------------
 st.markdown("""
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 <style>
 
-/* -------- BACKGROUND -------- */
+/* Background */
 .stApp{
     background:linear-gradient(135deg,#020617,#0f172a);
     color:white;
 }
 
-/* -------- REMOVE STREAMLIT BRANDING -------- */
+/* Remove Streamlit branding */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
 header {visibility:hidden;}
 
+/* Keep sidebar toggle */
 [data-testid="collapsedControl"]{
     visibility:visible;
 }
 
-/* -------- SIDEBAR -------- */
+/* Sidebar */
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:1px solid #1e293b;
 }
 
-/* Sidebar title */
+/* Title */
 .sidebar-title{
     font-size:22px;
     font-weight:700;
-    padding-left:10px;
-    margin-bottom:20px;
+    margin-bottom:15px;
 }
 
-/* Buttons */
-.stButton>button{
-    width:100%;
+/* Radio menu styling */
+div[role="radiogroup"] > label{
     background:transparent;
-    border:none;
-    color:#cbd5e1;
-    text-align:left;
-    padding:14px 18px;
-    font-size:16px;
+    padding:12px;
     border-radius:10px;
+    margin-bottom:6px;
+    color:silver;
+    font-size:16px;
 }
 
-/* Hover */
-.stButton>button:hover{
+div[role="radiogroup"] > label:hover{
     background:#0f172a;
     color:white;
 }
 
-/* Active menu */
-.active-btn button{
-    background:#111827 !important;
-    color:#00cfff !important;
+/* Selected menu */
+div[role="radiogroup"] > label[data-selected="true"]{
+    background:#111827;
+    color:#00cfff;
     border-left:4px solid #00cfff;
 }
 
-/* Silver icons */
-.menu-icon{
-    font-family:'Material Icons';
-    font-size:20px;
-    margin-right:12px;
-    vertical-align:middle;
-    color:silver;
-}
-
-/* Active icon */
-.active-btn .menu-icon{
-    color:#00cfff;
-}
-
-/* Title glow */
+/* Glow title */
 .title{
     text-align:center;
     font-size:48px;
@@ -104,8 +85,7 @@ header {visibility:hidden;}
     color:#00ffff;
     text-shadow:
         0 0 10px #00ffff,
-        0 0 20px #00ffff,
-        0 0 40px #00ffff;
+        0 0 20px #00ffff;
 }
 
 /* Metrics */
@@ -113,56 +93,42 @@ header {visibility:hidden;}
     color:#00cfff;
 }
 
-/* Page animation */
+/* Animation */
 section.main > div{
     animation:fadeIn 0.4s ease-in-out;
 }
 
 @keyframes fadeIn{
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR WITH REAL ICONS
 # ------------------------------------------------
 st.sidebar.markdown(
     "<div class='sidebar-title'>MELLOWTECH</div>",
     unsafe_allow_html=True
 )
 
-if "menu" not in st.session_state:
-    st.session_state.menu = "Dashboard"
-
-menu_items = {
-    "Dashboard": ("dashboard", "Dashboard"),
-    "Traffic": ("traffic", "Traffic"),
-    "Navigation": ("explore", "Navigation"),
-    "Analytics": ("analytics", "Analytics"),
-    "Profile": ("person", "Profile")
-}
-
-for key, (icon, label) in menu_items.items():
-
-    btn_class = "active-btn" if st.session_state.menu == key else ""
-    st.sidebar.markdown(f"<div class='{btn_class}'>", unsafe_allow_html=True)
-
-    button_label = f"<span class='menu-icon'>{icon}</span>{label}"
-
-    if st.sidebar.button(button_label, key=key):
-        st.session_state.menu = key
-
-    st.sidebar.markdown("</div>", unsafe_allow_html=True)
-
-menu = st.session_state.menu
+menu = st.sidebar.radio(
+    "",
+    [
+        "🏠 Dashboard",
+        "🚦 Traffic",
+        "🧭 Navigation",
+        "📊 Analytics",
+        "👤 Profile"
+    ]
+)
 
 # ------------------------------------------------
 # DASHBOARD
 # ------------------------------------------------
-if menu == "Dashboard":
+if menu == "🏠 Dashboard":
 
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.title("Smart Mobility Dashboard")
@@ -179,9 +145,9 @@ if menu == "Dashboard":
     st.success("🟢 Predictive Traffic Intelligence Running")
 
 # ------------------------------------------------
-# TRAFFIC PAGE
+# TRAFFIC
 # ------------------------------------------------
-elif menu == "Traffic":
+elif menu == "🚦 Traffic":
 
     st.title("Traffic Prediction")
 
@@ -208,25 +174,18 @@ elif menu == "Traffic":
 
     st.dataframe(df, use_container_width=True)
 
-    st.subheader("Traffic Lights")
-
     for i in range(len(df)):
         level = df.loc[i, "Congestion %"]
-
-        color = "🔴" if level > 60 else "🔵"
+        icon = "🔴" if level > 60 else "🔵"
         status = "High Traffic" if level > 60 else "Low Traffic"
-
-        st.markdown(f"**{df.loc[i,'Location']}** → {color} {status}")
+        st.write(f"{icon} {df.loc[i,'Location']} — {status}")
 
     st.line_chart(df.set_index("Location"))
-
-    best = df.loc[df["Congestion %"].idxmin(), "Location"]
-    st.success(f"Best Location to Start From: {best}")
 
 # ------------------------------------------------
 # NAVIGATION
 # ------------------------------------------------
-elif menu == "Navigation":
+elif menu == "🧭 Navigation":
 
     st.title("Live Navigation")
 
@@ -240,7 +199,7 @@ elif menu == "Navigation":
 # ------------------------------------------------
 # ANALYTICS
 # ------------------------------------------------
-elif menu == "Analytics":
+elif menu == "📊 Analytics":
 
     st.title("Traffic Analytics")
 
@@ -257,7 +216,7 @@ elif menu == "Analytics":
 # ------------------------------------------------
 # PROFILE
 # ------------------------------------------------
-elif menu == "Profile":
+elif menu == "👤 Profile":
 
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard.")
