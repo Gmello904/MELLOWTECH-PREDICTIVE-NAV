@@ -32,6 +32,7 @@ body { background-color:#0f172a; }
     font-size:42px;
     font-weight:800;
     color:#00cfff;
+    margin-bottom:20px;
 }
 
 .stButton>button{
@@ -67,13 +68,21 @@ body { background-color:#0f172a; }
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR MENU
+# LOAD ICONS
+# -----------------------------
+icons = {
+    "Dashboard": "https://img.icons8.com/ios-filled/50/ffffff/speed.png",
+    "Traffic": "https://img.icons8.com/ios-filled/50/ffffff/car.png",
+    "Navigation": "https://img.icons8.com/ios-filled/50/ffffff/map.png",
+    "Analytics": "https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png",
+    "Profile": "https://img.icons8.com/ios-filled/50/ffffff/user.png"
+}
+
+# -----------------------------
+# SIDEBAR NAVIGATION
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
-menu = st.sidebar.radio(
-    "Navigation",
-    ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
-)
+menu = st.sidebar.radio("Navigation", ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"])
 
 # -----------------------------
 # DASHBOARD PAGE
@@ -111,7 +120,6 @@ elif menu == "Traffic":
         "Congestion %": congestion
     })
 
-    # Show traffic lights for each hour
     st.markdown("### Congestion Levels")
     for i, row in df.iterrows():
         light_color = "traffic-light-red" if row["Congestion %"] > 50 else "traffic-light-blue"
@@ -132,7 +140,6 @@ elif menu == "Navigation":
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
-
     col1, col2 = st.columns(2)
     col1.map(map_data)
     col2.markdown("<div class='metric-box'><h3>Navigation Status</h3><h2>Active</h2></div>", unsafe_allow_html=True)
@@ -142,7 +149,7 @@ elif menu == "Navigation":
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-    st.markdown("**Quick glance of key traffic metrics for smarter travel decisions.**")
+    st.markdown("**Simple insights for better travel decisions.**")
 
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
@@ -162,5 +169,4 @@ elif menu == "Profile":
     col1, col2 = st.columns(2)
     col1.markdown("<div class='metric-box'><h3>Username</h3><h2>Guest</h2></div>", unsafe_allow_html=True)
     col2.markdown("<div class='metric-box'><h3>Status</h3><h2>Active</h2></div>", unsafe_allow_html=True)
-
     st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")
