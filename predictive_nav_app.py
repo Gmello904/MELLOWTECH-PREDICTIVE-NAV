@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# THEME + STYLES (Sidebar Buttons Equal)
+# THEME + STYLES (Sidebar Buttons Equal Rectangles)
 # -----------------------------
 st.markdown("""
 <style>
@@ -28,32 +28,23 @@ body { background-color:#0f172a; }
     padding-top:20px;
 }
 
-/* Title */
-.title{
-    text-align:center;
-    font-size:42px;
-    font-weight:800;
-    color:#00cfff;
-}
-
-/* Sidebar buttons all equal */
+/* Sidebar buttons as equal rectangles */
 .stButton>button {
     width: 100%;           /* full width */
-    height: 60px;          /* fixed height */
+    height: 70px;          /* fixed height for rectangle */
     border-radius: 12px;
     background: linear-gradient(90deg,#00cfff,#ff0033);
     color: white;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
     border: none;
 
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding-left: 20px;
-    margin-bottom: 12px;
+    justify-content: center; /* center text horizontally */
+    margin-bottom: 15px;
 
-    box-sizing: border-box; /* ensures equal left-right */
+    box-sizing: border-box; /* ensure proper width */
 }
 
 /* Hover effect */
@@ -63,6 +54,15 @@ body { background-color:#0f172a; }
     transition: 0.2s;
 }
 
+/* Title */
+.title{
+    text-align:center;
+    font-size:42px;
+    font-weight:800;
+    color:#00cfff;
+}
+
+/* Metric color */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
