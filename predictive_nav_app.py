@@ -18,8 +18,10 @@ st.set_page_config(
 # -----------------------------
 if "page" not in st.session_state:
     st.session_state.page = "login"
+
 if "users" not in st.session_state:
     st.session_state.users = {}
+
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -28,19 +30,13 @@ if "user" not in st.session_state:
 # -----------------------------
 st.markdown("""
 <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-.block-container {max-width: 1100px; padding-left:2rem; padding-right:2rem;}
 .stApp {background: linear-gradient(135deg,#020617,#0f172a);}
-[data-testid="stSidebar"]{background:#020617; border-right:2px solid #00cfff;}
-.title{text-align:center;font-size:44px;font-weight:900;color:#00cfff;text-shadow:0px 0px 10px #00cfff,0px 0px 20px #00cfff;}
-.card{background:#020617;padding:20px;border-radius:18px;max-width:280px;max-height:480px;margin:40px auto;box-shadow:0px 0px 20px rgba(0,207,255,0.3);display:flex;flex-direction:column;justify-content:space-between;}
+[data-testid="stSidebar"]{background:#020617;border-right:2px solid #00cfff;}
+.title{text-align:center;font-size:42px;font-weight:800;color:#00cfff;text-shadow:0px 0px 10px #00cfff,0px 0px 20px #00cfff;}
+.card{background:#020617;padding:40px;border-radius:18px;max-width:420px;margin:auto;box-shadow:0px 0px 25px rgba(0,207,255,0.3);}
 .stButton>button{width:100%;border-radius:10px;background:linear-gradient(90deg,#00cfff,#ff0033);color:white;font-weight:bold;border:none;}
-.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;margin-top:6px;border-radius:10px;background:#0f172a;border:1px solid #00cfff;color:white;cursor:pointer;}
-.icon{width:18px;height:18px;}
-.icon-silver{filter: brightness(0) invert(0.8);}
 [data-testid="stMetricValue"]{color:#00cfff;}
+@media (max-width:768px){.card{margin-top:20px;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -68,33 +64,6 @@ def login_page():
                 st.experimental_rerun()
             else:
                 st.error("Invalid login")
-
-        st.divider()
-        st.markdown("### Or login with", unsafe_allow_html=True)
-
-        # GOOGLE
-        st.markdown("""
-        <div class='social-btn'>
-            <img class='icon' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg'>
-            Google
-        </div>
-        """, unsafe_allow_html=True)
-
-        # APPLE
-        st.markdown("""
-        <div class='social-btn'>
-            <img class='icon icon-silver' src='https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg'>
-            Apple
-        </div>
-        """, unsafe_allow_html=True)
-
-        # PHONE
-        st.markdown("""
-        <div class='social-btn'>
-            <img class='icon icon-silver' src='https://cdn-icons-png.flaticon.com/512/597/597177.png'>
-            Phone Number
-        </div>
-        """, unsafe_allow_html=True)
 
         st.divider()
         if st.button("Create Account"):
@@ -129,14 +98,11 @@ def signup_page():
         st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------------
-# DASHBOARD
+# DASHBOARD APP
 # -----------------------------
 def dashboard():
     st.sidebar.title("MELLOWTECH")
-    menu = st.sidebar.radio(
-        "Navigation",
-        ["Dashboard","Traffic","Navigation","Analytics","Profile"]
-    )
+    menu = st.sidebar.radio("Navigation", ["Dashboard","Traffic","Navigation","Analytics","Profile"])
     st.sidebar.success(f"User: {st.session_state.user}")
 
     if menu == "Dashboard":
@@ -157,10 +123,7 @@ def dashboard():
         leave_time = st.slider("Departure Time",6,22,8)
         np.random.seed(1)
         congestion = np.random.randint(10,90,5)
-        df = pd.DataFrame({
-            "Hour":[leave_time+i for i in range(5)],
-            "Congestion %":congestion
-        })
+        df = pd.DataFrame({"Hour":[leave_time+i for i in range(5)],"Congestion %":congestion})
         st.dataframe(df,use_container_width=True)
         st.line_chart(df.set_index("Hour"))
         best = df.loc[df["Congestion %"].idxmin(),"Hour"]
@@ -168,10 +131,7 @@ def dashboard():
 
     elif menu == "Navigation":
         st.title("Live Navigation")
-        map_data = pd.DataFrame({
-            "lat":[-25.7461,-25.7580],
-            "lon":[28.1881,28.1890]
-        })
+        map_data = pd.DataFrame({"lat":[-25.7461,-25.7580],"lon":[28.1881,28.1890]})
         st.map(map_data)
 
     elif menu == "Analytics":
