@@ -45,21 +45,33 @@ body {
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
+.sidebar-icon {
+    font-size:20px;
+    color:#00cfff;
+    margin-right:8px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR MENU WITH EMOJIS
+# SIDEBAR MENU WITH CLEAN ICONS
 # -----------------------------
+st.sidebar.title("MELLOWTECH")
 menu = st.sidebar.radio(
-    "MELLOWTECH",
-    ["🏠 Dashboard", "🚗 Traffic", "🗺️ Navigation", "📊 Analytics", "👤 Profile"]
+    "Navigation",
+    [
+        "Dashboard",
+        "Traffic",
+        "Navigation",
+        "Analytics",
+        "Profile"
+    ]
 )
 
 # -----------------------------
 # DASHBOARD PAGE
 # -----------------------------
-if menu == "🏠 Dashboard":
+if menu == "Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.title("Smart Mobility Dashboard")
 
@@ -76,7 +88,7 @@ if menu == "🏠 Dashboard":
 # -----------------------------
 # TRAFFIC PAGE
 # -----------------------------
-elif menu == "🚗 Traffic":
+elif menu == "Traffic":
     st.title("Traffic Prediction")
 
     locations = ["Home", "Work", "School", "Mall"]
@@ -101,7 +113,7 @@ elif menu == "🚗 Traffic":
 # -----------------------------
 # NAVIGATION PAGE
 # -----------------------------
-elif menu == "🗺️ Navigation":
+elif menu == "Navigation":
     st.title("Live Navigation")
 
     map_data = pd.DataFrame({
@@ -112,27 +124,28 @@ elif menu == "🗺️ Navigation":
     st.map(map_data)
 
 # -----------------------------
-# ANALYTICS PAGE (EASY VERSION)
+# ANALYTICS PAGE (VERY SIMPLE)
 # -----------------------------
-elif menu == "📊 Analytics":
-    st.title("Traffic Analytics - Quick Overview")
+elif menu == "Analytics":
+    st.title("Traffic Analytics")
 
-    st.markdown("**Simple view of traffic speed, flow, and density for easy understanding.**")
+    st.markdown("**Quick insights at a glance to help you plan your trip.**")
 
-    data = pd.DataFrame(
-        np.random.randint(30, 100, size=(10,3)),
-        columns=["Speed (km/h)", "Flow (cars/min)", "Density (cars/km)"]
-    )
+    data = pd.DataFrame({
+        "Average Speed (km/h)": [60, 55, 70, 50, 65],
+        "Traffic Flow (cars/min)": [40, 50, 35, 55, 45],
+        "Congestion Level (%)": [20, 35, 10, 50, 25]
+    }, index=["Home", "Work", "School", "Mall", "Station"])
 
     st.table(data)
     st.bar_chart(data)
 
-    st.info("Quick insights help users plan their travel faster.")
+    st.info("View key traffic metrics quickly for smarter travel decisions.")
 
 # -----------------------------
 # PROFILE PAGE
 # -----------------------------
-elif menu == "👤 Profile":
+elif menu == "Profile":
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard!")
-    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar icons.")
+    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")
