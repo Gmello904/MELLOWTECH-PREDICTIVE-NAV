@@ -20,20 +20,17 @@ st.markdown("""
 <style>
 body { background-color:#0f172a; }
 .stApp { background: linear-gradient(135deg,#020617,#0f172a); }
-
 [data-testid="stSidebar"]{
     background:#020617;
     border-right:2px solid #00cfff;
     padding-top:20px;
 }
-
 .title{
     text-align:center;
     font-size:42px;
     font-weight:800;
     color:#00cfff;
 }
-
 .stButton>button{
     width:100%;
     border-radius:10px;
@@ -41,54 +38,39 @@ body { background-color:#0f172a; }
     color:white;
     font-weight:bold;
     border:none;
+    padding:10px 0px;
 }
-
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
-
-.sidebar-icon {
-    width:30px;
-    height:30px;
-    margin-right:10px;
-    filter: brightness(0.8) invert(0.8); /* makes it silver */
+.metric-box{
+    background:#020617;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0px 0px 25px rgba(0,207,255,0.3);
 }
-.sidebar-button {
-    display:flex;
-    align-items:center;
-    margin-bottom:10px;
+.traffic-light-red{
+    width:25px; height:25px; border-radius:50%; background:red; display:inline-block; margin-right:5px;
+}
+.traffic-light-blue{
+    width:25px; height:25px; border-radius:50%; background:blue; display:inline-block; margin-right:5px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# LOAD ICONS (using URLs or local paths)
-# You can replace these with your own SVG/PNG files
-# -----------------------------
-icons = {
-    "Dashboard": "https://img.icons8.com/ios-filled/50/ffffff/speed.png",
-    "Traffic": "https://img.icons8.com/ios-filled/50/ffffff/car.png",
-    "Navigation": "https://img.icons8.com/ios-filled/50/ffffff/map.png",
-    "Analytics": "https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png",
-    "Profile": "https://img.icons8.com/ios-filled/50/ffffff/user.png"
-}
-
-# -----------------------------
-# SIDEBAR NAVIGATION WITH ICONS
+# SIDEBAR MENU
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
-menu = None
-for page, icon_url in icons.items():
-    if st.sidebar.button(f"{page}", key=page):
-        menu = page
-
-# Default to Dashboard if nothing clicked
-if menu is None:
-    menu = "Dashboard"
+menu = st.sidebar.radio(
+    "Navigation",
+    ["Dashboard", "Traffic", "Navigation", "Analytics", "Profile"]
+)
 
 # -----------------------------
-# DASHBOARD PAGE
+# DASHBOARD PAGE (EQUAL BOXES)
 # -----------------------------
 if menu == "Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
@@ -97,15 +79,22 @@ if menu == "Dashboard":
     timezone = pytz.timezone("Africa/Johannesburg")
     current_time = dt.now(timezone).strftime("%H:%M:%S")
 
+    # Equal boxes
     col1, col2, col3 = st.columns(3)
-    col1.metric("Current Time", current_time)
-    col2.metric("System Status", "Online")
-    col3.metric("AI Engine", "Active")
+    col1.markdown(f"<div class='metric-box'><h3>Current Time</h3><h2>{current_time}</h2></div>", unsafe_allow_html=True)
+    col2.markdown(f"<div class='metric-box'><h3>System Status</h3><h2>Online</h2></div>", unsafe_allow_html=True)
+    col3.markdown(f"<div class='metric-box'><h3>AI Engine</h3><h2>Active</h2></div>", unsafe_allow_html=True)
 
-    st.success("Predictive Traffic Intelligence Running")
+    st.success("🔹 Unique Features of MELLOWTECH 🔹")
+    st.markdown("""
+- **Predictive congestion forecasting**: see traffic hours in advance using multiple data layers (weather, events, commuter patterns).  
+- **Personalized departure time optimization**: know the exact best minute to leave to reduce your commute AND overall traffic.  
+- **Collective route shaping**: coordinate many users' routes to minimize overall congestion, not just fastest individual paths.  
+- **Rewards for coordinated behavior**: users get incentives for making traffic-smart choices.
+""")
 
 # -----------------------------
-# TRAFFIC PAGE
+# TRAFFIC PAGE WITH RED & BLUE LIGHTS
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -123,11 +112,16 @@ elif menu == "Traffic":
         "Congestion %": congestion
     })
 
-    st.dataframe(df, use_container_width=True)
+    # Show traffic lights
+    st.markdown("### Congestion Levels")
+    for i, row in df.iterrows():
+        light_color = "traffic-light-red" if row["Congestion %"] > 50 else "traffic-light-blue"
+        st.markdown(f"<span class='{light_color}'></span> Hour {row['Hour']}: {row['Congestion %']}%", unsafe_allow_html=True)
+
     st.line_chart(df.set_index("Hour"))
 
     best = df.loc[df["Congestion %"].idxmin(), "Hour"]
-    st.success(f"Best Time To Leave: {best}:00")
+    st.success(f"🚦 Best Time To Leave: {best}:00")
 
 # -----------------------------
 # NAVIGATION PAGE
@@ -141,11 +135,11 @@ elif menu == "Navigation":
     st.map(map_data)
 
 # -----------------------------
-# ANALYTICS PAGE
+# ANALYTICS PAGE (VERY SIMPLE)
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
-    st.markdown("**Quick overview of key traffic data for easy decisions.**")
+    st.markdown("**Quick glance of traffic metrics for smarter travel decisions.**")
 
     data = pd.DataFrame({
         "Average Speed (km/h)": [60, 55, 70, 50, 65],
@@ -155,7 +149,6 @@ elif menu == "Analytics":
 
     st.table(data)
     st.bar_chart(data)
-    st.info("View traffic metrics quickly for smarter travel planning.")
 
 # -----------------------------
 # PROFILE PAGE
