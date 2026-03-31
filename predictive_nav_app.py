@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import pytz
 from datetime import datetime as dt
-import matplotlib.pyplot as plt
 
 # -----------------------------
 # PAGE CONFIG
@@ -36,7 +35,7 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* SIDEBAR BUTTONS (FIXED SIZE) */
+/* SIDEBAR BUTTONS */
 .stButton>button{
     width:100%;
     height:60px;
@@ -118,19 +117,15 @@ elif menu == "Traffic":
 
     st.dataframe(df, use_container_width=True)
 
-    # 🔴🔵 COLOR LOGIC
-    colors = ["red" if x > 60 else "blue" for x in df["Congestion %"]]
+    # Chart (no matplotlib)
+    st.line_chart(df.set_index("Hour"))
 
-    fig, ax = plt.subplots()
-    ax.bar(df["Hour"], df["Congestion %"], color=colors)
+    # Simple indicator
+    df["Level"] = df["Congestion %"].apply(
+        lambda x: "🔴 High" if x > 60 else "🔵 Low"
+    )
 
-    ax.set_xlabel("Hour")
-    ax.set_ylabel("Congestion %")
-    ax.set_title("Traffic Congestion Levels")
-
-    st.pyplot(fig)
-
-    st.markdown("🔴 High Traffic (>60%) &nbsp;&nbsp;&nbsp; 🔵 Low Traffic (≤60%)")
+    st.table(df[["Hour", "Congestion %", "Level"]])
 
     best = df.loc[df["Congestion %"].idxmin(), "Hour"]
     st.success(f"Best Time To Leave: {best}:00")
