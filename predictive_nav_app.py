@@ -71,9 +71,10 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* Hide Streamlit menu & footer (GitHub & Made with Streamlit) */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+/* Remove Streamlit top-right menu, GitHub/Share icon & footer */
+#MainMenu {visibility: hidden !important;}
+header {visibility: hidden !important;}
+footer {visibility: hidden !important;}
 </style>
 """, unsafe_allow_html=True)
 
