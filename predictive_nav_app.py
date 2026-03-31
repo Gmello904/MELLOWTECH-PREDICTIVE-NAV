@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# THEME + STYLES (Glowing Title & Equal Rect Buttons)
+# THEME + STYLES (Sidebar + Glow + Clean)
 # -----------------------------
 st.markdown("""
 <style>
@@ -70,6 +70,10 @@ body { background-color:#0f172a; }
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
+
+/* Hide Streamlit menu & footer (GitHub & Made with Streamlit) */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -142,7 +146,7 @@ elif menu == "Traffic":
             status = "Low Traffic"
         st.markdown(f"**{df.loc[i, 'Location']}** → {color} {status}")
 
-    # Chart
+    # Line chart
     st.line_chart(df.set_index("Location"))
 
     best_location = df.loc[df["Congestion %"].idxmin(), "Location"]
