@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# THEME + STYLES (Sidebar Buttons Equal)
+# THEME + STYLES (Glowing Title & Equal Rect Buttons)
 # -----------------------------
 st.markdown("""
 <style>
@@ -28,41 +28,45 @@ body { background-color:#0f172a; }
     padding-top:20px;
 }
 
-/* Title */
-.title{
-    text-align:center;
-    font-size:42px;
-    font-weight:800;
-    color:#00cfff;
-}
-
-/* Sidebar buttons all equal */
+/* Sidebar buttons as equal rectangles */
 .stButton>button {
-    width: 100%;           /* full width */
-    height: 60px;          /* fixed height */
+    width: 100%;
+    height: 70px;
     border-radius: 12px;
     background: linear-gradient(90deg,#00cfff,#ff0033);
     color: white;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
     border: none;
-
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding-left: 20px;
-    margin-bottom: 12px;
-
-    box-sizing: border-box; /* ensures equal left-right */
+    justify-content: center;
+    margin-bottom: 15px;
+    box-sizing: border-box;
 }
 
 /* Hover effect */
 .stButton>button:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 10px #00cfff;
+    box-shadow: 0 0 15px #00cfff, 0 0 30px #ff0033;
     transition: 0.2s;
 }
 
+/* Glowing title */
+.title{
+    text-align:center;
+    font-size:48px;
+    font-weight:900;
+    color:#00ffff;
+    text-shadow:
+        0 0 5px #00ffff,
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 40px #00ffff,
+        0 0 80px #00ffff;
+}
+
+/* Metric color */
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
@@ -113,11 +117,14 @@ elif menu == "Traffic":
     end = st.selectbox("Destination", locations)
     leave_time = st.slider("Departure Time", 6, 22, 8)
 
-    np.random.seed(1)
-    congestion = np.random.randint(10, 90, 5)
+    # Simulate congestion dynamically based on departure time
+    np.random.seed(leave_time)  # dynamic results
+    base_congestion = np.random.randint(10, 80, len(locations))
+    congestion = [c + 20 if 7 <= leave_time <= 9 or 16 <= leave_time <= 18 else c for c in base_congestion]
+    congestion = [min(100, c) for c in congestion]  # cap at 100%
 
     df = pd.DataFrame({
-        "Hour": [leave_time + i for i in range(5)],
+        "Location": locations,
         "Congestion %": congestion
     })
 
@@ -133,13 +140,13 @@ elif menu == "Traffic":
         else:
             color = "🔵"
             status = "Low Traffic"
-        st.markdown(f"**{df.loc[i, 'Hour']}:00** → {color} {status}")
+        st.markdown(f"**{df.loc[i, 'Location']}** → {color} {status}")
 
-    # Chart
-    st.line_chart(df.set_index("Hour"))
+    # Line chart
+    st.line_chart(df.set_index("Location"))
 
-    best = df.loc[df["Congestion %"].idxmin(), "Hour"]
-    st.success(f"Best Time To Leave: {best}:00")
+    best_location = df.loc[df["Congestion %"].idxmin(), "Location"]
+    st.success(f"Best Location to Start From: {best_location}")
 
 # -----------------------------
 # NAVIGATION
@@ -174,4 +181,4 @@ elif menu == "Analytics":
 # -----------------------------
 elif menu == "Profile":
     st.title("User Profile")
-    st.write("Welcome to MELLOWTECH Dashboard!")  
+    st.write("Welcome to MELLOWTECH Dashboard!")
