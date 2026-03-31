@@ -34,62 +34,61 @@ body { background-color:#0f172a; }
     color:#00cfff;
 }
 
-/* ✅ FIXED EQUAL BUTTONS */
 .stButton>button{
     width:100%;
-    height:65px;              /* SAME HEIGHT */
-    border-radius:12px;
+    border-radius:10px;
     background:linear-gradient(90deg,#00cfff,#ff0033);
     color:white;
     font-weight:bold;
     border:none;
-    font-size:16px;
-
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-
-    padding-left:20px;
-    margin-bottom:12px;       /* SAME SPACING */
-}
-
-/* 🔥 HOVER EFFECT */
-.stButton>button:hover{
-    transform:scale(1.03);
-    box-shadow:0 0 10px #00cfff;
-    transition:0.3s;
 }
 
 [data-testid="stMetricValue"]{
     color:#00cfff;
 }
+
+.sidebar-icon {
+    width:30px;
+    height:30px;
+    margin-right:10px;
+    filter: brightness(0.8) invert(0.8); /* makes it silver */
+}
+.sidebar-button {
+    display:flex;
+    align-items:center;
+    margin-bottom:10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# SIDEBAR NAVIGATION
+# LOAD ICONS (using URLs or local paths)
+# You can replace these with your own SVG/PNG files
+# -----------------------------
+icons = {
+    "Dashboard": "https://img.icons8.com/ios-filled/50/ffffff/speed.png",
+    "Traffic": "https://img.icons8.com/ios-filled/50/ffffff/car.png",
+    "Navigation": "https://img.icons8.com/ios-filled/50/ffffff/map.png",
+    "Analytics": "https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png",
+    "Profile": "https://img.icons8.com/ios-filled/50/ffffff/user.png"
+}
+
+# -----------------------------
+# SIDEBAR NAVIGATION WITH ICONS
 # -----------------------------
 st.sidebar.title("MELLOWTECH")
 
-icons = {
-    "Dashboard": "speed",
-    "Traffic": "car",
-    "Navigation": "map",
-    "Analytics": "chart",
-    "Profile": "user"
-}
-
 menu = None
-for page in icons.keys():
-    if st.sidebar.button(page):
+for page, icon_url in icons.items():
+    if st.sidebar.button(f"{page}", key=page):
         menu = page
 
-# Default
+# Default to Dashboard if nothing clicked
 if menu is None:
     menu = "Dashboard"
 
 # -----------------------------
-# DASHBOARD
+# DASHBOARD PAGE
 # -----------------------------
 if menu == "Dashboard":
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
@@ -106,7 +105,7 @@ if menu == "Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # -----------------------------
-# TRAFFIC
+# TRAFFIC PAGE
 # -----------------------------
 elif menu == "Traffic":
     st.title("Traffic Prediction")
@@ -125,34 +124,24 @@ elif menu == "Traffic":
     })
 
     st.dataframe(df, use_container_width=True)
-
     st.line_chart(df.set_index("Hour"))
-
-    # Indicator
-    df["Level"] = df["Congestion %"].apply(
-        lambda x: "🔴 High" if x > 60 else "🔵 Low"
-    )
-
-    st.table(df[["Hour", "Congestion %", "Level"]])
 
     best = df.loc[df["Congestion %"].idxmin(), "Hour"]
     st.success(f"Best Time To Leave: {best}:00")
 
 # -----------------------------
-# NAVIGATION
+# NAVIGATION PAGE
 # -----------------------------
 elif menu == "Navigation":
     st.title("Live Navigation")
-
     map_data = pd.DataFrame({
         "lat": [-25.7461, -25.7580],
         "lon": [28.1881, 28.1890]
     })
-
     st.map(map_data)
 
 # -----------------------------
-# ANALYTICS
+# ANALYTICS PAGE
 # -----------------------------
 elif menu == "Analytics":
     st.title("Traffic Analytics")
@@ -166,13 +155,12 @@ elif menu == "Analytics":
 
     st.table(data)
     st.bar_chart(data)
-
     st.info("View traffic metrics quickly for smarter travel planning.")
 
 # -----------------------------
-# PROFILE
+# PROFILE PAGE
 # -----------------------------
 elif menu == "Profile":
     st.title("User Profile")
     st.write("Welcome to MELLOWTECH Dashboard!")
-    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")
+    st.info("Explore Dashboard, Traffic, Navigation, and Analytics easily using the sidebar.")   I SAID THOSE BOXES SHOLD BE EQUAL AND IN THIS SIZE
