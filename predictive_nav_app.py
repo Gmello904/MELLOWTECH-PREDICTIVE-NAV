@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pytz
 from datetime import datetime as dt
 import time
 
@@ -11,7 +10,7 @@ import time
 st.set_page_config(
     page_title="MELLOWTECH",
     layout="wide",
-    initial_sidebar_state="collapsed"  # Collapsed by default for mobile
+    initial_sidebar_state="collapsed"
 )
 
 # ------------------------------------------------
@@ -35,7 +34,7 @@ st.markdown("""
 /* Remove Streamlit branding */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
-header{background:transparent;}  /* keep header for sidebar toggle */
+header{background:transparent;}
 
 /* SIDEBAR */
 [data-testid="stSidebar"]{
@@ -110,8 +109,8 @@ if menu == "🏠 Dashboard":
 
     st.markdown("<div class='title'>MELLOWTECH</div>", unsafe_allow_html=True)
 
-    timezone = pytz.timezone("Africa/Johannesburg")
-    time_now = dt.now(timezone).strftime("%H:%M:%S")
+    # FIXED TIME (NO PYTZ REQUIRED)
+    time_now = dt.now().strftime("%H:%M:%S")
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Time", time_now)
@@ -121,7 +120,7 @@ if menu == "🏠 Dashboard":
     st.success("Predictive Traffic Intelligence Running")
 
 # ------------------------------------------------
-# TRAFFIC PAGE (with RED & BLUE lights)
+# TRAFFIC PAGE
 # ------------------------------------------------
 elif menu == "🚦 Traffic":
 
@@ -133,10 +132,15 @@ elif menu == "🚦 Traffic":
     end = st.selectbox("Destination", locations)
     leave = st.slider("Departure Time",6,22,8)
 
-    # AI Simulation for congestion
+    # AI Simulation
     np.random.seed(leave)
     base = np.random.randint(10,80,len(locations))
-    congestion = [c + 25 if 7 <= leave <= 9 or 16 <= leave <= 18 else c for c in base]
+
+    congestion = [
+        c + 25 if 7 <= leave <= 9 or 16 <= leave <= 18 else c
+        for c in base
+    ]
+
     congestion = [min(100,c) for c in congestion]
 
     df = pd.DataFrame({
@@ -150,12 +154,14 @@ elif menu == "🚦 Traffic":
 
     for i in range(len(df)):
         level = df.loc[i,"Congestion %"]
+
         if level > 65:
             light = "🔴"
             status = "Heavy Traffic"
         else:
             light = "🔵"
             status = "Smooth Flow"
+
         st.markdown(f"### {light} {df.loc[i,'Location']} — {status}")
 
     st.line_chart(df.set_index("Location"))
