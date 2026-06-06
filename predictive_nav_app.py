@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
@@ -62,11 +62,9 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 ::-webkit-scrollbar-thumb { background: #1e3a4f; border-radius: 4px; }
 .mono { font-family: 'Share Tech Mono', monospace; }
 
-/* Drawer overlay */
 .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; transition: opacity .25s; }
 .drawer-overlay.hidden { opacity: 0; pointer-events: none; }
 
-/* Drawer panel */
 .drawer {
   position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
   background: #070d1a; border-right: 1px solid ${G.border};
@@ -76,7 +74,6 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 }
 .drawer.open { transform: translateX(0); }
 
-/* Top bar */
 .topbar {
   position: sticky; top: 0; z-index: 30;
   background: ${G.bg0}; border-bottom: 1px solid ${G.border};
@@ -86,7 +83,6 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 .hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 4px; }
 .hamburger span { display: block; width: 22px; height: 2px; background: ${G.green2}; border-radius: 2px; transition: .2s; }
 
-/* Nav items */
 .nav-item {
   display: flex; align-items: center; gap: 14px;
   padding: 14px 20px; cursor: pointer;
@@ -98,10 +94,8 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 .nav-item.active { background: linear-gradient(90deg,#0d2318,#0a1f14); color: ${G.green2}; border-left-color: ${G.green}; }
 .nav-icon { font-size: 20px; width: 28px; text-align: center; }
 
-/* Page content */
 .content { padding: 16px; max-width: 1100px; margin: 0 auto; }
 
-/* Cards */
 .card {
   background: linear-gradient(135deg,${G.bg1},${G.bg2});
   border: 1px solid ${G.border}; border-radius: 16px; padding: 20px;
@@ -119,23 +113,18 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 .kv-blue   { color:${G.blue};   }
 .kl { font-size:10px; letter-spacing:3px; color:${G.muted}; text-transform:uppercase; margin-top:4px; }
 
-/* Alert banners */
 .alert-red   { background:#1c0a0a; border:1px solid #7f1d1d; border-left:4px solid ${G.red};   border-radius:12px; padding:14px 18px; margin:8px 0; }
 .alert-green { background:#071a0e; border:1px solid #14532d; border-left:4px solid ${G.green}; border-radius:12px; padding:14px 18px; margin:8px 0; }
 .alert-amber { background:#1a1203; border:1px solid #78350f; border-left:4px solid ${G.amber}; border-radius:12px; padding:14px 18px; margin:8px 0; }
 
-/* Progress bar */
 .pbar-bg   { background:${G.border}; border-radius:20px; height:8px; margin:6px 0; }
 .pbar-fill { height:8px; border-radius:20px; }
 
-/* Badge */
 .badge { display:inline-block; background:#0d2318; color:${G.green2}; border:1px solid #166534; border-radius:20px; padding:3px 12px; font-size:11px; letter-spacing:2px; }
 
-/* Route boxes */
 .route-blue { background:#071520; border:2px solid ${G.blue}; border-radius:14px; padding:16px; }
 .route-red  { background:#1c0a0a; border:2px solid ${G.red};  border-radius:14px; padding:16px; }
 
-/* Login */
 .login-wrap { max-width:380px; margin:60px auto; background:${G.bg1}; border:1px solid ${G.border}; border-radius:24px; padding:40px; text-align:center; }
 .inp { width:100%; background:${G.bg2}; border:1px solid ${G.border}; border-radius:10px; color:white; padding:10px 14px; font-size:14px; font-family:'Exo 2',sans-serif; outline:none; margin-bottom:12px; }
 .inp:focus { border-color:${G.green}; }
@@ -143,22 +132,18 @@ body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif;
 .btn-green:hover { box-shadow:0 0 20px #22c55e44; }
 .btn-sm { background:linear-gradient(135deg,#14532d,#166534); color:${G.green2}; border:1px solid #166534; border-radius:8px; padding:8px 16px; font-weight:700; font-size:13px; font-family:'Exo 2',sans-serif; cursor:pointer; letter-spacing:1px; }
 
-/* Layout grids */
 .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 @media(max-width:640px){ .grid-4{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;} }
 
-/* Tabs */
 .tabs { display:flex; border-bottom:1px solid ${G.border}; margin-bottom:16px; overflow-x:auto; }
 .tab  { padding:10px 18px; cursor:pointer; font-size:13px; font-weight:600; color:#64748b; border-bottom:2px solid transparent; white-space:nowrap; }
 .tab.active { color:${G.green2}; border-bottom-color:${G.green}; }
 
-/* Form elements */
 .sel { background:${G.bg2}; border:1px solid ${G.border}; border-radius:10px; color:white; padding:8px 12px; font-family:'Exo 2',sans-serif; font-size:13px; width:100%; }
 .lbl { font-size:11px; color:${G.muted}; letter-spacing:2px; margin-bottom:4px; }
 input[type=range] { accent-color:${G.green}; width:100%; }
 
-/* Misc */
 .action-card { background:#0a0f1e; border:1px solid ${G.border}; border-radius:10px; padding:14px; margin-bottom:8px; }
 .reward-card { background:#0a0f1e; border:1px solid ${G.border}; border-radius:12px; padding:14px; margin-bottom:10px; }
 .sec-head { color:${G.text}; font-size:15px; font-weight:700; margin:16px 0 10px; }
@@ -166,7 +151,6 @@ input[type=range] { accent-color:${G.green}; width:100%; }
 .page-head h1 { color:${G.text}; font-weight:900; font-size:24px; }
 .page-head p  { color:${G.muted}; font-size:12px; }
 
-/* Map page */
 @keyframes dash-blue { to { stroke-dashoffset: -200; } }
 @keyframes dash-red  { to { stroke-dashoffset: -200; } }
 @keyframes pulse-pin { 0%,100%{r:7;opacity:1} 50%{r:10;opacity:.7} }
@@ -174,7 +158,6 @@ input[type=range] { accent-color:${G.green}; width:100%; }
 .map-route-card { animation: fadeInUp .35s ease both; }
 .map-route-card:nth-child(2) { animation-delay:.1s; }
 
-/* QR Page */
 @keyframes qr-scan { 0%{top:10%} 50%{top:85%} 100%{top:10%} }
 @keyframes qr-pulse { 0%,100%{box-shadow:0 0 0 0 #22c55e55} 50%{box-shadow:0 0 0 16px #22c55e00} }
 @keyframes qr-success { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
@@ -198,9 +181,7 @@ input[type=range] { accent-color:${G.green}; width:100%; }
   animation: qr-scan 2s ease-in-out infinite;
   box-shadow:0 0 8px ${G.green};
 }
-.qr-success-overlay {
-  animation: qr-success .4s ease both;
-}
+.qr-success-overlay { animation: qr-success .4s ease both; }
 `;
 
 // --- NAVIGATION CONFIG ---
@@ -238,13 +219,11 @@ function KpiCard({ value, label, cls = "", kvcls = "kv-green" }) {
   );
 }
 
-// --- QR SVG GENERATOR (pure SVG, no external lib needed) ---
-// Generates a deterministic decorative QR-like pattern based on a seed string
+// --- QR SVG PATTERN ---
 function QRPattern({ seed, size = 180 }) {
   const cells = 21;
   const cellSize = size / cells;
 
-  // Seeded pseudo-random fill for data modules
   function hashCode(str) {
     let h = 0;
     for (let i = 0; i < str.length; i++) {
@@ -254,12 +233,7 @@ function QRPattern({ seed, size = 180 }) {
   }
 
   function isFinder(r, c) {
-    // Top-left, top-right, bottom-left finder patterns
-    const inFinder = (rr, cc) =>
-      (rr <= 6 && cc <= 6) ||
-      (rr <= 6 && cc >= cells - 7) ||
-      (rr >= cells - 7 && cc <= 6);
-    return inFinder(r, c);
+    return (r <= 6 && c <= 6) || (r <= 6 && c >= cells - 7) || (r >= cells - 7 && c <= 6);
   }
 
   function finderColor(r, c) {
@@ -282,28 +256,21 @@ function QRPattern({ seed, size = 180 }) {
         const fc = finderColor(r, c);
         if (fc) {
           rects.push(
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize} y={r * cellSize}
-              width={cellSize - 0.5} height={cellSize - 0.5}
-              fill={fc} rx={cellSize * 0.1}
-            />
+            <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize}
+              width={cellSize - 0.5} height={cellSize - 0.5} fill={fc} rx={cellSize * 0.1} />
           );
         }
         continue;
       }
-      // Timing pattern
       if (r === 6 || c === 6) {
         if ((r + c) % 2 === 0) {
           rects.push(
             <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize}
-              width={cellSize - 0.5} height={cellSize - 0.5}
-              fill="#22c55e" rx={cellSize * 0.1} />
+              width={cellSize - 0.5} height={cellSize - 0.5} fill="#22c55e" rx={cellSize * 0.1} />
           );
         }
         continue;
       }
-      // Data modules
       const bit = (hashCode(seed + r * 100 + c) ^ h) & 1;
       if (bit) {
         rects.push(
@@ -316,8 +283,7 @@ function QRPattern({ seed, size = 180 }) {
   }
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg"
-      style={{ display: "block" }}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
       <rect width={size} height={size} fill="#030f08" rx="8" />
       {rects}
     </svg>
@@ -326,8 +292,8 @@ function QRPattern({ seed, size = 180 }) {
 
 // --- PAGE: QR SCAN REDEMPTION ---
 function QRRedeem({ state, setState }) {
-  const [scanType, setScanType] = useState(null);  // null | 'toll' | 'petrol'
-  const [scanStage, setScanStage] = useState("idle"); // idle | scanning | success | insufficient
+  const [scanType, setScanType] = useState(null);
+  const [scanStage, setScanStage] = useState("idle");
   const [selectedReward, setSelectedReward] = useState(null);
   const [redeemLog, setRedeemLog] = useState([]);
   const scanTimer = useRef(null);
@@ -357,10 +323,7 @@ function QRRedeem({ state, setState }) {
     setScanStage("scanning");
     scanTimer.current = setTimeout(() => {
       setScanStage("success");
-      setState(s => ({
-        ...s,
-        greenPoints: s.greenPoints - reward.cost,
-      }));
+      setState(s => ({ ...s, greenPoints: s.greenPoints - reward.cost }));
       setRedeemLog(prev => [
         { type: scanType, reward: reward.name, saving: reward.saving, time: new Date().toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" }), pts: reward.cost },
         ...prev.slice(0, 4),
@@ -382,7 +345,6 @@ function QRRedeem({ state, setState }) {
     <div>
       <PageHead emoji="📲" title="QR Redeem" sub="Scan at toll gates & petrol stations to redeem Green Points" />
 
-      {/* Type selector */}
       {scanStage === "idle" && !scanType && (
         <div>
           <div className="alert-green" style={{ marginBottom: 16 }}>
@@ -391,31 +353,14 @@ function QRRedeem({ state, setState }) {
               Choose where you are — a Toll Gate or Petrol Station — select your reward, then scan the generated QR code at the terminal to redeem your Green Points instantly.
             </span>
           </div>
-
           <div className="sec-head">Where Are You?</div>
           <div className="grid-2" style={{ gap: 14 }}>
-            <div
-              onClick={() => setScanType("toll")}
-              style={{
-                background: "linear-gradient(135deg,#0a1a2e,#071520)",
-                border: `2px solid ${G.blue}`,
-                borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer",
-                transition: ".2s",
-              }}
-            >
+            <div onClick={() => setScanType("toll")} style={{ background: "linear-gradient(135deg,#0a1a2e,#071520)", border: `2px solid ${G.blue}`, borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer" }}>
               <div style={{ fontSize: 48, marginBottom: 10 }}>🛣️</div>
               <div style={{ color: G.blue, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>TOLL GATE</div>
               <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>Redeem for free or discounted toll passes</div>
             </div>
-            <div
-              onClick={() => setScanType("petrol")}
-              style={{
-                background: "linear-gradient(135deg,#0f1a0a,#071a0e)",
-                border: `2px solid ${G.green}`,
-                borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer",
-                transition: ".2s",
-              }}
-            >
+            <div onClick={() => setScanType("petrol")} style={{ background: "linear-gradient(135deg,#0f1a0a,#071a0e)", border: `2px solid ${G.green}`, borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer" }}>
               <div style={{ fontSize: 48, marginBottom: 10 }}>⛽</div>
               <div style={{ color: G.green2, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>PETROL STATION</div>
               <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>Redeem for fuel vouchers and discounts</div>
@@ -424,48 +369,24 @@ function QRRedeem({ state, setState }) {
         </div>
       )}
 
-      {/* Reward selection */}
       {scanStage === "idle" && scanType && (
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <button
-              onClick={() => { setScanType(null); setSelectedReward(null); }}
-              style={{ background: G.bg2, border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}
-            >
-              ← Back
-            </button>
-            <span style={{ color: G.text, fontWeight: 700 }}>
-              {scanType === "toll" ? "🛣️ Toll Gate Rewards" : "⛽ Petrol Station Rewards"}
-            </span>
+            <button onClick={() => { setScanType(null); setSelectedReward(null); }} style={{ background: G.bg2, border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}>← Back</button>
+            <span style={{ color: G.text, fontWeight: 700 }}>{scanType === "toll" ? "🛣️ Toll Gate Rewards" : "⛽ Petrol Station Rewards"}</span>
           </div>
-
-          {/* Points balance */}
-          <div style={{
-            background: "linear-gradient(135deg,#0f2a0a,#1a3a10)", border: "1px solid #166534",
-            borderRadius: 14, padding: "14px 18px", marginBottom: 14,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
+          <div style={{ background: "linear-gradient(135deg,#0f2a0a,#1a3a10)", border: "1px solid #166534", borderRadius: 14, padding: "14px 18px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ color: "#86efac", fontSize: 10, letterSpacing: 3 }}>YOUR BALANCE</div>
               <div className="mono" style={{ fontSize: 28, fontWeight: 900, color: G.green2 }}>{state.greenPoints} pts</div>
             </div>
             <div style={{ fontSize: 32 }}>💳</div>
           </div>
-
           <div className="sec-head">Select Reward to Redeem</div>
           {rewards.map(rw => {
             const canAfford = state.greenPoints >= rw.cost;
             return (
-              <div
-                key={rw.id}
-                onClick={() => startScan(rw)}
-                style={{
-                  background: canAfford ? "linear-gradient(135deg,#0a1a0e,#071a0e)" : "#090e18",
-                  border: `1px solid ${canAfford ? G.green + "55" : G.border}`,
-                  borderRadius: 14, padding: 16, marginBottom: 10, cursor: "pointer",
-                  transition: ".2s", opacity: canAfford ? 1 : 0.55,
-                }}
-              >
+              <div key={rw.id} onClick={() => startScan(rw)} style={{ background: canAfford ? "linear-gradient(135deg,#0a1a0e,#071a0e)" : "#090e18", border: `1px solid ${canAfford ? G.green + "55" : G.border}`, borderRadius: 14, padding: 16, marginBottom: 10, cursor: "pointer", opacity: canAfford ? 1 : 0.55 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, fontSize: 15, color: canAfford ? G.text : "#334155" }}>{rw.name}</div>
@@ -476,12 +397,7 @@ function QRRedeem({ state, setState }) {
                       <span style={{ color: canAfford ? G.green2 : "#334155", fontWeight: 700, fontSize: 14 }}>Save {rw.saving}</span>
                     </div>
                   </div>
-                  <div style={{
-                    background: canAfford ? G.green : "#334155",
-                    color: "#030712", borderRadius: 10, padding: "8px 14px",
-                    fontWeight: 900, fontSize: 13, marginLeft: 10, whiteSpace: "nowrap",
-                    alignSelf: "center",
-                  }}>
+                  <div style={{ background: canAfford ? G.green : "#334155", color: "#030712", borderRadius: 10, padding: "8px 14px", fontWeight: 900, fontSize: 13, marginLeft: 10, whiteSpace: "nowrap", alignSelf: "center" }}>
                     {canAfford ? "Redeem →" : "Need more"}
                   </div>
                 </div>
@@ -491,47 +407,28 @@ function QRRedeem({ state, setState }) {
         </div>
       )}
 
-      {/* Scanning state */}
       {scanStage === "scanning" && selectedReward && (
         <div style={{ textAlign: "center" }}>
           <div style={{ marginBottom: 10 }}>
             <div style={{ color: G.green2, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>SCAN THIS QR CODE</div>
-            <div style={{ color: G.muted, fontSize: 12, marginTop: 4 }}>
-              Hold this screen up to the {scanType === "toll" ? "toll gate" : "petrol station"} terminal scanner
-            </div>
+            <div style={{ color: G.muted, fontSize: 12, marginTop: 4 }}>Hold this screen up to the {scanType === "toll" ? "toll gate" : "petrol station"} terminal scanner</div>
           </div>
-
           <div className="qr-box" style={{ margin: "20px auto" }}>
             <div className="qr-corner qr-corner-tl" />
             <div className="qr-corner qr-corner-tr" />
             <div className="qr-corner qr-corner-bl" />
             <div className="qr-corner qr-corner-br" />
-            <div style={{ padding: 16 }}>
-              <QRPattern seed={qrSeed} size={188} />
-            </div>
+            <div style={{ padding: 16 }}><QRPattern seed={qrSeed} size={188} /></div>
             <div className="qr-scan-line" />
           </div>
-
           <div style={{ margin: "16px 0 8px", color: G.text, fontWeight: 700, fontSize: 16 }}>{selectedReward.name}</div>
           <div className="mono" style={{ color: G.amber, fontSize: 20, fontWeight: 900 }}>{selectedReward.cost} pts</div>
           <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>QR valid for 3 minutes · One-time use</div>
-
-          <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <div style={{ background: "#0d2318", border: `1px solid ${G.green}`, borderRadius: 10, padding: "8px 16px", fontSize: 12, color: "#86efac" }}>
-              ⏳ Scanning…
-            </div>
-          </div>
-
-          <button
-            onClick={reset}
-            style={{ marginTop: 14, background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}
-          >
-            Cancel
-          </button>
+          <div style={{ marginTop: 16 }}><div style={{ background: "#0d2318", border: `1px solid ${G.green}`, borderRadius: 10, padding: "8px 16px", fontSize: 12, color: "#86efac", display: "inline-block" }}>⏳ Scanning…</div></div>
+          <button onClick={reset} style={{ marginTop: 14, background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}>Cancel</button>
         </div>
       )}
 
-      {/* Insufficient points */}
       {scanStage === "insufficient" && selectedReward && (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
           <div style={{ fontSize: 56, marginBottom: 12 }}>❌</div>
@@ -543,31 +440,17 @@ function QRRedeem({ state, setState }) {
             <b style={{ color: G.amber }}>Earn more quickly:</b><br />
             <span style={{ color: "#fde68a", fontSize: 13 }}>Take clean routes (+15 pts), use public transport (+20 pts), or carpool (+25 pts) to top up your balance.</span>
           </div>
-          <button className="btn-green" onClick={reset} style={{ width: "auto", padding: "10px 30px" }}>
-            Choose Another Reward
-          </button>
+          <button className="btn-green" onClick={reset} style={{ width: "auto", padding: "10px 30px" }}>Choose Another Reward</button>
         </div>
       )}
 
-      {/* Success state */}
       {scanStage === "success" && selectedReward && (
         <div className="qr-success-overlay" style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{
-            width: 90, height: 90, margin: "0 auto 16px",
-            background: "radial-gradient(circle,#14532d,#071a0e)",
-            borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-            border: `3px solid ${G.green}`, fontSize: 44,
-            boxShadow: `0 0 32px ${G.green}66`,
-          }}>✅</div>
-
+          <div style={{ width: 90, height: 90, margin: "0 auto 16px", background: "radial-gradient(circle,#14532d,#071a0e)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: `3px solid ${G.green}`, fontSize: 44, boxShadow: `0 0 32px ${G.green}66` }}>✅</div>
           <div style={{ color: G.green2, fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>REDEEMED!</div>
           <div style={{ color: G.text, fontSize: 16, margin: "8px 0 4px", fontWeight: 700 }}>{selectedReward.name}</div>
           <div style={{ color: "#86efac", fontSize: 14 }}>You saved {selectedReward.saving}</div>
-
-          <div style={{
-            background: "#0f2a0a", border: `1px solid ${G.green}`,
-            borderRadius: 14, padding: "16px 20px", margin: "16px auto", maxWidth: 280,
-          }}>
+          <div style={{ background: "#0f2a0a", border: `1px solid ${G.green}`, borderRadius: 14, padding: "16px 20px", margin: "16px auto", maxWidth: 280 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
               <span style={{ color: "#64748b", fontSize: 12 }}>Points used</span>
               <span className="mono" style={{ color: G.red, fontWeight: 700 }}>-{selectedReward.cost} pts</span>
@@ -577,30 +460,14 @@ function QRRedeem({ state, setState }) {
               <span className="mono" style={{ color: G.green2, fontWeight: 700 }}>{state.greenPoints} pts</span>
             </div>
           </div>
-
-          <div style={{ color: "#64748b", fontSize: 12, marginBottom: 20 }}>
-            {scanType === "toll" ? "🛣️ Show this screen to the toll attendant if needed" : "⛽ Present this confirmation at the cashier"}
-          </div>
-
+          <div style={{ color: "#64748b", fontSize: 12, marginBottom: 20 }}>{scanType === "toll" ? "🛣️ Show this screen to the toll attendant if needed" : "⛽ Present this confirmation at the cashier"}</div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              className="btn-green"
-              onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }}
-              style={{ width: "auto", padding: "10px 28px" }}
-            >
-              Redeem Another
-            </button>
-            <button
-              onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }}
-              style={{ background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 10, padding: "10px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 14 }}
-            >
-              Done
-            </button>
+            <button className="btn-green" onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }} style={{ width: "auto", padding: "10px 28px" }}>Redeem Another</button>
+            <button onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }} style={{ background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 10, padding: "10px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 14 }}>Done</button>
           </div>
         </div>
       )}
 
-      {/* Redemption history */}
       {redeemLog.length > 0 && scanStage === "idle" && (
         <div style={{ marginTop: 20 }}>
           <div className="sec-head">Recent Redemptions</div>
@@ -619,7 +486,6 @@ function QRRedeem({ state, setState }) {
         </div>
       )}
 
-      {/* Partner info */}
       {scanStage === "idle" && (
         <div style={{ marginTop: 20 }}>
           <div className="sec-head">Accepted At</div>
@@ -652,26 +518,16 @@ function Dashboard({ state }) {
   return (
     <div>
       <PageHead emoji="🏠" title="Dashboard" sub="Live emission intelligence overview" />
-
       <div className="grid-4" style={{ marginBottom: 12 }}>
         <KpiCard value={TIME_STR} label={DATE_STR} cls="card-blue" kvcls="kv-blue" />
-        <KpiCard value={IS_RUSH ? "RUSH HOUR" : "CLEAR"} label="TRAFFIC STATUS"
-          cls={IS_RUSH ? "card-red" : ""} kvcls={IS_RUSH ? "kv-red" : "kv-green"} />
+        <KpiCard value={IS_RUSH ? "RUSH HOUR" : "CLEAR"} label="TRAFFIC STATUS" cls={IS_RUSH ? "card-red" : ""} kvcls={IS_RUSH ? "kv-red" : "kv-green"} />
         <KpiCard value={`${state.ecoScore}/100`} label="ECO SCORE" />
         <KpiCard value={state.greenPoints} label="GREEN POINTS" />
       </div>
-
       {IS_RUSH
-        ? <div className="alert-red">
-            <b style={{ color: G.red }}>Warning HIGH EMISSION ALERT</b><br />
-            <span style={{ color: "#fca5a5", fontSize: 13 }}>Rush hour -- consider delaying or choosing a clean route.</span>
-          </div>
-        : <div className="alert-green">
-            <b style={{ color: G.green }}>OK LOW EMISSION CONDITIONS</b><br />
-            <span style={{ color: "#86efac", fontSize: 13 }}>Traffic is clear -- great time to travel and earn Green Points.</span>
-          </div>
+        ? <div className="alert-red"><b style={{ color: G.red }}>⚠ HIGH EMISSION ALERT</b><br /><span style={{ color: "#fca5a5", fontSize: 13 }}>Rush hour — consider delaying or choosing a clean route.</span></div>
+        : <div className="alert-green"><b style={{ color: G.green }}>✓ LOW EMISSION CONDITIONS</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>Traffic is clear — great time to travel and earn Green Points.</span></div>
       }
-
       <div className="sec-head">Real-Time City Emission Pulse</div>
       <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 12 }}>
         <ResponsiveContainer width="100%" height={180}>
@@ -685,7 +541,6 @@ function Dashboard({ state }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-
       <div className="sec-head">Today's Impact</div>
       <div className="grid-2" style={{ gap: 10 }}>
         <KpiCard value={`${savings} kg`} label="CO2 SAVED TODAY" />
@@ -693,7 +548,6 @@ function Dashboard({ state }) {
         <KpiCard value={state.trips}     label="TRIPS COMPLETED" cls="card-blue"  kvcls="kv-blue" />
         <KpiCard value={state.greenPoints} label="TOTAL GREEN POINTS" />
       </div>
-
       <div className="alert-green" style={{ marginTop: 12 }}>
         <b style={{ color: G.green }}>Why It Matters</b><br />
         <span style={{ color: "#86efac", fontSize: 13 }}>Every clean trip earns Green Points redeemable for real rewards while reducing urban air pollution.</span>
@@ -707,14 +561,9 @@ function CityMap({ navigate }) {
   const [selected, setSelected] = useState(null);
   const [dest, setDest] = useState("Mall");
   const [animKey, setAnimKey] = useState(0);
-
   const destinations = ["Mall", "Work", "School", "Hospital", "Park", "Airport"];
 
-  function chooseDest(d) {
-    setDest(d);
-    setSelected(null);
-    setAnimKey(k => k + 1);
-  }
+  function chooseDest(d) { setDest(d); setSelected(null); setAnimKey(k => k + 1); }
 
   const bluePoints = "215,270 190,240 170,200 185,165 220,145 270,130 330,118 390,112 445,120 490,130";
   const redPoints  = "215,270 240,255 275,240 310,225 350,215 390,200 430,175 460,155 490,130";
@@ -728,80 +577,45 @@ function CityMap({ navigate }) {
     { x: 310, y: 400, label: "High School", icon: "🏫", color: G.muted },
   ];
 
-  const blueStats = { congestion: "18%", time: "14 min", co2: "0.8 kg", quality: "Clean Air", cars: "Low" };
-  const redStats  = { congestion: "74%", time: "28 min", co2: "2.1 kg", quality: "Smoky Air", cars: "High" };
+  const blueStats = { congestion: "18%", time: "14 min", co2: "0.8 kg", quality: "Clean Air" };
+  const redStats  = { congestion: "74%", time: "28 min", co2: "2.1 kg", quality: "Smoky Air" };
 
   return (
     <div>
       <PageHead emoji="🗺️" title="City Map" sub="Pretoria live route explorer — pick your destination" />
-
       <div style={{ marginBottom: 14 }}>
         <div className="lbl" style={{ marginBottom: 8 }}>SELECT DESTINATION</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {destinations.map(d => (
-            <button
-              key={d}
-              onClick={() => chooseDest(d)}
-              style={{
-                background: dest === d ? "linear-gradient(135deg,#14532d,#166534)" : G.bg2,
-                color: dest === d ? G.green2 : G.muted,
-                border: `1px solid ${dest === d ? G.green : G.border}`,
-                borderRadius: 8, padding: "6px 14px", cursor: "pointer",
-                fontFamily: "'Exo 2',sans-serif", fontWeight: 700, fontSize: 13,
-                transition: ".2s",
-              }}
-            >
-              {d}
-            </button>
+            <button key={d} onClick={() => chooseDest(d)} style={{ background: dest === d ? "linear-gradient(135deg,#14532d,#166534)" : G.bg2, color: dest === d ? G.green2 : G.muted, border: `1px solid ${dest === d ? G.green : G.border}`, borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontWeight: 700, fontSize: 13 }}>{d}</button>
           ))}
         </div>
       </div>
-
       {dest === "Mall" && !selected && (
         <div className="alert-green" style={{ marginBottom: 12 }}>
           <b style={{ color: G.green }}>Two Routes Found to {dest}</b><br />
           <span style={{ color: "#86efac", fontSize: 13 }}>Tap a route on the map or choose below to see details.</span>
         </div>
       )}
-
-      <div style={{
-        background: "linear-gradient(145deg,#060d1a,#0a1525)",
-        border: `1px solid ${G.border}`, borderRadius: 16, padding: 0,
-        overflow: "hidden", position: "relative", marginBottom: 14,
-      }}>
-        <div style={{
-          position: "absolute", top: 12, left: 16, zIndex: 5,
-          background: "rgba(3,7,18,0.8)", borderRadius: 8, padding: "4px 10px",
-          border: `1px solid ${G.border}`,
-        }}>
+      <div style={{ background: "linear-gradient(145deg,#060d1a,#0a1525)", border: `1px solid ${G.border}`, borderRadius: 16, overflow: "hidden", position: "relative", marginBottom: 14 }}>
+        <div style={{ position: "absolute", top: 12, left: 16, zIndex: 5, background: "rgba(3,7,18,0.8)", borderRadius: 8, padding: "4px 10px", border: `1px solid ${G.border}` }}>
           <span style={{ color: G.green2, fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>PRETORIA CITY MAP</span>
         </div>
-
         {IS_RUSH && (
-          <div style={{
-            position: "absolute", top: 12, right: 16, zIndex: 5,
-            background: "#1c0a0a", borderRadius: 8, padding: "4px 10px",
-            border: `1px solid ${G.red}`,
-          }}>
+          <div style={{ position: "absolute", top: 12, right: 16, zIndex: 5, background: "#1c0a0a", borderRadius: 8, padding: "4px 10px", border: `1px solid ${G.red}` }}>
             <span style={{ color: G.red, fontSize: 11, fontWeight: 700 }}>RUSH HOUR</span>
           </div>
         )}
-
         <svg key={animKey} viewBox="0 0 700 460" style={{ width: "100%", display: "block" }} xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0f1f35" strokeWidth="0.5" />
-            </pattern>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0f1f35" strokeWidth="0.5" /></pattern>
             <filter id="glow-blue"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
             <filter id="glow-red"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-            <filter id="glow-green"><feGaussianBlur stdDeviation="4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
             <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8" /></marker>
             <marker id="arrow-red"  markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444" /></marker>
           </defs>
-
           <rect width="700" height="460" fill="#060d1a" />
           <rect width="700" height="460" fill="url(#grid)" />
-
           <rect x="50"  y="50"  width="120" height="80"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
           <rect x="220" y="40"  width="90"  height="50"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
           <rect x="380" y="50"  width="140" height="70"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
@@ -809,30 +623,26 @@ function CityMap({ navigate }) {
           <rect x="40"  y="300" width="100" height="80"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
           <rect x="480" y="300" width="150" height="100" rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
           <rect x="180" y="360" width="200" height="70"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-
           <polyline points="215,0 215,460"  stroke="#0d1e30" strokeWidth="8" />
           <polyline points="0,270 700,270"  stroke="#0d1e30" strokeWidth="8" />
           <polyline points="380,0 380,460"  stroke="#0d1e30" strokeWidth="6" />
           <polyline points="0,130 700,130"  stroke="#0d1e30" strokeWidth="6" />
-
           {dest === "Mall" && (
             <g onClick={() => setSelected("blue")} style={{ cursor: "pointer" }}>
               <polyline points={bluePoints} fill="none" stroke="#38bdf8" strokeWidth="10" strokeOpacity="0.15" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-blue)" />
-              <polyline points={bluePoints} fill="none" stroke={selected === "blue" ? "#7dd3fc" : "#38bdf8"} strokeWidth={selected === "blue" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="12 6" markerEnd="url(#arrow-blue)" style={{ strokeDashoffset: 0, animation: "dash-blue 2.5s linear infinite" }} />
+              <polyline points={bluePoints} fill="none" stroke={selected === "blue" ? "#7dd3fc" : "#38bdf8"} strokeWidth={selected === "blue" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="12 6" markerEnd="url(#arrow-blue)" />
               <rect x="270" y="96" width="80" height="20" rx="4" fill="rgba(6,13,26,0.85)" />
               <text x="310" y="110" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">CLEAN ROUTE</text>
             </g>
           )}
-
           {dest === "Mall" && (
             <g onClick={() => setSelected("red")} style={{ cursor: "pointer" }}>
               <polyline points={redPoints} fill="none" stroke="#ef4444" strokeWidth="10" strokeOpacity="0.15" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-red)" />
-              <polyline points={redPoints} fill="none" stroke={selected === "red" ? "#fca5a5" : "#ef4444"} strokeWidth={selected === "red" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="8 5" markerEnd="url(#arrow-red)" style={{ strokeDashoffset: 0, animation: "dash-red 1.2s linear infinite" }} />
+              <polyline points={redPoints} fill="none" stroke={selected === "red" ? "#fca5a5" : "#ef4444"} strokeWidth={selected === "red" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="8 5" markerEnd="url(#arrow-red)" />
               <rect x="310" y="230" width="90" height="20" rx="4" fill="rgba(28,10,10,0.9)" />
               <text x="355" y="244" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">CONGESTED</text>
             </g>
           )}
-
           {dest !== "Mall" && (
             <g>
               <polyline points="215,270 300,230 390,195 450,165 490,130" fill="none" stroke="#38bdf8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="12 6" />
@@ -840,7 +650,6 @@ function CityMap({ navigate }) {
               <text x="355" y="206" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">ROUTE TO {dest.toUpperCase()}</text>
             </g>
           )}
-
           {landmarks.map((lm, i) => (
             <g key={i}>
               <circle cx={lm.x} cy={lm.y} r="14" fill={lm.x === 215 && lm.y === 270 ? "#071a0e" : "#0a1525"} stroke={lm.color} strokeWidth="2" />
@@ -850,9 +659,7 @@ function CityMap({ navigate }) {
               </text>
             </g>
           ))}
-
-          <circle cx="215" cy="270" r="18" fill="none" stroke={G.green} strokeWidth="1.5" strokeOpacity="0.5" style={{ animation: "pulse-pin 2s ease-in-out infinite" }} />
-
+          <circle cx="215" cy="270" r="18" fill="none" stroke={G.green} strokeWidth="1.5" strokeOpacity="0.5" />
           {dest === "Mall" && (
             <g opacity="0.4">
               <ellipse cx="350" cy="225" rx="22" ry="12" fill="#7f1d1d" />
@@ -861,18 +668,13 @@ function CityMap({ navigate }) {
               <text x="360" y="195" textAnchor="middle" fill="#fca5a5" fontSize="9" fontFamily="monospace">SMOKE</text>
             </g>
           )}
-
           <rect x="12" y="390" width="190" height="58" rx="8" fill="rgba(6,13,26,0.9)" stroke="#1e293b" strokeWidth="1" />
           <line x1="22" y1="408" x2="52" y2="408" stroke="#38bdf8" strokeWidth="2.5" strokeDasharray="6 3" />
           <text x="58" y="412" fill="#38bdf8" fontSize="10" fontFamily="'Share Tech Mono',monospace">Blue = Clean / Low Pollution</text>
           <line x1="22" y1="428" x2="52" y2="428" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="4 3" />
           <text x="58" y="432" fill="#ef4444" fontSize="10" fontFamily="'Share Tech Mono',monospace">Red = Congested / Smoky</text>
-
-          {selected === "blue" && <polyline points={bluePoints} fill="none" stroke="#38bdf8" strokeWidth="8" strokeOpacity="0.18" strokeLinecap="round" />}
-          {selected === "red"  && <polyline points={redPoints}  fill="none" stroke="#ef4444" strokeWidth="8" strokeOpacity="0.18" strokeLinecap="round" />}
         </svg>
       </div>
-
       {dest === "Mall" && (
         <div className="grid-2" style={{ gap: 12, marginBottom: 14 }}>
           <div className="route-blue map-route-card" style={{ cursor: "pointer", boxShadow: selected === "blue" ? `0 0 24px #38bdf844` : "none", transform: selected === "blue" ? "scale(1.02)" : "scale(1)", transition: ".2s" }} onClick={() => setSelected("blue")}>
@@ -892,7 +694,6 @@ function CityMap({ navigate }) {
             </div>
             <div style={{ marginTop: 10, background: "#071520", borderRadius: 8, padding: 8, fontSize: 12, color: "#7dd3fc" }}>Smooth flow · Less cars · Earn +15 Green Points</div>
           </div>
-
           <div className="route-red map-route-card" style={{ cursor: "pointer", boxShadow: selected === "red" ? `0 0 24px #ef444444` : "none", transform: selected === "red" ? "scale(1.02)" : "scale(1)", transition: ".2s" }} onClick={() => setSelected("red")}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <div style={{ width: 16, height: 4, background: G.red, borderRadius: 2 }} />
@@ -912,7 +713,6 @@ function CityMap({ navigate }) {
           </div>
         </div>
       )}
-
       {dest === "Mall" && selected && (
         <div className={selected === "blue" ? "alert-green" : "alert-red"} style={{ marginBottom: 12 }}>
           {selected === "blue"
@@ -921,13 +721,9 @@ function CityMap({ navigate }) {
           }
         </div>
       )}
-
       {dest === "Mall" && selected === "blue" && (
-        <button className="btn-green" onClick={() => navigate("routes")} style={{ marginTop: 4 }}>
-          Navigate - Start Clean Route to {dest}
-        </button>
+        <button className="btn-green" onClick={() => navigate("routes")} style={{ marginTop: 4 }}>Navigate — Start Clean Route to {dest}</button>
       )}
-
       {dest !== "Mall" && (
         <div className="alert-amber">
           <b style={{ color: G.amber }}>Route Preview</b><br />
@@ -965,8 +761,7 @@ function SmartRoutes({ state, setState }) {
 
   return (
     <div>
-      <PageHead emoji="📍" title="Smart Routes" sub="Choose cleaner routes -- reduce emissions, earn Green Points" />
-
+      <PageHead emoji="📍" title="Smart Routes" sub="Choose cleaner routes — reduce emissions, earn Green Points" />
       <div className="grid-2" style={{ gap: 10, marginBottom: 10 }}>
         <div>
           <div className="lbl">ORIGIN</div>
@@ -981,15 +776,13 @@ function SmartRoutes({ state, setState }) {
           </select>
         </div>
       </div>
-
       <div style={{ marginBottom: 12 }}>
         <div className="lbl">DEPARTURE HOUR: {leaveHr}:00</div>
         <input type="range" min={0} max={23} value={leaveHr} onChange={e => setLeaveHr(+e.target.value)} />
       </div>
-
       <div className="grid-2" style={{ gap: 10, marginBottom: 14 }}>
         <div className="route-blue">
-          <div style={{ fontSize: 14, fontWeight: 800, color: G.blue }}>OK CLEAN ROUTE</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: G.blue }}>✓ CLEAN ROUTE</div>
           <div style={{ color: "#7dd3fc", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>LOW EMISSIONS - RECOMMENDED</div>
           <div className="grid-2">
             {[["Congestion", `${congA}%`, G.blue], ["Time", `${timeA} min`, G.blue], ["Distance", `${distA} km`, G.green2], ["CO2", `${co2A} kg`, G.green2]].map(([l, v, c]) => (
@@ -999,10 +792,10 @@ function SmartRoutes({ state, setState }) {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 10, background: "#0a1a2e", borderRadius: 8, padding: 8, fontSize: 12, color: "#7dd3fc" }}>Smooth flow - Earn +15 Green Points</div>
+          <div style={{ marginTop: 10, background: "#0a1a2e", borderRadius: 8, padding: 8, fontSize: 12, color: "#7dd3fc" }}>Smooth flow — Earn +15 Green Points</div>
         </div>
         <div className="route-red">
-          <div style={{ fontSize: 14, fontWeight: 800, color: G.red }}>X HIGH EMISSION ROUTE</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: G.red }}>✕ HIGH EMISSION ROUTE</div>
           <div style={{ color: "#fca5a5", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>HEAVY TRAFFIC - AVOID</div>
           <div className="grid-2">
             {[["Congestion", `${congB}%`, G.red], ["Time", `${timeB} min`, G.red], ["Distance", `${distB} km`, "#f87171"], ["CO2", `${co2B} kg`, "#f87171"]].map(([l, v, c]) => (
@@ -1012,22 +805,17 @@ function SmartRoutes({ state, setState }) {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 10, background: "#1c0808", borderRadius: 8, padding: 8, fontSize: 12, color: "#fca5a5" }}>Stop-and-go - High idling - More fuel</div>
+          <div style={{ marginTop: 10, background: "#1c0808", borderRadius: 8, padding: 8, fontSize: 12, color: "#fca5a5" }}>Stop-and-go — High idling — More fuel</div>
         </div>
       </div>
-
       <div className="alert-green">
         <b style={{ color: G.green }}>Smart Advisor</b><br />
         <span style={{ color: "#86efac", fontSize: 13 }}>
-          Taking the Clean Route saves <b>{(co2B - co2A).toFixed(2)} kg CO2</b> and
-          ~<b>R{((fuelB - fuelA) * 20).toFixed(2)}</b> in fuel. Earn <b>+15 Green Points</b>.
+          Taking the Clean Route saves <b>{(co2B - co2A).toFixed(2)} kg CO2</b> and ~<b>R{((fuelB - fuelA) * 20).toFixed(2)}</b> in fuel. Earn <b>+15 Green Points</b>.
         </span>
       </div>
-
-      <button className="btn-green" style={{ marginTop: 14 }} onClick={takeTrip}>
-        Car Take Clean Route -- Start Trip
-      </button>
-      {tripMsg && <div className="alert-green" style={{ marginTop: 8 }}><b style={{ color: G.green }}>{tripMsg}</b> Total: {state.greenPoints + 15} pts</div>}
+      <button className="btn-green" style={{ marginTop: 14 }} onClick={takeTrip}>🚗 Take Clean Route — Start Trip</button>
+      {tripMsg && <div className="alert-green" style={{ marginTop: 8 }}><b style={{ color: G.green }}>{tripMsg}</b> Total: {state.greenPoints} pts</div>}
     </div>
   );
 }
@@ -1045,32 +833,29 @@ function EmissionAlerts() {
   }));
 
   const actions = [
-    { icon: "Tools", title: "Check Engine Diagnostics",  desc: "Run OBD scan or visit mechanic if emissions stay high.",         color: G.red   },
-    { icon: "Fuel",  title: "Reduce Fuel Waste",          desc: "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM.",     color: G.amber },
-    { icon: "Wrench",title: "Service Your Vehicle",       desc: "Oil change, air filter, fuel injector cleaning, exhaust check.", color: G.blue  },
-    { icon: "Stop",  title: "Stop Unnecessary Idling",    desc: "Switch off engine after 1 minute of idling.",                    color: G.amber },
-    { icon: "Map",   title: "Switch to a Cleaner Route",  desc: "Less traffic = less emissions. Open City Map for options.",      color: G.green },
+    { title: "Check Engine Diagnostics",  desc: "Run OBD scan or visit mechanic if emissions stay high.",         color: G.red   },
+    { title: "Reduce Fuel Waste",          desc: "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM.",     color: G.amber },
+    { title: "Service Your Vehicle",       desc: "Oil change, air filter, fuel injector cleaning, exhaust check.", color: G.blue  },
+    { title: "Stop Unnecessary Idling",    desc: "Switch off engine after 1 minute of idling.",                    color: G.amber },
+    { title: "Switch to a Cleaner Route",  desc: "Less traffic = less emissions. Open City Map for options.",      color: G.green },
   ];
 
   return (
     <div>
       <PageHead emoji="⚠️" title="Emission Alerts" sub="Live diagnostics and driving behaviour intelligence" />
-
       {emPct > 65
         ? <div className="alert-red"><b style={{ color: G.red, fontSize: 16 }}>HIGH EMISSION DETECTED</b><br /><span style={{ color: "#fca5a5", fontSize: 13 }}>Above-normal emissions. Reduce speed and check diagnostics.</span></div>
         : emPct > 40
-        ? <div className="alert-amber"><b style={{ color: G.amber, fontSize: 16 }}>MODERATE EMISSIONS</b><br /><span style={{ color: "#fde68a", fontSize: 13 }}>Slightly elevated -- maintain steady speed and avoid sudden braking.</span></div>
-        : <div className="alert-green"><b style={{ color: G.green, fontSize: 16 }}>LOW EMISSIONS -- CLEAN DRIVING</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>Excellent! Keep it up and earn Green Points.</span></div>
+        ? <div className="alert-amber"><b style={{ color: G.amber, fontSize: 16 }}>MODERATE EMISSIONS</b><br /><span style={{ color: "#fde68a", fontSize: 13 }}>Slightly elevated — maintain steady speed and avoid sudden braking.</span></div>
+        : <div className="alert-green"><b style={{ color: G.green, fontSize: 16 }}>LOW EMISSIONS — CLEAN DRIVING</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>Excellent! Keep it up and earn Green Points.</span></div>
       }
-
       <div className="grid-4" style={{ margin: "12px 0" }}>
-        <KpiCard value={`${emPct}%`}   label="EMISSION LEVEL"  cls={emPct > 65 ? "card-red" : emPct > 40 ? "card-amber" : ""} kvcls={emPct > 65 ? "kv-red" : emPct > 40 ? "kv-amber" : "kv-green"} />
+        <KpiCard value={`${emPct}%`}    label="EMISSION LEVEL" cls={emPct > 65 ? "card-red" : emPct > 40 ? "card-amber" : ""} kvcls={emPct > 65 ? "kv-red" : emPct > 40 ? "kv-amber" : "kv-green"} />
         <KpiCard value={`${speed} km/h`} label="SPEED"         cls="card-blue" kvcls="kv-blue" />
         <KpiCard value={`${idle} min`}   label="IDLE TIME"     cls={idle > 2 ? "card-amber" : ""}  kvcls={idle > 2 ? "kv-amber" : "kv-green"} />
         <KpiCard value={rpm}             label="ENGINE RPM"    cls={rpm > 3000 ? "card-red" : ""}  kvcls={rpm > 3000 ? "kv-red" : "kv-green"} />
       </div>
-
-      <div className="sec-head">Speed and Emission Relationship</div>
+      <div className="sec-head">Speed vs Emission Relationship</div>
       <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 10 }}>
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={speedData}>
@@ -1085,11 +870,10 @@ function EmissionAlerts() {
         <b style={{ color: G.green }}>Key Insight</b>{" "}
         <span style={{ color: "#86efac", fontSize: 13 }}>Driving at a steady 60-80 km/h produces the least pollution. Stop-and-go and high speeds burn significantly more fuel.</span>
       </div>
-
       <div className="sec-head">Action Plan</div>
       {actions.map(a => (
         <div key={a.title} className="action-card" style={{ borderLeft: `3px solid ${a.color}` }}>
-          <div style={{ color: a.color, fontWeight: 700, fontSize: 14 }}>{a.icon} - {a.title}</div>
+          <div style={{ color: a.color, fontWeight: 700, fontSize: 14 }}>{a.title}</div>
           <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>{a.desc}</div>
         </div>
       ))}
@@ -1146,7 +930,7 @@ function Analytics() {
 
       {tab === 0 && (
         <div>
-          <div className="sec-head">24-Hour Emission and Speed Trends</div>
+          <div className="sec-head">24-Hour Emission & Speed Trends</div>
           <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 10 }}>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={hourly}>
@@ -1237,7 +1021,7 @@ function Analytics() {
               </tbody>
             </table>
           </div>
-          <div style={{ color: G.muted, fontSize: 11, marginTop: 8 }}>Red = heavy congestion - Green = smooth flow</div>
+          <div style={{ color: G.muted, fontSize: 11, marginTop: 8 }}>Red = heavy congestion · Green = smooth flow</div>
         </div>
       )}
     </div>
@@ -1271,7 +1055,6 @@ function EcoScore({ state }) {
   return (
     <div>
       <PageHead emoji="⭐" title="Eco Score" sub="Your environmental driving rating" />
-
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <div className="card" style={{ textAlign: "center", padding: 24, minWidth: 140 }}>
           <div className="mono" style={{ fontSize: 64, fontWeight: 900, color: gCol }}>{grade}</div>
@@ -1292,7 +1075,6 @@ function EcoScore({ state }) {
           </div>
         </div>
       </div>
-
       <div className="sec-head">Score Breakdown</div>
       {factors.map(([n, v, c]) => (
         <div key={n} style={{ marginBottom: 10 }}>
@@ -1303,7 +1085,6 @@ function EcoScore({ state }) {
           <div className="pbar-bg"><div className="pbar-fill" style={{ width: `${v}%`, background: c }} /></div>
         </div>
       ))}
-
       <div className="sec-head">Driver Leaderboard</div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -1334,7 +1115,6 @@ function EcoScore({ state }) {
 // --- PAGE: REWARDS ---
 function Rewards({ state }) {
   const pts = state.greenPoints;
-
   const rewardList = [
     { name: "Fuel Voucher",          cost: 50,  desc: "Save R10 at participating fuel stations",  color: G.amber   },
     { name: "Petrol Discount 10%",   cost: 120, desc: "10% off your next full tank",              color: G.amber   },
@@ -1345,24 +1125,21 @@ function Rewards({ state }) {
     { name: "Partner Discounts",     cost: 60,  desc: "Discounts at eco-friendly stores",         color: G.blue    },
     { name: "Premium Eco Status",    cost: 500, desc: "Unlock premium leaderboard + extra pts",   color: G.amber   },
   ];
-
   const earnTips = [
-    ["Clean Routes",      "+15 pts/trip"], ["Steady Speed",        "+5 pts/trip"],
-    ["Public Transport",  "+20 pts/trip"], ["No Idling",           "+3 pts"      ],
-    ["Carpool",           "+25 pts/trip"], ["Vehicle Service",     "+50 pts"     ],
+    ["Clean Routes","+15 pts/trip"], ["Steady Speed","+5 pts/trip"],
+    ["Public Transport","+20 pts/trip"], ["No Idling","+3 pts"],
+    ["Carpool","+25 pts/trip"], ["Vehicle Service","+50 pts"],
   ];
 
   return (
     <div>
       <PageHead emoji="🎁" title="Rewards" sub="Convert your Green Points into real-world rewards" />
-
       <div style={{ background: "linear-gradient(135deg,#0f2a0a,#1a3a10)", border: "1px solid #166534", borderRadius: 16, padding: 24, marginBottom: 16 }}>
         <div style={{ fontFamily: "monospace", fontSize: 10, color: "#86efac", letterSpacing: 3 }}>MELLOWTECH REWARDS CARD</div>
         <div className="mono" style={{ fontSize: 36, fontWeight: 900, color: G.green2, margin: "6px 0" }}>{pts} pts</div>
         <div style={{ color: G.green, fontSize: 13 }}>{state.username}</div>
-        <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{DATE_STR} - ACTIVE</div>
+        <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{DATE_STR} · ACTIVE</div>
       </div>
-
       <div className="grid-2">
         {rewardList.map(rw => {
           const can = pts >= rw.cost;
@@ -1372,15 +1149,12 @@ function Rewards({ state }) {
               <div style={{ color: "#64748b", fontSize: 12, margin: "4px 0" }}>{rw.desc}</div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
                 <span className="mono" style={{ fontSize: 18, fontWeight: 900, color: rw.color }}>{rw.cost} pts</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: can ? rw.color : "#334155" }}>
-                  {can ? "Tap to Redeem" : `Need ${rw.cost - pts} more`}
-                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: can ? rw.color : "#334155" }}>{can ? "Tap to Redeem" : `Need ${rw.cost - pts} more`}</span>
               </div>
             </div>
           );
         })}
       </div>
-
       <div className="sec-head">How to Earn Green Points</div>
       <div className="grid-2">
         {earnTips.map(([tip, val]) => (
@@ -1416,7 +1190,6 @@ function Profile({ state, setState }) {
   return (
     <div>
       <PageHead emoji="👤" title="Profile" sub="Your account and preferences" />
-
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <div className="card" style={{ textAlign: "center", padding: 24, minWidth: 160 }}>
           <div style={{ fontSize: 44 }}>🌿</div>
@@ -1429,7 +1202,6 @@ function Profile({ state, setState }) {
           <div className="mono" style={{ fontSize: 24, fontWeight: 900, color: G.green2, marginTop: 8 }}>{state.greenPoints}</div>
           <div style={{ color: "#64748b", fontSize: 10, letterSpacing: 2 }}>GREEN POINTS</div>
         </div>
-
         <div style={{ flex: 1, minWidth: 200 }}>
           <div className="sec-head">Preferences</div>
           <div style={{ marginBottom: 10 }}>
@@ -1449,14 +1221,9 @@ function Profile({ state, setState }) {
             </select>
           </div>
           <button className="btn-green" onClick={save}>Save Preferences</button>
-          {saved && (
-            <div className="alert-green" style={{ marginTop: 8 }}>
-              <b style={{ color: G.green }}>Preferences saved!</b>
-            </div>
-          )}
+          {saved && <div className="alert-green" style={{ marginTop: 8 }}><b style={{ color: G.green }}>Preferences saved!</b></div>}
         </div>
       </div>
-
       <div className="sec-head">My Environmental Impact</div>
       <div className="grid-4" style={{ gap: 10 }}>
         <KpiCard value={`${co2} kg`}               label="CO2 SAVED" />
@@ -1464,12 +1231,9 @@ function Profile({ state, setState }) {
         <KpiCard value={`R${(fuel*22).toFixed(2)}`} label="MONEY SAVED"  cls="card-blue"  kvcls="kv-blue" />
         <KpiCard value={state.trips}                label="TRIPS DONE" />
       </div>
-
       <div className="alert-green" style={{ marginTop: 12 }}>
         <b style={{ color: G.green }}>Your Climate Contribution</b><br />
-        <span style={{ color: "#86efac", fontSize: 13 }}>
-          By using MellowTech you help reduce urban air pollution and contribute to South Africa's climate goals. Every clean trip counts.
-        </span>
+        <span style={{ color: "#86efac", fontSize: 13 }}>By using MellowTech you help reduce urban air pollution and contribute to South Africa's climate goals. Every clean trip counts.</span>
       </div>
     </div>
   );
@@ -1481,7 +1245,6 @@ export default function App() {
   const [username,  setUsername]  = useState("");
   const [password,  setPassword]  = useState("");
   const [loginErr,  setLoginErr]  = useState("");
-
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page,       setPage]       = useState("dashboard");
 
@@ -1533,85 +1296,47 @@ export default function App() {
       {!loggedIn ? (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 40, fontWeight: 900, color: G.green2, letterSpacing: 4, fontFamily: "Share Tech Mono" }}>
-              MELLOWTECH
-            </div>
-            <div style={{ color: G.muted, fontSize: 11, letterSpacing: 6, textTransform: "uppercase" }}>
-              Smart Emission Intelligence System
-            </div>
+            <div style={{ fontSize: 40, fontWeight: 900, color: G.green2, letterSpacing: 4, fontFamily: "Share Tech Mono" }}>MELLOWTECH</div>
+            <div style={{ color: G.muted, fontSize: 11, letterSpacing: 6, textTransform: "uppercase" }}>Smart Emission Intelligence System</div>
           </div>
-
           <div className="login-wrap">
             <h3 style={{ color: G.green, fontWeight: 900, marginBottom: 4 }}>Sign In</h3>
-            <p style={{ color: G.muted, fontSize: 11, letterSpacing: 2, marginBottom: 20 }}>
-              PROTECTING THE PLANET, ONE TRIP AT A TIME
-            </p>
-            <input
-              className="inp" placeholder="Username"
-              value={username} onChange={e => setUsername(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && login()}
-            />
-            <input
-              className="inp" type="password" placeholder="Password"
-              value={password} onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && login()}
-            />
+            <p style={{ color: G.muted, fontSize: 11, letterSpacing: 2, marginBottom: 20 }}>PROTECTING THE PLANET, ONE TRIP AT A TIME</p>
+            <input className="inp" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
+            <input className="inp" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
             {loginErr && <div style={{ color: G.red, fontSize: 13, marginBottom: 8 }}>{loginErr}</div>}
             <button className="btn-green" onClick={login}>Launch MellowTech</button>
           </div>
         </div>
-
       ) : (
         <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ minHeight: "100vh" }}>
-
-          <div
-            className={`drawer-overlay ${drawerOpen ? "" : "hidden"}`}
-            onClick={() => setDrawerOpen(false)}
-          />
-
+          <div className={`drawer-overlay ${drawerOpen ? "" : "hidden"}`} onClick={() => setDrawerOpen(false)} />
           <div className={`drawer ${drawerOpen ? "open" : ""}`}>
             <div style={{ padding: "20px 20px 14px", borderBottom: `1px solid ${G.border}` }}>
               <div style={{ color: G.green2, fontSize: 18, fontWeight: 900, letterSpacing: 3 }}>🌿 MELLOWTECH</div>
               <div style={{ color: "#334155", fontSize: 9, letterSpacing: 2, marginTop: 2 }}>EMISSION INTELLIGENCE</div>
             </div>
-
             <div style={{ padding: "12px 20px", borderBottom: `1px solid ${G.border}` }}>
               <div style={{ color: G.text, fontSize: 13, fontWeight: 600 }}>👤 {appState.username}</div>
               <div style={{ color: G.green, fontSize: 11, marginTop: 2 }}>{appState.greenPoints} Green Points</div>
             </div>
-
             <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
               {NAV.map(n => (
-                <div
-                  key={n.id}
-                  className={`nav-item ${page === n.id ? "active" : ""}`}
-                  onClick={() => navigate(n.id)}
-                >
+                <div key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
                   <span className="nav-icon">{n.icon}</span>
                   <span>{n.label}</span>
                 </div>
               ))}
             </div>
-
             <div style={{ padding: "12px 20px", borderTop: `1px solid ${G.border}` }}>
               <div style={{ color: G.muted, fontSize: 10, letterSpacing: 2, marginBottom: 4 }}>ECO SCORE</div>
-              <div className="pbar-bg">
-                <div className="pbar-fill" style={{ width: `${appState.ecoScore}%`, background: G.green }} />
-              </div>
+              <div className="pbar-bg"><div className="pbar-fill" style={{ width: `${appState.ecoScore}%`, background: G.green }} /></div>
               <div style={{ color: G.green2, fontSize: 13, fontWeight: 700, marginTop: 4 }}>{appState.ecoScore}/100</div>
             </div>
-
             <div style={{ padding: "12px 20px", borderTop: `1px solid ${G.border}` }}>
-              <button
-                className="btn-sm"
-                style={{ width: "100%" }}
-                onClick={() => { setLoggedIn(false); setUsername(""); setPassword(""); setPage("dashboard"); }}
-              >
-                Sign Out
-              </button>
+              <button className="btn-sm" style={{ width: "100%" }} onClick={() => { setLoggedIn(false); setUsername(""); setPassword(""); setPage("dashboard"); }}>Sign Out</button>
             </div>
           </div>
-
           <div className="topbar">
             <button className="hamburger" onClick={() => setDrawerOpen(o => !o)} aria-label="Open menu">
               <span /><span /><span />
@@ -1621,11 +1346,9 @@ export default function App() {
               {IS_RUSH ? "RUSH HOUR" : "TRAFFIC CLEAR"}
             </span>
           </div>
-
           <main className="content" style={{ paddingTop: 16 }}>
             {PAGES[page]}
           </main>
-
         </div>
       )}
     </>
