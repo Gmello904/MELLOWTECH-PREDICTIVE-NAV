@@ -4,18 +4,12 @@ import numpy as np
 from datetime import datetime as dt
 import time
 
-# ------------------------------------------------
-# PAGE CONFIG
-# ------------------------------------------------
 st.set_page_config(
     page_title="MellowTech | Smart Emission Intelligence",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ------------------------------------------------
-# SESSION STATE
-# ------------------------------------------------
 defaults = {
     "logged_in": False,
     "username": "",
@@ -38,24 +32,11 @@ if not st.session_state.loaded:
         time.sleep(0.8)
     st.session_state.loaded = True
 
-# ------------------------------------------------
-# SVG ICONS (drawn, not emoji)
-# ------------------------------------------------
 ICONS = {
-    "dashboard": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>""",
-    "routes": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5v2a4 4 0 0 0 4 4h4a4 4 0 0 1 4 4v1.5"/><path d="M6 8.5v7"/></svg>""",
-    "alerts": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>""",
-    "analytics": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>""",
-    "score": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>""",
-    "rewards": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5" rx="1"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>""",
-    "profile": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>""",
-    "logout": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>""",
     "leaf": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>""",
+    "profile": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>""",
 }
 
-# ------------------------------------------------
-# STYLE
-# ------------------------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Share+Tech+Mono&display=swap');
@@ -78,37 +59,59 @@ st.markdown("""
 .stApp { background: var(--bg0); color: var(--text); }
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ---- SIDEBAR ---- */
 [data-testid="stSidebar"] {
     background: #080d1a !important;
     border-right: 1px solid var(--border) !important;
 }
 [data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
 
-div[role="radiogroup"] { gap: 2px; }
+div[role="radiogroup"] { gap: 0 !important; }
+
 div[role="radiogroup"] > label {
-    padding: 0 !important; margin: 0 !important;
-    background: transparent !important; border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 11px 20px !important;
+    margin: 2px 8px !important;
+    border-radius: 10px !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: none !important;
+    transition: background 0.15s, color 0.15s !important;
+    letter-spacing: 0.3px !important;
+    width: calc(100% - 16px) !important;
 }
-div[role="radiogroup"] > label > div:first-child { display: none !important; }
 
-.nav-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 20px; border-radius: 10px; margin: 2px 8px;
-    color: #64748b; font-size: 14px; font-weight: 600;
-    transition: all 0.15s; letter-spacing: 0.3px;
-}
-.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-.nav-item.active {
-    background: linear-gradient(90deg, #0d2318, #0a1f14);
-    color: var(--green2); border-left: 3px solid var(--green); padding-left: 17px;
+div[role="radiogroup"] > label:hover {
+    background: #0d1f2e !important;
+    color: #94a3b8 !important;
 }
 
-/* TITLE */
+div[role="radiogroup"] > label:has(input:checked) {
+    background: linear-gradient(90deg, #0d2318, #0a1f14) !important;
+    color: #4ade80 !important;
+    border-left: 3px solid #22c55e !important;
+    padding-left: 17px !important;
+}
+
+div[role="radiogroup"] > label > div:first-child {
+    display: none !important;
+}
+
+div[role="radiogroup"] > label > div:last-child p {
+    font-family: 'Exo 2', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    margin: 0 !important;
+    color: inherit !important;
+}
+
 .mt-title { font-size: 44px; font-weight: 900; color: var(--green2); text-shadow: 0 0 30px #22c55e88; letter-spacing: 3px; text-align: center; line-height: 1; }
 .mt-sub   { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
 
-/* CARDS */
 .card { background: linear-gradient(135deg, var(--bg1), var(--bg2)); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
 .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
 .card-red::before   { background: linear-gradient(90deg, transparent, var(--red), transparent); }
@@ -122,28 +125,22 @@ div[role="radiogroup"] > label > div:first-child { display: none !important; }
 .kv-blue  { color: var(--blue);   text-shadow: 0 0 15px #38bdf866; }
 .kl { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
 
-/* ALERTS */
 .alert-red   { background:#1c0a0a; border:1px solid #7f1d1d; border-left:4px solid var(--red);   border-radius:12px; padding:16px 20px; margin:10px 0; }
 .alert-green { background:#071a0e; border:1px solid #14532d; border-left:4px solid var(--green); border-radius:12px; padding:16px 20px; margin:10px 0; }
 .alert-amber { background:#1a1203; border:1px solid #78350f; border-left:4px solid var(--amber); border-radius:12px; padding:16px 20px; margin:10px 0; }
 
-/* ROUTES */
 .route-red  { background:#1c0a0a; border:2px solid #ef4444; border-radius:14px; padding:18px; }
 .route-blue { background:#071520; border:2px solid #38bdf8; border-radius:14px; padding:18px; }
 
-/* PROGRESS BAR */
 .pbar-bg   { background:var(--border); border-radius:20px; height:8px; margin:8px 0; }
 .pbar-fill { height:8px; border-radius:20px; }
 
-/* BADGE */
 .badge { display:inline-block; background:#0d2318; color:var(--green2); border:1px solid #166534; border-radius:20px; padding:4px 14px; font-size:11px; letter-spacing:2px; }
 .sep { border:none; border-top:1px solid var(--border); margin:24px 0; }
 
-/* TEXT INPUTS */
 .stTextInput > div > div > input { background: var(--bg2) !important; border: 1px solid var(--border) !important; border-radius: 10px !important; color: white !important; }
 .stSelectbox > div > div { background: var(--bg2) !important; border-radius: 10px !important; }
 
-/* BUTTONS */
 .stButton > button {
     background: linear-gradient(135deg, #14532d, #166534) !important;
     color: #4ade80 !important; border: 1px solid #166534 !important;
@@ -152,7 +149,6 @@ div[role="radiogroup"] > label > div:first-child { display: none !important; }
 }
 .stButton > button:hover { box-shadow: 0 0 20px #22c55e44 !important; }
 
-/* LOGIN */
 .login-wrap { max-width:420px; margin:50px auto; background:var(--bg1); border:1px solid var(--border); border-radius:24px; padding:44px; text-align:center; }
 
 div[data-testid="stMetricValue"] { color: var(--green2) !important; font-family: 'Share Tech Mono' !important; }
@@ -193,16 +189,16 @@ if not st.session_state.logged_in:
 
 
 # ================================================
-# SIDEBAR — SVG icon nav
+# SIDEBAR
 # ================================================
 NAV_ITEMS = [
-    ("Dashboard",       "dashboard"),
-    ("Smart Routes",    "routes"),
-    ("Emission Alerts", "alerts"),
-    ("Analytics",       "analytics"),
-    ("Eco Score",       "score"),
-    ("Rewards",         "rewards"),
-    ("Profile",         "profile"),
+    ("🏠  Dashboard",        "dashboard"),
+    ("🗺️  Smart Routes",     "routes"),
+    ("⚠️  Emission Alerts",  "alerts"),
+    ("📊  Analytics",        "analytics"),
+    ("⭐  Eco Score",        "score"),
+    ("🎁  Rewards",          "rewards"),
+    ("👤  Profile",          "profile"),
 ]
 
 with st.sidebar:
@@ -235,30 +231,13 @@ with st.sidebar:
 
     nav_labels = [item[0] for item in NAV_ITEMS]
     menu_choice = st.radio("", nav_labels, key="main_nav", label_visibility="collapsed")
-    active_idx  = nav_labels.index(menu_choice)
-
-    nav_html = ""
-    for i, (label, icon_key) in enumerate(NAV_ITEMS):
-        active_cls = "active" if i == active_idx else ""
-        nav_html += f"""
-        <div class='nav-item {active_cls}' style='pointer-events:none;'>
-          <div style='width:18px;height:18px;flex-shrink:0;'>{ICONS[icon_key]}</div>
-          <span>{label}</span>
-        </div>"""
-
-    st.markdown(f"""
-    <style>
-    div[role="radiogroup"] > label {{ position:relative; display:block; margin:2px 0 !important; }}
-    div[role="radiogroup"] > label > div:last-child {{ opacity:0; position:absolute; top:0; left:0; right:0; bottom:0; height:44px; }}
-    </style>
-    <div style='position:relative;margin-top:-{len(NAV_ITEMS)*46}px;pointer-events:none;z-index:1;'>
-    {nav_html}
-    </div>
-    """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("<div style='position:absolute;bottom:0;left:0;right:0;padding:16px;border-top:1px solid var(--border);background:#080d1a;'>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='position:absolute;bottom:0;left:0;right:0;padding:16px;
+                border-top:1px solid var(--border);background:#080d1a;'>
+    """, unsafe_allow_html=True)
     if st.button("Sign Out", use_container_width=True, key="logout_btn"):
         st.session_state.logged_in = False
         st.rerun()
@@ -294,10 +273,10 @@ def emission_level(cong):
     if cong > 40: return "MEDIUM", "#f59e0b", "MED"
     return "LOW", "#22c55e", "LOW"
 
-def page_header(icon_key, title, subtitle, color="#e2e8f0"):
+def page_header(emoji, title, subtitle, color="#e2e8f0"):
     return f"""
     <div style='display:flex;align-items:center;gap:12px;margin-bottom:8px;'>
-      <div style='width:32px;height:32px;color:{color};'>{ICONS[icon_key]}</div>
+      <div style='font-size:28px;'>{emoji}</div>
       <div>
         <h1 style='color:#e2e8f0;font-weight:900;margin:0;font-size:28px;'>{title}</h1>
         <p style='color:#475569;font-size:13px;margin:0;'>{subtitle}</p>
@@ -310,8 +289,8 @@ def page_header(icon_key, title, subtitle, color="#e2e8f0"):
 # ================================================
 # DASHBOARD
 # ================================================
-if menu == "Dashboard":
-    st.markdown(page_header("dashboard", "Dashboard", "Live emission intelligence overview", "#22c55e"), unsafe_allow_html=True)
+if "Dashboard" in menu:
+    st.markdown(page_header("🏠", "Dashboard", "Live emission intelligence overview", "#22c55e"), unsafe_allow_html=True)
 
     time_str = dt.now().strftime("%H:%M")
     date_str = dt.now().strftime("%d %b %Y")
@@ -365,8 +344,8 @@ if menu == "Dashboard":
 # ================================================
 # SMART ROUTES
 # ================================================
-elif menu == "Smart Routes":
-    st.markdown(page_header("routes", "Smart Route Intelligence", "Choose cleaner routes — reduce emissions, earn Green Points", "#38bdf8"), unsafe_allow_html=True)
+elif "Smart Routes" in menu:
+    st.markdown(page_header("🗺️", "Smart Route Intelligence", "Choose cleaner routes — reduce emissions, earn Green Points", "#38bdf8"), unsafe_allow_html=True)
 
     locs = list(locations_coords.keys())
     c1, c2, c3 = st.columns(3)
@@ -446,8 +425,8 @@ elif menu == "Smart Routes":
 # ================================================
 # EMISSION ALERTS
 # ================================================
-elif menu == "Emission Alerts":
-    st.markdown(page_header("alerts", "Emission Alerts", "Live diagnostics and driving behaviour intelligence", "#ef4444"), unsafe_allow_html=True)
+elif "Emission Alerts" in menu:
+    st.markdown(page_header("⚠️", "Emission Alerts", "Live diagnostics and driving behaviour intelligence", "#ef4444"), unsafe_allow_html=True)
 
     np.random.seed(hour_now * 3)
     emission_pct = np.random.randint(20, 95) if is_rush else np.random.randint(10, 55)
@@ -514,8 +493,8 @@ elif menu == "Emission Alerts":
 # ================================================
 # ANALYTICS
 # ================================================
-elif menu == "Analytics":
-    st.markdown(page_header("analytics", "Analytics", "Traffic and emission trends, zone status, cost impact", "#38bdf8"), unsafe_allow_html=True)
+elif "Analytics" in menu:
+    st.markdown(page_header("📊", "Analytics", "Traffic and emission trends, zone status, cost impact", "#38bdf8"), unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4 = st.tabs(["Hourly Trends", "Zone Emissions", "Cost Impact", "Weekly Heatmap"])
 
@@ -590,8 +569,8 @@ elif menu == "Analytics":
 # ================================================
 # ECO SCORE
 # ================================================
-elif menu == "Eco Score":
-    st.markdown(page_header("score", "Eco Score", "Your environmental driving rating", "#22c55e"), unsafe_allow_html=True)
+elif "Eco Score" in menu:
+    st.markdown(page_header("⭐", "Eco Score", "Your environmental driving rating", "#22c55e"), unsafe_allow_html=True)
 
     score = st.session_state.eco_score
     if score >= 80:   grade, grade_col, grade_label = "A", "#22c55e", "Excellent Eco Driver"
@@ -651,8 +630,8 @@ elif menu == "Eco Score":
 # ================================================
 # REWARDS
 # ================================================
-elif menu == "Rewards":
-    st.markdown(page_header("rewards", "Rewards", "Convert your Green Points into real-world rewards", "#f59e0b"), unsafe_allow_html=True)
+elif "Rewards" in menu:
+    st.markdown(page_header("🎁", "Rewards", "Convert your Green Points into real-world rewards", "#f59e0b"), unsafe_allow_html=True)
 
     pts = st.session_state.green_points
     st.markdown(f"""<div style='background:linear-gradient(135deg,#0f2a0a,#1a3a10);border:1px solid #166534;border-radius:20px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;'>
@@ -710,8 +689,8 @@ elif menu == "Rewards":
 # ================================================
 # PROFILE
 # ================================================
-elif menu == "Profile":
-    st.markdown(page_header("profile", "Profile", "Your account and preferences", "#38bdf8"), unsafe_allow_html=True)
+elif "Profile" in menu:
+    st.markdown(page_header("👤", "Profile", "Your account and preferences", "#38bdf8"), unsafe_allow_html=True)
 
     c1, c2 = st.columns([1, 2])
     with c1:
