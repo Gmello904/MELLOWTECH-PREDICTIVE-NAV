@@ -1,1371 +1,764 @@
-import { useState, useRef } from "react";
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
-} from "recharts";
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+from datetime import datetime
 
-// --- DATA & HELPERS ---
-const LOCATIONS = {
-  Home:     { lat: -25.7461, lon: 28.1881 },
-  Work:     { lat: -25.7580, lon: 28.1890 },
-  School:   { lat: -25.7400, lon: 28.2100 },
-  Mall:     { lat: -25.7650, lon: 28.3120 },
-  Hospital: { lat: -25.7320, lon: 28.2280 },
-  Airport:  { lat: -25.9180, lon: 28.3820 },
-  Park:     { lat: -25.7280, lon: 28.2450 },
-  Garage:   { lat: -25.7500, lon: 28.1750 },
-};
-const LOC_NAMES = Object.keys(LOCATIONS);
+# ─── PAGE CONFIG ─────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="MellowTech",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-function seededRand(seed) {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    return (s >>> 0) / 0xffffffff;
-  };
-}
-
-function congestionFor(seed, hr) {
-  const r = seededRand(seed);
-  let v = Math.floor(r() * 55) + 15;
-  if ((hr >= 7 && hr <= 9) || (hr >= 16 && hr <= 18)) v = Math.min(100, v + 30);
-  return v;
-}
-
-function emissionLevel(c) {
-  if (c > 65) return { label: "HIGH",   color: "#ef4444" };
-  if (c > 40) return { label: "MEDIUM", color: "#f59e0b" };
-  return             { label: "LOW",    color: "#22c55e" };
-}
-
-const now      = new Date();
-const HOUR     = now.getHours();
-const IS_RUSH  = (HOUR >= 7 && HOUR <= 9) || (HOUR >= 16 && HOUR <= 18);
-const TIME_STR = now.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
-const DATE_STR = now.toLocaleDateString("en-ZA",  { day: "2-digit", month: "short", year: "numeric" });
-
-// --- DESIGN TOKENS ---
-const G = {
-  bg0: "#030712", bg1: "#0a0f1e", bg2: "#0f1929",
-  border: "#1e293b", text: "#e2e8f0", muted: "#475569",
-  green: "#22c55e", green2: "#4ade80",
-  red: "#ef4444", amber: "#f59e0b", blue: "#38bdf8",
-};
-
-// --- GLOBAL CSS ---
-const css = `
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Share+Tech+Mono&display=swap');
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif; overflow-x: hidden;
+# ─── CUSTOM CSS ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-::-webkit-scrollbar {
-    width: 5px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Share+Tech+Mono&display=swap');
 
-::-webkit-scrollbar-track {
-    background: #0a0f1e;
-}
+html, body, [class*="css"] { font-family: 'Exo 2', sans-serif; }
+.block-container { padding-top: 1rem; padding-bottom: 1rem; }
 
-::-webkit-scrollbar-thumb {
-    background: #1e3a4f;
-    border-radius: 4px;
-}
+.mt-title  { font-family: 'Share Tech Mono', monospace; font-size: 2.2rem; font-weight: 900;
+             color: #4ade80; letter-spacing: 4px; text-align: center; }
+.mt-sub    { color: #475569; font-size: 11px; letter-spacing: 6px; text-transform: uppercase;
+             text-align: center; margin-bottom: 1.5rem; }
+.page-head { color: #e2e8f0; font-size: 1.4rem; font-weight: 900; margin-bottom: 0; }
+.page-sub  { color: #475569; font-size: 12px; margin-top: 0; }
+
+.kpi-card  { background: linear-gradient(135deg, #0a0f1e, #0f1929);
+             border: 1px solid #1e293b; border-radius: 14px; padding: 18px 14px;
+             text-align: center; position: relative; overflow: hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px;
+                    background: linear-gradient(90deg,transparent,#22c55e,transparent); }
+.kpi-card.red::before   { background: linear-gradient(90deg,transparent,#ef4444,transparent); }
+.kpi-card.amber::before { background: linear-gradient(90deg,transparent,#f59e0b,transparent); }
+.kpi-card.blue::before  { background: linear-gradient(90deg,transparent,#38bdf8,transparent); }
+
+.kpi-val   { font-family: 'Share Tech Mono', monospace; font-size: 1.7rem; font-weight: 900; color: #4ade80; }
+.kpi-val.red   { color: #ef4444; }
+.kpi-val.amber { color: #f59e0b; }
+.kpi-val.blue  { color: #38bdf8; }
+.kpi-lbl   { font-size: 9px; letter-spacing: 3px; color: #475569; text-transform: uppercase; margin-top: 4px; }
+
+.alert-red   { background: #1c0a0a; border: 1px solid #7f1d1d; border-left: 4px solid #ef4444;
+               border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+.alert-green { background: #071a0e; border: 1px solid #14532d; border-left: 4px solid #22c55e;
+               border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+.alert-amber { background: #1a1203; border: 1px solid #78350f; border-left: 4px solid #f59e0b;
+               border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+
+.pbar-bg   { background: #1e293b; border-radius: 20px; height: 8px; margin: 6px 0; }
+.pbar-fill { height: 8px; border-radius: 20px; }
+
+.badge { display:inline-block; background:#0d2318; color:#4ade80; border:1px solid #166534;
+         border-radius:20px; padding:3px 12px; font-size:11px; letter-spacing:2px; }
+
+.action-card { background:#0a0f1e; border:1px solid #1e293b; border-radius:10px;
+               padding:14px; margin-bottom:8px; }
+.reward-card { background:#0a0f1e; border:1px solid #1e293b; border-radius:12px;
+               padding:14px; margin-bottom:10px; }
+.route-blue  { background:#071520; border:2px solid #38bdf8; border-radius:14px; padding:16px; }
+.route-red   { background:#1c0a0a; border:2px solid #ef4444; border-radius:14px; padding:16px; }
+.mono-val    { font-family:'Share Tech Mono',monospace; font-size:1.3rem; font-weight:900; }
+
+.lb-row      { background:#0a0f1e; border:1px solid #1e293b; border-radius:8px;
+               padding:10px 14px; margin-bottom:6px; display:flex; align-items:center; gap:14px; }
+.lb-row.me   { background:#0d2318; border-color:#166534; }
 </style>
 """, unsafe_allow_html=True)
-::-webkit-scrollbar-track { background: ${G.bg1}; }
-::-webkit-scrollbar-thumb { background: #1e3a4f; border-radius: 4px; }
-.mono { font-family: 'Share Tech Mono', monospace; }
 
-.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; transition: opacity .25s; }
-.drawer-overlay.hidden { opacity: 0; pointer-events: none; }
-
-.drawer {
-  position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
-  background: #070d1a; border-right: 1px solid ${G.border};
-  z-index: 50; transform: translateX(-100%);
-  transition: transform .28s cubic-bezier(.4,0,.2,1);
-  display: flex; flex-direction: column;
+# ─── DATA & HELPERS ──────────────────────────────────────────────────────────
+LOCATIONS = {
+    "Home":     {"lat": -25.7461, "lon": 28.1881},
+    "Work":     {"lat": -25.7580, "lon": 28.1890},
+    "School":   {"lat": -25.7400, "lon": 28.2100},
+    "Mall":     {"lat": -25.7650, "lon": 28.3120},
+    "Hospital": {"lat": -25.7320, "lon": 28.2280},
+    "Airport":  {"lat": -25.9180, "lon": 28.3820},
+    "Park":     {"lat": -25.7280, "lon": 28.2450},
+    "Garage":   {"lat": -25.7500, "lon": 28.1750},
 }
-.drawer.open { transform: translateX(0); }
+LOC_NAMES = list(LOCATIONS.keys())
 
-.topbar {
-  position: sticky; top: 0; z-index: 30;
-  background: ${G.bg0}; border-bottom: 1px solid ${G.border};
-  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-}
-.topbar-title { font-size: 18px; font-weight: 900; color: ${G.green2}; letter-spacing: 3px; }
-.hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 4px; }
-.hamburger span { display: block; width: 22px; height: 2px; background: ${G.green2}; border-radius: 2px; transition: .2s; }
+def seeded_rand(seed):
+    """LCG pseudo-random generator matching JS version."""
+    s = [seed & 0xFFFFFFFF]
+    def _next():
+        s[0] = (s[0] * 1664525 + 1013904223) & 0xFFFFFFFF
+        return s[0] / 0xFFFFFFFF
+    return _next
 
-.nav-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 20px; cursor: pointer;
-  color: #64748b; font-size: 15px; font-weight: 600;
-  transition: background .15s, color .15s;
-  border-left: 3px solid transparent;
-}
-.nav-item:hover  { background: #0d1f2e; color: #94a3b8; }
-.nav-item.active { background: linear-gradient(90deg,#0d2318,#0a1f14); color: ${G.green2}; border-left-color: ${G.green}; }
-.nav-icon { font-size: 20px; width: 28px; text-align: center; }
+def congestion_for(seed, hr):
+    r = seeded_rand(seed)
+    v = int(r() * 55) + 15
+    if (7 <= hr <= 9) or (16 <= hr <= 18):
+        v = min(100, v + 30)
+    return v
 
-.content { padding: 16px; max-width: 1100px; margin: 0 auto; }
+def emission_level(c):
+    if c > 65:
+        return {"label": "HIGH",   "color": "#ef4444"}
+    if c > 40:
+        return {"label": "MEDIUM", "color": "#f59e0b"}
+    return {"label": "LOW",    "color": "#22c55e"}
 
-.card {
-  background: linear-gradient(135deg,${G.bg1},${G.bg2});
-  border: 1px solid ${G.border}; border-radius: 16px; padding: 20px;
-  position: relative; overflow: hidden;
-}
-.card::before      { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:linear-gradient(90deg,transparent,${G.green},transparent); }
-.card-red::before   { background:linear-gradient(90deg,transparent,${G.red},transparent); }
-.card-amber::before { background:linear-gradient(90deg,transparent,${G.amber},transparent); }
-.card-blue::before  { background:linear-gradient(90deg,transparent,${G.blue},transparent); }
+now      = datetime.now()
+HOUR     = now.hour
+IS_RUSH  = (7 <= HOUR <= 9) or (16 <= HOUR <= 18)
+TIME_STR = now.strftime("%H:%M")
+DATE_STR = now.strftime("%d %b %Y")
 
-.kv        { font-size:28px; font-weight:900; font-family:'Share Tech Mono',monospace; }
-.kv-green  { color:${G.green2}; }
-.kv-red    { color:${G.red};    }
-.kv-amber  { color:${G.amber};  }
-.kv-blue   { color:${G.blue};   }
-.kl { font-size:10px; letter-spacing:3px; color:${G.muted}; text-transform:uppercase; margin-top:4px; }
-
-.alert-red   { background:#1c0a0a; border:1px solid #7f1d1d; border-left:4px solid ${G.red};   border-radius:12px; padding:14px 18px; margin:8px 0; }
-.alert-green { background:#071a0e; border:1px solid #14532d; border-left:4px solid ${G.green}; border-radius:12px; padding:14px 18px; margin:8px 0; }
-.alert-amber { background:#1a1203; border:1px solid #78350f; border-left:4px solid ${G.amber}; border-radius:12px; padding:14px 18px; margin:8px 0; }
-
-.pbar-bg   { background:${G.border}; border-radius:20px; height:8px; margin:6px 0; }
-.pbar-fill { height:8px; border-radius:20px; }
-
-.badge { display:inline-block; background:#0d2318; color:${G.green2}; border:1px solid #166534; border-radius:20px; padding:3px 12px; font-size:11px; letter-spacing:2px; }
-
-.route-blue { background:#071520; border:2px solid ${G.blue}; border-radius:14px; padding:16px; }
-.route-red  { background:#1c0a0a; border:2px solid ${G.red};  border-radius:14px; padding:16px; }
-
-.login-wrap { max-width:380px; margin:60px auto; background:${G.bg1}; border:1px solid ${G.border}; border-radius:24px; padding:40px; text-align:center; }
-.inp { width:100%; background:${G.bg2}; border:1px solid ${G.border}; border-radius:10px; color:white; padding:10px 14px; font-size:14px; font-family:'Exo 2',sans-serif; outline:none; margin-bottom:12px; }
-.inp:focus { border-color:${G.green}; }
-.btn-green { width:100%; background:linear-gradient(135deg,#14532d,#166534); color:${G.green2}; border:1px solid #166534; border-radius:10px; padding:12px; font-weight:700; font-size:15px; font-family:'Exo 2',sans-serif; cursor:pointer; letter-spacing:1px; transition:.2s; }
-.btn-green:hover { box-shadow:0 0 20px #22c55e44; }
-.btn-sm { background:linear-gradient(135deg,#14532d,#166534); color:${G.green2}; border:1px solid #166534; border-radius:8px; padding:8px 16px; font-weight:700; font-size:13px; font-family:'Exo 2',sans-serif; cursor:pointer; letter-spacing:1px; }
-
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-@media(max-width:640px){ .grid-4{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;} }
-
-.tabs { display:flex; border-bottom:1px solid ${G.border}; margin-bottom:16px; overflow-x:auto; }
-.tab  { padding:10px 18px; cursor:pointer; font-size:13px; font-weight:600; color:#64748b; border-bottom:2px solid transparent; white-space:nowrap; }
-.tab.active { color:${G.green2}; border-bottom-color:${G.green}; }
-
-.sel { background:${G.bg2}; border:1px solid ${G.border}; border-radius:10px; color:white; padding:8px 12px; font-family:'Exo 2',sans-serif; font-size:13px; width:100%; }
-.lbl { font-size:11px; color:${G.muted}; letter-spacing:2px; margin-bottom:4px; }
-input[type=range] { accent-color:${G.green}; width:100%; }
-
-.action-card { background:#0a0f1e; border:1px solid ${G.border}; border-radius:10px; padding:14px; margin-bottom:8px; }
-.reward-card { background:#0a0f1e; border:1px solid ${G.border}; border-radius:12px; padding:14px; margin-bottom:10px; }
-.sec-head { color:${G.text}; font-size:15px; font-weight:700; margin:16px 0 10px; }
-.page-head   { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-.page-head h1 { color:${G.text}; font-weight:900; font-size:24px; }
-.page-head p  { color:${G.muted}; font-size:12px; }
-
-@keyframes dash-blue { to { stroke-dashoffset: -200; } }
-@keyframes dash-red  { to { stroke-dashoffset: -200; } }
-@keyframes pulse-pin { 0%,100%{r:7;opacity:1} 50%{r:10;opacity:.7} }
-@keyframes fadeInUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
-.map-route-card { animation: fadeInUp .35s ease both; }
-.map-route-card:nth-child(2) { animation-delay:.1s; }
-
-@keyframes qr-scan { 0%{top:10%} 50%{top:85%} 100%{top:10%} }
-@keyframes qr-pulse { 0%,100%{box-shadow:0 0 0 0 #22c55e55} 50%{box-shadow:0 0 0 16px #22c55e00} }
-@keyframes qr-success { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
-.qr-box {
-  position:relative; width:220px; height:220px; margin:0 auto;
-  border:3px solid ${G.green}; border-radius:16px; overflow:hidden;
-  background:#030f08;
-  animation: qr-pulse 2s ease-in-out infinite;
-}
-.qr-corner {
-  position:absolute; width:24px; height:24px;
-  border-color:${G.green2}; border-style:solid;
-}
-.qr-corner-tl { top:8px; left:8px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-.qr-corner-tr { top:8px; right:8px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-.qr-corner-bl { bottom:8px; left:8px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-.qr-corner-br { bottom:8px; right:8px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-.qr-scan-line {
-  position:absolute; left:12px; right:12px; height:2px;
-  background:linear-gradient(90deg,transparent,${G.green},${G.green2},${G.green},transparent);
-  animation: qr-scan 2s ease-in-out infinite;
-  box-shadow:0 0 8px ${G.green};
-}
-.qr-success-overlay { animation: qr-success .4s ease both; }
-`;
-
-// --- NAVIGATION CONFIG ---
-const NAV = [
-  { id: "dashboard", icon: "🏠", label: "Dashboard"       },
-  { id: "citymap",   icon: "🗺️", label: "City Map"        },
-  { id: "routes",    icon: "📍", label: "Smart Routes"    },
-  { id: "qrscan",    icon: "📲", label: "QR Redeem"       },
-  { id: "alerts",    icon: "⚠️", label: "Emission Alerts" },
-  { id: "analytics", icon: "📊", label: "Analytics"       },
-  { id: "ecoscore",  icon: "⭐", label: "Eco Score"       },
-  { id: "rewards",   icon: "🎁", label: "Rewards"         },
-  { id: "profile",   icon: "👤", label: "Profile"         },
-];
-
-// --- SHARED COMPONENTS ---
-function PageHead({ emoji, title, sub }) {
-  return (
-    <div>
-      <div className="page-head">
-        <span style={{ fontSize: 28 }}>{emoji}</span>
-        <div><h1>{title}</h1><p>{sub}</p></div>
-      </div>
-      <hr style={{ border: "none", borderTop: `1px solid ${G.border}`, margin: "0 0 16px" }} />
-    </div>
-  );
-}
-
-function KpiCard({ value, label, cls = "", kvcls = "kv-green" }) {
-  return (
-    <div className={`card ${cls}`}>
-      <div className={`kv ${kvcls}`}>{value}</div>
-      <div className="kl">{label}</div>
-    </div>
-  );
-}
-
-// --- QR SVG PATTERN ---
-function QRPattern({ seed, size = 180 }) {
-  const cells = 21;
-  const cellSize = size / cells;
-
-  function hashCode(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-      h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+# ─── SESSION STATE INIT ──────────────────────────────────────────────────────
+def init_state():
+    defaults = {
+        "logged_in":    False,
+        "page":         "dashboard",
+        "username":     "",
+        "green_points": 0,
+        "eco_score":    72,
+        "trips":        0,
+        "home_loc":     "Home",
+        "driving_mode": "Normal Mode",
+        "weekly_scores": [55, 61, 58, 67, 70, 68, 72],
     }
-    return h;
-  }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-  function isFinder(r, c) {
-    return (r <= 6 && c <= 6) || (r <= 6 && c >= cells - 7) || (r >= cells - 7 && c <= 6);
-  }
+init_state()
 
-  function finderColor(r, c) {
-    const check = (rr, cc, or, oc) => {
-      const lr = rr - or, lc = cc - oc;
-      if (lr < 0 || lr > 6 || lc < 0 || lc > 6) return null;
-      if (lr === 0 || lr === 6 || lc === 0 || lc === 6) return "#22c55e";
-      if (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4) return "#22c55e";
-      return "#030f08";
-    };
-    return check(r, c, 0, 0) || check(r, c, 0, cells - 7) || check(r, c, cells - 7, 0);
-  }
+# ─── HELPER: KPI CARD HTML ───────────────────────────────────────────────────
+def kpi_card(value, label, color_cls=""):
+    val_cls = color_cls if color_cls else ""
+    card_cls = color_cls if color_cls else ""
+    return f"""
+    <div class="kpi-card {card_cls}">
+      <div class="kpi-val {val_cls}">{value}</div>
+      <div class="kpi-lbl">{label}</div>
+    </div>"""
 
-  const h = hashCode(seed);
-  const rects = [];
+def progress_bar(pct, color):
+    return f"""
+    <div class="pbar-bg">
+      <div class="pbar-fill" style="width:{pct}%;background:{color};"></div>
+    </div>"""
 
-  for (let r = 0; r < cells; r++) {
-    for (let c = 0; c < cells; c++) {
-      if (isFinder(r, c)) {
-        const fc = finderColor(r, c);
-        if (fc) {
-          rects.push(
-            <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize}
-              width={cellSize - 0.5} height={cellSize - 0.5} fill={fc} rx={cellSize * 0.1} />
-          );
-        }
-        continue;
-      }
-      if (r === 6 || c === 6) {
-        if ((r + c) % 2 === 0) {
-          rects.push(
-            <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize}
-              width={cellSize - 0.5} height={cellSize - 0.5} fill="#22c55e" rx={cellSize * 0.1} />
-          );
-        }
-        continue;
-      }
-      const bit = (hashCode(seed + r * 100 + c) ^ h) & 1;
-      if (bit) {
-        rects.push(
-          <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize}
-            width={cellSize - 0.5} height={cellSize - 0.5}
-            fill="#22c55e" rx={cellSize * 0.15} opacity={0.85 + (hashCode(seed + r + c) % 15) / 100} />
-        );
-      }
-    }
-  }
+# ─── LOGIN PAGE ──────────────────────────────────────────────────────────────
+def login_page():
+    st.markdown('<div class="mt-title">🌿 MELLOWTECH</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mt-sub">Smart Emission Intelligence System</div>', unsafe_allow_html=True)
 
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
-      <rect width={size} height={size} fill="#030f08" rx="8" />
-      {rects}
-    </svg>
-  );
-}
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("### 🔑 Sign In")
+        st.caption("PROTECTING THE PLANET, ONE TRIP AT A TIME")
+        uname = st.text_input("Username", placeholder="Enter username", key="login_uname")
+        pwd   = st.text_input("Password", placeholder="Enter password", type="password", key="login_pwd")
+        if st.button("🚀 Launch MellowTech", use_container_width=True, type="primary"):
+            if not uname.strip():
+                st.error("Please enter a username.")
+            elif not pwd:
+                st.error("Please enter a password.")
+            else:
+                st.session_state["logged_in"] = True
+                st.session_state["username"]  = uname.strip()
+                st.rerun()
+        st.caption("Demo: any username + any password")
 
-// --- PAGE: QR SCAN REDEMPTION ---
-function QRRedeem({ state, setState }) {
-  const [scanType, setScanType] = useState(null);
-  const [scanStage, setScanStage] = useState("idle");
-  const [selectedReward, setSelectedReward] = useState(null);
-  const [redeemLog, setRedeemLog] = useState([]);
-  const scanTimer = useRef(null);
+# ─── SIDEBAR NAV ─────────────────────────────────────────────────────────────
+def sidebar_nav():
+    with st.sidebar:
+        st.markdown(f"### 🌿 MELLOWTECH")
+        st.caption("EMISSION INTELLIGENCE")
+        st.divider()
+        st.markdown(f"**👤 {st.session_state['username']}**")
+        st.markdown(f"🟢 {st.session_state['green_points']} Green Points")
+        st.divider()
 
-  const TOLL_REWARDS = [
-    { id: "toll_free",    name: "Free Toll Pass",       cost: 80,  saving: "R8.50",  desc: "Single toll gate free passage" },
-    { id: "toll_50",      name: "50% Toll Discount",    cost: 40,  saving: "R4.25",  desc: "Half-price on next toll" },
-    { id: "toll_monthly", name: "Monthly Toll Bundle",  cost: 300, saving: "R85",    desc: "10 free toll passes — valid 30 days" },
-  ];
+        nav_items = [
+            ("dashboard", "🏠 Dashboard"),
+            ("routes",    "🗺️ Smart Routes"),
+            ("alerts",    "⚠️ Emission Alerts"),
+            ("analytics", "📊 Analytics"),
+            ("ecoscore",  "⭐ Eco Score"),
+            ("rewards",   "🎁 Rewards"),
+            ("profile",   "👤 Profile"),
+        ]
+        for page_id, label in nav_items:
+            active = st.session_state["page"] == page_id
+            if st.button(label, key=f"nav_{page_id}",
+                         use_container_width=True,
+                         type="primary" if active else "secondary"):
+                st.session_state["page"] = page_id
+                st.rerun()
 
-  const PETROL_REWARDS = [
-    { id: "petrol_r10",   name: "R10 Fuel Voucher",     cost: 50,  saving: "R10",    desc: "Redeemable at partner stations" },
-    { id: "petrol_10pct", name: "10% Fuel Discount",    cost: 120, saving: "~R25",   desc: "10% off your next full tank" },
-    { id: "petrol_r50",   name: "R50 Fuel Voucher",     cost: 220, saving: "R50",    desc: "Big fill-up reward" },
-    { id: "petrol_wash",  name: "Free Car Wash",        cost: 60,  saving: "R80",    desc: "Included eco-friendly wash" },
-  ];
+        st.divider()
+        eco = st.session_state["eco_score"]
+        st.caption("ECO SCORE")
+        st.progress(eco / 100)
+        st.markdown(f"**{eco}/100**")
+        st.divider()
+        if st.button("🔓 Sign Out", use_container_width=True):
+            for k in ["logged_in", "username", "green_points", "eco_score",
+                      "trips", "home_loc", "driving_mode", "weekly_scores", "page"]:
+                if k in st.session_state:
+                    del st.session_state[k]
+            init_state()
+            st.rerun()
 
-  const rewards = scanType === "toll" ? TOLL_REWARDS : scanType === "petrol" ? PETROL_REWARDS : [];
+# ─── PAGE: DASHBOARD ─────────────────────────────────────────────────────────
+def page_dashboard():
+    st.markdown('<p class="page-head">🏠 Dashboard</p>', unsafe_allow_html=True)
+    st.caption("Live emission intelligence overview")
+    st.divider()
 
-  function startScan(reward) {
-    if (state.greenPoints < reward.cost) {
-      setSelectedReward(reward);
-      setScanStage("insufficient");
-      return;
-    }
-    setSelectedReward(reward);
-    setScanStage("scanning");
-    scanTimer.current = setTimeout(() => {
-      setScanStage("success");
-      setState(s => ({ ...s, greenPoints: s.greenPoints - reward.cost }));
-      setRedeemLog(prev => [
-        { type: scanType, reward: reward.name, saving: reward.saving, time: new Date().toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" }), pts: reward.cost },
-        ...prev.slice(0, 4),
-      ]);
-    }, 3000);
-  }
+    gp      = st.session_state["green_points"]
+    eco     = st.session_state["eco_score"]
+    trips   = st.session_state["trips"]
+    savings = round(gp * 0.12, 2)
+    fuel    = round(gp * 0.05, 2)
 
-  function reset() {
-    clearTimeout(scanTimer.current);
-    setScanStage("idle");
-    setSelectedReward(null);
-  }
+    # KPI row 1
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(kpi_card(TIME_STR, DATE_STR, "blue"), unsafe_allow_html=True)
+    with c2:
+        label = "RUSH HOUR" if IS_RUSH else "CLEAR"
+        cls   = "red" if IS_RUSH else ""
+        st.markdown(kpi_card(label, "TRAFFIC STATUS", cls), unsafe_allow_html=True)
+    with c3:
+        st.markdown(kpi_card(f"{eco}/100", "ECO SCORE"), unsafe_allow_html=True)
+    with c4:
+        st.markdown(kpi_card(gp, "GREEN POINTS"), unsafe_allow_html=True)
 
-  const qrSeed = selectedReward
-    ? `${state.username}-${selectedReward.id}-${DATE_STR}`
-    : `${state.username}-${scanType}-${DATE_STR}`;
+    st.markdown("")
+    if IS_RUSH:
+        st.markdown('<div class="alert-red"><b style="color:#ef4444">⚠️ HIGH EMISSION ALERT</b><br><span style="color:#fca5a5;font-size:13px">Rush hour — consider delaying or choosing a clean route.</span></div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="alert-green"><b style="color:#22c55e">✅ LOW EMISSION CONDITIONS</b><br><span style="color:#86efac;font-size:13px">Traffic is clear — great time to travel and earn Green Points.</span></div>', unsafe_allow_html=True)
 
-  return (
-    <div>
-      <PageHead emoji="📲" title="QR Redeem" sub="Scan at toll gates & petrol stations to redeem Green Points" />
+    st.markdown("**Real-Time City Emission Pulse**")
+    pulse_data = [{"name": n, "value": congestion_for(i * 7 + 1, HOUR)} for i, n in enumerate(LOC_NAMES)]
+    df_pulse = pd.DataFrame(pulse_data)
+    df_pulse["color"] = df_pulse["value"].apply(lambda v: emission_level(v)["color"])
 
-      {scanStage === "idle" && !scanType && (
-        <div>
-          <div className="alert-green" style={{ marginBottom: 16 }}>
-            <b style={{ color: G.green }}>How It Works</b><br />
-            <span style={{ color: "#86efac", fontSize: 13 }}>
-              Choose where you are — a Toll Gate or Petrol Station — select your reward, then scan the generated QR code at the terminal to redeem your Green Points instantly.
-            </span>
+    fig = go.Figure(go.Bar(
+        x=df_pulse["name"], y=df_pulse["value"],
+        marker_color=df_pulse["color"].tolist(),
+        marker_line_width=0,
+    ))
+    fig.update_layout(
+        plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e",
+        font_color="#475569", height=220,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(gridcolor="#1e293b"), yaxis=dict(gridcolor="#1e293b", range=[0, 100]),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("**Today's Impact**")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(kpi_card(f"{savings} kg", "CO2 SAVED TODAY"), unsafe_allow_html=True)
+    with c2:
+        st.markdown(kpi_card(f"R{fuel}", "FUEL COST SAVED", "amber"), unsafe_allow_html=True)
+    with c3:
+        st.markdown(kpi_card(trips, "TRIPS COMPLETED", "blue"), unsafe_allow_html=True)
+    with c4:
+        st.markdown(kpi_card(gp, "TOTAL GREEN POINTS"), unsafe_allow_html=True)
+
+    st.markdown("")
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Why It Matters</b><br><span style="color:#86efac;font-size:13px">Every clean trip earns Green Points redeemable for real rewards while reducing urban air pollution.</span></div>', unsafe_allow_html=True)
+
+# ─── PAGE: SMART ROUTES ──────────────────────────────────────────────────────
+def page_routes():
+    st.markdown('<p class="page-head">🗺️ Smart Routes</p>', unsafe_allow_html=True)
+    st.caption("Choose cleaner routes — reduce emissions, earn Green Points")
+    st.divider()
+
+    c1, c2 = st.columns(2)
+    with c1:
+        origin = st.selectbox("ORIGIN", LOC_NAMES, key="route_origin")
+    with c2:
+        dest_opts = [l for l in LOC_NAMES if l != origin]
+        dest = st.selectbox("DESTINATION", dest_opts, key="route_dest")
+
+    leave_hr = st.slider("DEPARTURE HOUR", 0, 23, HOUR, format="%d:00", key="route_hour")
+
+    seed_val = leave_hr + ord(origin[0]) + ord(dest[0])
+    r = seeded_rand(seed_val)
+    cong_a = min(100, int(r() * 35) + 10)
+    cong_b = min(100, int(r() * 40) + 50 + (25 if IS_RUSH else 0))
+    dist_a = round(r() * 14 + 4, 1)
+    dist_b = round(dist_a * (r() * 0.5 + 0.8), 1)
+    time_a = round(dist_a * 1.5 + cong_a * 0.3)
+    time_b = round(dist_b * 1.5 + cong_b * 0.5)
+    fuel_a = round(dist_a * 0.08, 2)
+    fuel_b = round(dist_b * 0.08 + cong_b * 0.005, 2)
+    co2_a  = round(fuel_a * 2.31, 2)
+    co2_b  = round(fuel_b * 2.31, 2)
+
+    st.markdown("")
+    rc1, rc2 = st.columns(2)
+    with rc1:
+        st.markdown(f"""
+        <div class="route-blue">
+          <div style="font-size:14px;font-weight:800;color:#38bdf8">✅ CLEAN ROUTE</div>
+          <div style="color:#7dd3fc;font-size:10px;letter-spacing:2px;margin-bottom:10px">LOW EMISSIONS · RECOMMENDED</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="mono-val" style="color:#38bdf8">{cong_a}%</div><div style="color:#64748b;font-size:10px">CONGESTION</div></div>
+            <div><div class="mono-val" style="color:#38bdf8">{time_a} min</div><div style="color:#64748b;font-size:10px">TIME</div></div>
+            <div><div class="mono-val" style="color:#4ade80">{dist_a} km</div><div style="color:#64748b;font-size:10px">DISTANCE</div></div>
+            <div><div class="mono-val" style="color:#4ade80">{co2_a} kg</div><div style="color:#64748b;font-size:10px">CO2</div></div>
           </div>
-          <div className="sec-head">Where Are You?</div>
-          <div className="grid-2" style={{ gap: 14 }}>
-            <div onClick={() => setScanType("toll")} style={{ background: "linear-gradient(135deg,#0a1a2e,#071520)", border: `2px solid ${G.blue}`, borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: 48, marginBottom: 10 }}>🛣️</div>
-              <div style={{ color: G.blue, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>TOLL GATE</div>
-              <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>Redeem for free or discounted toll passes</div>
-            </div>
-            <div onClick={() => setScanType("petrol")} style={{ background: "linear-gradient(135deg,#0f1a0a,#071a0e)", border: `2px solid ${G.green}`, borderRadius: 16, padding: 28, textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: 48, marginBottom: 10 }}>⛽</div>
-              <div style={{ color: G.green2, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>PETROL STATION</div>
-              <div style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>Redeem for fuel vouchers and discounts</div>
-            </div>
+          <div style="margin-top:10px;background:#0a1a2e;border-radius:8px;padding:8px;font-size:12px;color:#7dd3fc">
+            Smooth flow · Earn +15 Green Points
           </div>
         </div>
-      )}
+        """, unsafe_allow_html=True)
+    with rc2:
+        st.markdown(f"""
+        <div class="route-red">
+          <div style="font-size:14px;font-weight:800;color:#ef4444">⛔ HIGH EMISSION ROUTE</div>
+          <div style="color:#fca5a5;font-size:10px;letter-spacing:2px;margin-bottom:10px">HEAVY TRAFFIC · AVOID</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="mono-val" style="color:#ef4444">{cong_b}%</div><div style="color:#64748b;font-size:10px">CONGESTION</div></div>
+            <div><div class="mono-val" style="color:#ef4444">{time_b} min</div><div style="color:#64748b;font-size:10px">TIME</div></div>
+            <div><div class="mono-val" style="color:#f87171">{dist_b} km</div><div style="color:#64748b;font-size:10px">DISTANCE</div></div>
+            <div><div class="mono-val" style="color:#f87171">{co2_b} kg</div><div style="color:#64748b;font-size:10px">CO2</div></div>
+          </div>
+          <div style="margin-top:10px;background:#1c0808;border-radius:8px;padding:8px;font-size:12px;color:#fca5a5">
+            Stop-and-go · High idling · More fuel
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-      {scanStage === "idle" && scanType && (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <button onClick={() => { setScanType(null); setSelectedReward(null); }} style={{ background: G.bg2, border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}>← Back</button>
-            <span style={{ color: G.text, fontWeight: 700 }}>{scanType === "toll" ? "🛣️ Toll Gate Rewards" : "⛽ Petrol Station Rewards"}</span>
-          </div>
-          <div style={{ background: "linear-gradient(135deg,#0f2a0a,#1a3a10)", border: "1px solid #166534", borderRadius: 14, padding: "14px 18px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ color: "#86efac", fontSize: 10, letterSpacing: 3 }}>YOUR BALANCE</div>
-              <div className="mono" style={{ fontSize: 28, fontWeight: 900, color: G.green2 }}>{state.greenPoints} pts</div>
-            </div>
-            <div style={{ fontSize: 32 }}>💳</div>
-          </div>
-          <div className="sec-head">Select Reward to Redeem</div>
-          {rewards.map(rw => {
-            const canAfford = state.greenPoints >= rw.cost;
-            return (
-              <div key={rw.id} onClick={() => startScan(rw)} style={{ background: canAfford ? "linear-gradient(135deg,#0a1a0e,#071a0e)" : "#090e18", border: `1px solid ${canAfford ? G.green + "55" : G.border}`, borderRadius: 14, padding: 16, marginBottom: 10, cursor: "pointer", opacity: canAfford ? 1 : 0.55 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: canAfford ? G.text : "#334155" }}>{rw.name}</div>
-                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 3 }}>{rw.desc}</div>
-                    <div style={{ marginTop: 8, display: "flex", gap: 10, alignItems: "center" }}>
-                      <span className="mono" style={{ fontSize: 18, fontWeight: 900, color: canAfford ? G.amber : "#334155" }}>{rw.cost} pts</span>
-                      <span style={{ color: "#64748b", fontSize: 12 }}>→</span>
-                      <span style={{ color: canAfford ? G.green2 : "#334155", fontWeight: 700, fontSize: 14 }}>Save {rw.saving}</span>
-                    </div>
-                  </div>
-                  <div style={{ background: canAfford ? G.green : "#334155", color: "#030712", borderRadius: 10, padding: "8px 14px", fontWeight: 900, fontSize: 13, marginLeft: 10, whiteSpace: "nowrap", alignSelf: "center" }}>
-                    {canAfford ? "Redeem →" : "Need more"}
-                  </div>
-                </div>
+    st.markdown("")
+    co2_diff  = round(co2_b - co2_a, 2)
+    fuel_diff = round((fuel_b - fuel_a) * 20, 2)
+    st.markdown(f'<div class="alert-green"><b style="color:#22c55e">Smart Advisor</b><br><span style="color:#86efac;font-size:13px">Taking the Clean Route saves <b>{co2_diff} kg CO2</b> and ~<b>R{fuel_diff}</b> in fuel. Earn <b>+15 Green Points</b>.</span></div>', unsafe_allow_html=True)
+
+    if st.button("🚗 Take Clean Route — Start Trip", type="primary", use_container_width=True):
+        st.session_state["green_points"] += 15
+        st.session_state["trips"]        += 1
+        st.session_state["eco_score"]    = min(100, st.session_state["eco_score"] + 1)
+        st.success(f"✅ Trip started! +15 pts added. Total: {st.session_state['green_points']} pts")
+        st.rerun()
+
+# ─── PAGE: EMISSION ALERTS ───────────────────────────────────────────────────
+def page_alerts():
+    st.markdown('<p class="page-head">⚠️ Emission Alerts</p>', unsafe_allow_html=True)
+    st.caption("Live diagnostics and driving behaviour intelligence")
+    st.divider()
+
+    r      = seeded_rand(HOUR * 3 + 7)
+    em_pct = int(r() * 75) + 20 if IS_RUSH else int(r() * 45) + 10
+    speed  = int(r() * 30) + 15 if IS_RUSH else int(r() * 50) + 50
+    idle   = int(r() * 8)
+    rpm    = int(r() * 3200) + 800
+
+    if em_pct > 65:
+        st.markdown('<div class="alert-red"><b style="color:#ef4444;font-size:16px">🔴 HIGH EMISSION DETECTED</b><br><span style="color:#fca5a5;font-size:13px">Above-normal emissions. Reduce speed and check diagnostics.</span></div>', unsafe_allow_html=True)
+    elif em_pct > 40:
+        st.markdown('<div class="alert-amber"><b style="color:#f59e0b;font-size:16px">🟡 MODERATE EMISSIONS</b><br><span style="color:#fde68a;font-size:13px">Slightly elevated — maintain steady speed and avoid sudden braking.</span></div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="alert-green"><b style="color:#22c55e;font-size:16px">🟢 LOW EMISSIONS — CLEAN DRIVING</b><br><span style="color:#86efac;font-size:13px">Excellent! Keep it up and earn Green Points.</span></div>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    em_cls = "red" if em_pct > 65 else ("amber" if em_pct > 40 else "")
+    id_cls = "amber" if idle > 2 else ""
+    rpm_cls = "red" if rpm > 3000 else ""
+    with c1:
+        st.markdown(kpi_card(f"{em_pct}%", "EMISSION LEVEL", em_cls), unsafe_allow_html=True)
+    with c2:
+        st.markdown(kpi_card(f"{speed} km/h", "SPEED", "blue"), unsafe_allow_html=True)
+    with c3:
+        st.markdown(kpi_card(f"{idle} min", "IDLE TIME", id_cls), unsafe_allow_html=True)
+    with c4:
+        st.markdown(kpi_card(rpm, "ENGINE RPM", rpm_cls), unsafe_allow_html=True)
+
+    st.markdown("")
+    st.markdown("**Speed & Emission Relationship**")
+    speed_vals = [0,10,20,30,40,50,60,70,80,90,100,110,120]
+    em_vals    = [85,80,70,55,38,25,20,18,22,30,42,58,75]
+    fig = go.Figure(go.Scatter(
+        x=speed_vals, y=em_vals, mode="lines",
+        line=dict(color="#22c55e", width=2),
+    ))
+    fig.update_layout(
+        plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e",
+        font_color="#475569", height=200,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(title="Speed (km/h)", gridcolor="#1e293b"),
+        yaxis=dict(title="Emission %", gridcolor="#1e293b"),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Key Insight</b> <span style="color:#86efac;font-size:13px">Driving at a steady 60-80 km/h produces the least pollution. Stop-and-go and high speeds burn significantly more fuel.</span></div>', unsafe_allow_html=True)
+
+    st.markdown("**Action Plan**")
+    actions = [
+        ("🔧", "Check Engine Diagnostics",  "Run OBD scan or visit mechanic if emissions stay high.",         "#ef4444"),
+        ("⛽", "Reduce Fuel Waste",          "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM.",     "#f59e0b"),
+        ("🔩", "Service Your Vehicle",       "Oil change, air filter, fuel injector cleaning, exhaust check.", "#38bdf8"),
+        ("🚫", "Stop Unnecessary Idling",    "Switch off engine after 1 minute of idling.",                    "#f59e0b"),
+        ("🗺️", "Switch to a Cleaner Route", "Less traffic = less emissions. Open Smart Routes for options.",  "#22c55e"),
+    ]
+    for icon, title, desc, color in actions:
+        st.markdown(f"""
+        <div class="action-card" style="border-left:3px solid {color}">
+          <div style="color:{color};font-weight:700;font-size:14px">{icon} {title}</div>
+          <div style="color:#94a3b8;font-size:13px;margin-top:4px">{desc}</div>
+        </div>""", unsafe_allow_html=True)
+
+# ─── PAGE: ANALYTICS ─────────────────────────────────────────────────────────
+def page_analytics():
+    st.markdown('<p class="page-head">📊 Analytics</p>', unsafe_allow_html=True)
+    st.caption("Traffic and emission trends, zone status, cost impact")
+    st.divider()
+
+    tab0, tab1, tab2, tab3 = st.tabs(["📈 Hourly Trends", "🗺️ Zone Emissions", "💰 Cost Impact", "🔥 Heatmap"])
+
+    # TAB 0 — Hourly trends
+    with tab0:
+        st.markdown("**24-Hour Emission & Speed Trends**")
+        hourly = []
+        for h in range(24):
+            r = seeded_rand(h * 5 + 3)
+            em = int(r() * 35) + 15
+            if (7 <= h <= 9) or (16 <= h <= 18):
+                em = min(100, em + 35)
+            hourly.append({"hour": f"{h}:00", "emission": em, "speed": max(10, 85 - em // 2)})
+        df_h = pd.DataFrame(hourly)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df_h["hour"], y=df_h["emission"], name="Emission %",
+                                  line=dict(color="#ef4444", width=2), mode="lines"))
+        fig.add_trace(go.Scatter(x=df_h["hour"], y=df_h["speed"],    name="Speed km/h",
+                                  line=dict(color="#38bdf8", width=2), mode="lines"))
+        fig.update_layout(
+            plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e", font_color="#475569",
+            height=240, margin=dict(l=10, r=10, t=10, b=10),
+            xaxis=dict(gridcolor="#1e293b", tickangle=-45),
+            yaxis=dict(gridcolor="#1e293b"),
+            legend=dict(bgcolor="#0a0f1e", bordercolor="#1e293b"),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown('<div class="alert-amber"><b style="color:#f59e0b">Peak:</b> <span style="color:#fde68a;font-size:13px">Rush hours 07:00–09:00 and 16:00–18:00. Cleanest window: 10:00–15:00.</span></div>', unsafe_allow_html=True)
+
+    # TAB 1 — Zone emissions
+    with tab1:
+        st.markdown("**Zone Emission Status**")
+        for i, name in enumerate(LOC_NAMES):
+            c = congestion_for(i * 11 + 2, HOUR)
+            el = emission_level(c)
+            st.markdown(f"""
+            <div style="background:#0a0f1e;border:1px solid #1e293b;border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-weight:700;font-size:14px;color:#e2e8f0">{name}</span>
+                <span style="background:{el['color']}22;color:{el['color']};border:1px solid {el['color']}55;
+                             border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">{el['label']}</span>
               </div>
-            );
-          })}
-        </div>
-      )}
+              {progress_bar(c, el['color'])}
+              <div style="color:#64748b;font-size:12px">{c}% congestion</div>
+            </div>""", unsafe_allow_html=True)
 
-      {scanStage === "scanning" && selectedReward && (
-        <div style={{ textAlign: "center" }}>
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ color: G.green2, fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>SCAN THIS QR CODE</div>
-            <div style={{ color: G.muted, fontSize: 12, marginTop: 4 }}>Hold this screen up to the {scanType === "toll" ? "toll gate" : "petrol station"} terminal scanner</div>
-          </div>
-          <div className="qr-box" style={{ margin: "20px auto" }}>
-            <div className="qr-corner qr-corner-tl" />
-            <div className="qr-corner qr-corner-tr" />
-            <div className="qr-corner qr-corner-bl" />
-            <div className="qr-corner qr-corner-br" />
-            <div style={{ padding: 16 }}><QRPattern seed={qrSeed} size={188} /></div>
-            <div className="qr-scan-line" />
-          </div>
-          <div style={{ margin: "16px 0 8px", color: G.text, fontWeight: 700, fontSize: 16 }}>{selectedReward.name}</div>
-          <div className="mono" style={{ color: G.amber, fontSize: 20, fontWeight: 900 }}>{selectedReward.cost} pts</div>
-          <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>QR valid for 3 minutes · One-time use</div>
-          <div style={{ marginTop: 16 }}><div style={{ background: "#0d2318", border: `1px solid ${G.green}`, borderRadius: 10, padding: "8px 16px", fontSize: 12, color: "#86efac", display: "inline-block" }}>⏳ Scanning…</div></div>
-          <button onClick={reset} style={{ marginTop: 14, background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 8, padding: "8px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 13 }}>Cancel</button>
-        </div>
-      )}
+    # TAB 2 — Cost Impact
+    with tab2:
+        st.markdown("**Fuel Cost Impact Estimator**")
+        weekly_km   = st.slider("Weekly Driving (km)", 50, 500, 200, key="ana_km")
+        fuel_price  = st.slider("Fuel Price (R/L)",    18, 30,  22,  key="ana_fp")
+        drive_style = st.selectbox("Driving Style", ["Aggressive", "Moderate", "Eco"], index=1, key="ana_ds")
+        cons_map    = {"Aggressive": 12, "Moderate": 8, "Eco": 6}
+        litres   = weekly_km / 100 * cons_map[drive_style]
+        cost_wk  = round(litres * fuel_price, 2)
+        co2_wk   = round(litres * 2.31, 2)
+        eco_save = max(0.0, round((litres - weekly_km / 100 * 6) * fuel_price, 2))
 
-      {scanStage === "insufficient" && selectedReward && (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ fontSize: 56, marginBottom: 12 }}>❌</div>
-          <div style={{ color: G.red, fontWeight: 900, fontSize: 20 }}>Insufficient Points</div>
-          <div style={{ color: "#64748b", fontSize: 14, margin: "8px 0 16px" }}>
-            You need <span style={{ color: G.amber, fontWeight: 700 }}>{selectedReward.cost - state.greenPoints} more points</span> to redeem "{selectedReward.name}"
-          </div>
-          <div className="alert-amber" style={{ textAlign: "left", marginBottom: 14 }}>
-            <b style={{ color: G.amber }}>Earn more quickly:</b><br />
-            <span style={{ color: "#fde68a", fontSize: 13 }}>Take clean routes (+15 pts), use public transport (+20 pts), or carpool (+25 pts) to top up your balance.</span>
-          </div>
-          <button className="btn-green" onClick={reset} style={{ width: "auto", padding: "10px 30px" }}>Choose Another Reward</button>
-        </div>
-      )}
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(kpi_card(f"R{cost_wk}", "WEEKLY FUEL COST", "amber"), unsafe_allow_html=True)
+        with c2:
+            st.markdown(kpi_card(f"{co2_wk} kg", "CO2 PER WEEK", "red"), unsafe_allow_html=True)
+        with c3:
+            st.markdown(kpi_card(f"R{round(cost_wk * 4.3)}", "MONTHLY COST", "red"), unsafe_allow_html=True)
+        with c4:
+            st.markdown(kpi_card(f"R{eco_save}", "POTENTIAL SAVING/WK"), unsafe_allow_html=True)
 
-      {scanStage === "success" && selectedReward && (
-        <div className="qr-success-overlay" style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ width: 90, height: 90, margin: "0 auto 16px", background: "radial-gradient(circle,#14532d,#071a0e)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: `3px solid ${G.green}`, fontSize: 44, boxShadow: `0 0 32px ${G.green}66` }}>✅</div>
-          <div style={{ color: G.green2, fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>REDEEMED!</div>
-          <div style={{ color: G.text, fontSize: 16, margin: "8px 0 4px", fontWeight: 700 }}>{selectedReward.name}</div>
-          <div style={{ color: "#86efac", fontSize: 14 }}>You saved {selectedReward.saving}</div>
-          <div style={{ background: "#0f2a0a", border: `1px solid ${G.green}`, borderRadius: 14, padding: "16px 20px", margin: "16px auto", maxWidth: 280 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ color: "#64748b", fontSize: 12 }}>Points used</span>
-              <span className="mono" style={{ color: G.red, fontWeight: 700 }}>-{selectedReward.cost} pts</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 12 }}>Remaining balance</span>
-              <span className="mono" style={{ color: G.green2, fontWeight: 700 }}>{state.greenPoints} pts</span>
-            </div>
-          </div>
-          <div style={{ color: "#64748b", fontSize: 12, marginBottom: 20 }}>{scanType === "toll" ? "🛣️ Show this screen to the toll attendant if needed" : "⛽ Present this confirmation at the cashier"}</div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="btn-green" onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }} style={{ width: "auto", padding: "10px 28px" }}>Redeem Another</button>
-            <button onClick={() => { setScanType(null); setScanStage("idle"); setSelectedReward(null); }} style={{ background: "transparent", border: `1px solid ${G.border}`, color: G.muted, borderRadius: 10, padding: "10px 20px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontSize: 14 }}>Done</button>
-          </div>
-        </div>
-      )}
+        if eco_save > 0:
+            st.markdown(f'<div class="alert-amber" style="margin-top:10px"><b style="color:#f59e0b">Tip:</b> <span style="color:#fde68a;font-size:13px">Switch to Eco driving to save R{eco_save}/week (R{round(eco_save*52)}/year).</span></div>', unsafe_allow_html=True)
 
-      {redeemLog.length > 0 && scanStage === "idle" && (
-        <div style={{ marginTop: 20 }}>
-          <div className="sec-head">Recent Redemptions</div>
-          {redeemLog.map((log, i) => (
-            <div key={i} style={{ background: "#071a0e", border: "1px solid #14532d", borderRadius: 10, padding: 12, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: G.text }}>{log.reward}</div>
-                <div style={{ color: "#64748b", fontSize: 11, marginTop: 2 }}>{log.type === "toll" ? "🛣️ Toll Gate" : "⛽ Petrol Station"} · {log.time}</div>
+    # TAB 3 — Heatmap
+    with tab3:
+        st.markdown("**Weekly Emission Heatmap**")
+        DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+        HRS  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+        z_data = []
+        for di, d in enumerate(DAYS):
+            row = []
+            for h in HRS:
+                r = seeded_rand(di * 100 + h)
+                v = int(r() * 70) + 10
+                if h in [7, 8, 17, 18] and di < 5:
+                    v = min(100, v + 35)
+                row.append(v)
+            z_data.append(row)
+
+        fig = go.Figure(go.Heatmap(
+            z=z_data,
+            x=[f"{h}:00" for h in HRS],
+            y=DAYS,
+            colorscale=[[0, "#14532d"], [0.4, "#166534"], [0.65, "#78350f"], [1, "#7f1d1d"]],
+            text=[[str(v) for v in row] for row in z_data],
+            texttemplate="%{text}",
+            showscale=True,
+            zmin=0, zmax=100,
+        ))
+        fig.update_layout(
+            plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e", font_color="#94a3b8",
+            height=280, margin=dict(l=10, r=10, t=10, b=10),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("🔴 Red = heavy congestion · 🟢 Green = smooth flow")
+
+# ─── PAGE: ECO SCORE ─────────────────────────────────────────────────────────
+def page_ecoscore():
+    st.markdown('<p class="page-head">⭐ Eco Score</p>', unsafe_allow_html=True)
+    st.caption("Your environmental driving rating")
+    st.divider()
+
+    s       = st.session_state["eco_score"]
+    gp      = st.session_state["green_points"]
+    uname   = st.session_state["username"]
+    grade   = "A" if s >= 80 else ("B" if s >= 65 else ("C" if s >= 50 else "D"))
+    g_col   = "#22c55e" if s >= 80 else ("#4ade80" if s >= 65 else ("#f59e0b" if s >= 50 else "#ef4444"))
+    label   = ("Excellent Eco Driver" if s >= 80 else
+               "Good Eco Driver"      if s >= 65 else
+               "Average Driver"       if s >= 50 else "High Emission Driver")
+
+    weekly_scores = st.session_state["weekly_scores"]
+    week_labels   = ["6wk ago","5wk ago","4wk ago","3wk ago","2wk ago","Last wk","This wk"]
+
+    c1, c2 = st.columns([1, 2.5])
+    with c1:
+        st.markdown(f"""
+        <div class="kpi-card" style="padding:28px 20px;text-align:center">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:3.5rem;font-weight:900;color:{g_col}">{grade}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:900;color:{g_col}">{s}/100</div>
+          <div style="color:#64748b;font-size:10px;letter-spacing:2px;margin-top:8px">{label.upper()}</div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown("**Weekly Performance**")
+        fig = go.Figure(go.Scatter(
+            x=week_labels, y=weekly_scores, mode="lines+markers",
+            line=dict(color="#22c55e", width=2),
+            marker=dict(color="#22c55e", size=6),
+        ))
+        fig.update_layout(
+            plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e", font_color="#475569",
+            height=180, margin=dict(l=10, r=10, t=10, b=10),
+            xaxis=dict(gridcolor="#1e293b"),
+            yaxis=dict(gridcolor="#1e293b", range=[40, 100]),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("**Score Breakdown**")
+    factors = [
+        ("Route Choices",    78, "#22c55e"),
+        ("Speed Consistency",65, "#4ade80"),
+        ("Idle Management",  82, "#22c55e"),
+        ("Trip Efficiency",  70, "#f59e0b"),
+        ("Emission Level",   55, "#f59e0b"),
+        ("Carpooling Bonus", 40, "#ef4444"),
+    ]
+    for name, val, color in factors:
+        st.markdown(f"""
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:13px;color:#e2e8f0">{name}</span>
+            <span style="color:{color};font-weight:700">{val}/100</span>
+          </div>
+          {progress_bar(val, color)}
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("**Driver Leaderboard**")
+    leaderboard = [
+        {"rank": "🥇 1st", "driver": "EcoDriver_01",   "score": 96, "pts": 1240, "co2": 148},
+        {"rank": "🥈 2nd", "driver": "GreenWheels",     "score": 91, "pts": 985,  "co2": 118},
+        {"rank": "🥉 3rd", "driver": "CleanCommuter",   "score": 88, "pts": 872,  "co2": 104},
+        {"rank": "4th",    "driver": uname,              "score": s,  "pts": gp,   "co2": round(gp * 0.12, 1)},
+        {"rank": "5th",    "driver": "QuickRacer",       "score": 43, "pts": 120,  "co2": 14},
+    ]
+    headers = ["Rank", "Driver", "Eco Score", "Green Pts", "CO2 Saved"]
+    header_html = "".join(f'<th style="padding:8px 10px;color:#475569;text-align:left;font-size:11px">{h}</th>' for h in headers)
+    rows_html = ""
+    for row in leaderboard:
+        is_me  = row["driver"] == uname
+        bg     = "#0d2318" if is_me else "transparent"
+        dcol   = "#4ade80" if is_me else "#e2e8f0"
+        dweight= "700"     if is_me else "400"
+        rows_html += f"""
+        <tr style="border-bottom:1px solid #1e293b;background:{bg}">
+          <td style="padding:8px 10px;color:#e2e8f0">{row['rank']}</td>
+          <td style="padding:8px 10px;color:{dcol};font-weight:{dweight}">{row['driver']}</td>
+          <td style="padding:8px 10px;font-family:monospace;color:#4ade80">{row['score']}</td>
+          <td style="padding:8px 10px;font-family:monospace;color:#f59e0b">{row['pts']}</td>
+          <td style="padding:8px 10px;font-family:monospace;color:#38bdf8">{row['co2']} kg</td>
+        </tr>"""
+    st.markdown(f"""
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:1px solid #1e293b">{header_html}</tr></thead>
+        <tbody>{rows_html}</tbody>
+      </table>
+    </div>""", unsafe_allow_html=True)
+
+# ─── PAGE: REWARDS ───────────────────────────────────────────────────────────
+def page_rewards():
+    st.markdown('<p class="page-head">🎁 Rewards</p>', unsafe_allow_html=True)
+    st.caption("Convert your Green Points into real-world rewards")
+    st.divider()
+
+    pts   = st.session_state["green_points"]
+    uname = st.session_state["username"]
+
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg,#0f2a0a,#1a3a10);border:1px solid #166534;
+                border-radius:16px;padding:24px;margin-bottom:16px">
+      <div style="font-family:monospace;font-size:10px;color:#86efac;letter-spacing:3px">MELLOWTECH REWARDS CARD</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:2.2rem;font-weight:900;color:#4ade80;margin:6px 0">{pts} pts</div>
+      <div style="color:#22c55e;font-size:13px">{uname}</div>
+      <div style="color:#64748b;font-size:11px;margin-top:4px">{DATE_STR} · ACTIVE</div>
+    </div>""", unsafe_allow_html=True)
+
+    rewards = [
+        ("⛽ Fuel Voucher",        50,  "Save R10 at participating fuel stations",   "#f59e0b"),
+        ("💳 Petrol Discount 10%", 120, "10% off your next full tank",               "#f59e0b"),
+        ("🛍️ Shopping Voucher R50",100, "Redeem at partner retailers",               "#38bdf8"),
+        ("🚌 Transport Credit",    80,  "Bus or taxi credit for 5 trips",            "#22c55e"),
+        ("🔧 Free Vehicle Check",  200, "Emission diagnostic + engine check",        "#a78bfa"),
+        ("🌳 Tree Planting Credit",30,  "Sponsor a tree planted in your name",       "#22c55e"),
+        ("🏪 Partner Discounts",   60,  "Discounts at eco-friendly stores",          "#38bdf8"),
+        ("👑 Premium Eco Status",  500, "Unlock premium leaderboard + extra pts",    "#f59e0b"),
+    ]
+    cols = st.columns(2)
+    for idx, (name, cost, desc, color) in enumerate(rewards):
+        can    = pts >= cost
+        border = f"{color}55" if can else "#1e293b"
+        ncol   = "#e2e8f0"    if can else "#334155"
+        action = "✅ Tap to Redeem" if can else f"Need {cost - pts} more"
+        acol   = color             if can else "#334155"
+        with cols[idx % 2]:
+            st.markdown(f"""
+            <div class="reward-card" style="border-color:{border}">
+              <div style="font-weight:700;font-size:14px;color:{ncol}">{name}</div>
+              <div style="color:#64748b;font-size:12px;margin:4px 0">{desc}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                <span style="font-family:monospace;font-size:1.1rem;font-weight:900;color:{color}">{cost} pts</span>
+                <span style="font-size:11px;font-weight:600;color:{acol}">{action}</span>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div className="mono" style={{ color: G.red, fontWeight: 700, fontSize: 13 }}>-{log.pts} pts</div>
-                <div style={{ color: G.green2, fontSize: 11 }}>Saved {log.saving}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            </div>""", unsafe_allow_html=True)
 
-      {scanStage === "idle" && (
-        <div style={{ marginTop: 20 }}>
-          <div className="sec-head">Accepted At</div>
-          <div className="grid-2" style={{ gap: 10 }}>
-            {[
-              { icon: "🛣️", name: "SANRAL Toll Plazas",    sub: "N1, N3, N4, N14 routes" },
-              { icon: "⛽", name: "Engen Stations",         sub: "All Gauteng locations"  },
-              { icon: "⛽", name: "BP Service Stations",    sub: "Partner network"         },
-              { icon: "⛽", name: "Shell Garages",          sub: "Select Pretoria outlets" },
-            ].map(p => (
-              <div key={p.name} style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 14 }}>
-                <div style={{ fontSize: 24, marginBottom: 6 }}>{p.icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: G.text }}>{p.name}</div>
-                <div style={{ color: "#64748b", fontSize: 11, marginTop: 2 }}>{p.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+    st.markdown("**How to Earn Green Points**")
+    earn_tips = [
+        ("🗺️ Clean Routes",     "+15 pts/trip"),
+        ("⚡ Steady Speed",      "+5 pts/trip"),
+        ("🚌 Public Transport", "+20 pts/trip"),
+        ("🚫 No Idling",        "+3 pts"),
+        ("🤝 Carpool",          "+25 pts/trip"),
+        ("🔧 Vehicle Service",  "+50 pts"),
+    ]
+    tip_cols = st.columns(2)
+    for i, (tip, val) in enumerate(earn_tips):
+        with tip_cols[i % 2]:
+            st.markdown(f"""
+            <div style="background:#071a0e;border:1px solid #14532d;border-radius:10px;
+                        padding:12px;text-align:center;margin-bottom:8px">
+              <div style="font-weight:700;font-size:13px;color:#4ade80">{tip}</div>
+              <div style="font-family:monospace;color:#22c55e;font-size:15px;font-weight:900;margin-top:4px">{val}</div>
+            </div>""", unsafe_allow_html=True)
 
-// --- PAGE: DASHBOARD ---
-function Dashboard({ state }) {
-  const pulseData = LOC_NAMES.map((n, i) => ({ name: n, value: congestionFor(i * 7 + 1, HOUR) }));
-  const savings   = +(state.greenPoints * 0.12).toFixed(2);
-  const fuel      = +(state.greenPoints * 0.05).toFixed(2);
+# ─── PAGE: PROFILE ────────────────────────────────────────────────────────────
+def page_profile():
+    st.markdown('<p class="page-head">👤 Profile</p>', unsafe_allow_html=True)
+    st.caption("Your account and preferences")
+    st.divider()
 
-  return (
-    <div>
-      <PageHead emoji="🏠" title="Dashboard" sub="Live emission intelligence overview" />
-      <div className="grid-4" style={{ marginBottom: 12 }}>
-        <KpiCard value={TIME_STR} label={DATE_STR} cls="card-blue" kvcls="kv-blue" />
-        <KpiCard value={IS_RUSH ? "RUSH HOUR" : "CLEAR"} label="TRAFFIC STATUS" cls={IS_RUSH ? "card-red" : ""} kvcls={IS_RUSH ? "kv-red" : "kv-green"} />
-        <KpiCard value={`${state.ecoScore}/100`} label="ECO SCORE" />
-        <KpiCard value={state.greenPoints} label="GREEN POINTS" />
-      </div>
-      {IS_RUSH
-        ? <div className="alert-red"><b style={{ color: G.red }}>⚠ HIGH EMISSION ALERT</b><br /><span style={{ color: "#fca5a5", fontSize: 13 }}>Rush hour — consider delaying or choosing a clean route.</span></div>
-        : <div className="alert-green"><b style={{ color: G.green }}>✓ LOW EMISSION CONDITIONS</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>Traffic is clear — great time to travel and earn Green Points.</span></div>
-      }
-      <div className="sec-head">Real-Time City Emission Pulse</div>
-      <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 12 }}>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={pulseData}>
-            <XAxis dataKey="name" tick={{ fill: G.muted, fontSize: 10 }} />
-            <YAxis tick={{ fill: G.muted, fontSize: 10 }} domain={[0, 100]} />
-            <Tooltip contentStyle={{ background: G.bg2, border: `1px solid ${G.border}`, borderRadius: 8 }} />
-            <Bar dataKey="value" radius={4}>
-              {pulseData.map((d, i) => <Cell key={i} fill={emissionLevel(d.value).color} />)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="sec-head">Today's Impact</div>
-      <div className="grid-2" style={{ gap: 10 }}>
-        <KpiCard value={`${savings} kg`} label="CO2 SAVED TODAY" />
-        <KpiCard value={`R${fuel}`}      label="FUEL COST SAVED" cls="card-amber" kvcls="kv-amber" />
-        <KpiCard value={state.trips}     label="TRIPS COMPLETED" cls="card-blue"  kvcls="kv-blue" />
-        <KpiCard value={state.greenPoints} label="TOTAL GREEN POINTS" />
-      </div>
-      <div className="alert-green" style={{ marginTop: 12 }}>
-        <b style={{ color: G.green }}>Why It Matters</b><br />
-        <span style={{ color: "#86efac", fontSize: 13 }}>Every clean trip earns Green Points redeemable for real rewards while reducing urban air pollution.</span>
-      </div>
-    </div>
-  );
-}
+    s     = st.session_state["eco_score"]
+    gp    = st.session_state["green_points"]
+    trips = st.session_state["trips"]
+    grade = "A" if s >= 80 else ("B" if s >= 65 else ("C" if s >= 50 else "D"))
+    g_col = "#22c55e" if s >= 80 else ("#4ade80" if s >= 65 else ("#f59e0b" if s >= 50 else "#ef4444"))
+    co2   = round(gp * 0.12, 2)
+    fuel  = round(gp * 0.05, 2)
+    join  = now.strftime("%b %Y")
 
-// --- PAGE: CITY MAP ---
-function CityMap({ navigate }) {
-  const [selected, setSelected] = useState(null);
-  const [dest, setDest] = useState("Mall");
-  const [animKey, setAnimKey] = useState(0);
-  const destinations = ["Mall", "Work", "School", "Hospital", "Park", "Airport"];
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        st.markdown(f"""
+        <div class="kpi-card" style="text-align:center;padding:28px 16px">
+          <div style="font-size:44px">🌿</div>
+          <div style="font-size:17px;font-weight:900;color:#22c55e;margin-top:8px">{st.session_state['username']}</div>
+          <span class="badge" style="margin-top:6px;display:inline-block">GRADE {grade}</span>
+          <hr style="border-color:#1e293b;margin:12px 0">
+          <div style="color:#64748b;font-size:11px">Member since {join}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:900;color:{g_col};margin-top:10px">{s}/100</div>
+          <div style="color:#64748b;font-size:10px;letter-spacing:2px">ECO SCORE</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.5rem;font-weight:900;color:#4ade80;margin-top:8px">{gp}</div>
+          <div style="color:#64748b;font-size:10px;letter-spacing:2px">GREEN POINTS</div>
+        </div>""", unsafe_allow_html=True)
 
-  function chooseDest(d) { setDest(d); setSelected(null); setAnimKey(k => k + 1); }
+    with c2:
+        st.markdown("**Preferences**")
+        new_name = st.text_input("Display Name", value=st.session_state["username"], key="prof_name")
+        new_home = st.selectbox("Home Location", LOC_NAMES,
+                                index=LOC_NAMES.index(st.session_state["home_loc"]), key="prof_home")
+        new_mode = st.selectbox("Default Driving Mode", ["Eco Mode", "Normal Mode", "Fast Mode"],
+                                index=["Eco Mode","Normal Mode","Fast Mode"].index(st.session_state["driving_mode"]),
+                                key="prof_mode")
+        if st.button("💾 Save Preferences", type="primary"):
+            st.session_state["username"]     = new_name
+            st.session_state["home_loc"]     = new_home
+            st.session_state["driving_mode"] = new_mode
+            st.success("✅ Preferences saved!")
+            st.rerun()
 
-  const bluePoints = "215,270 190,240 170,200 185,165 220,145 270,130 330,118 390,112 445,120 490,130";
-  const redPoints  = "215,270 240,255 275,240 310,225 350,215 390,200 430,175 460,155 490,130";
+    st.markdown("**My Environmental Impact**")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(kpi_card(f"{co2} kg", "CO2 SAVED"), unsafe_allow_html=True)
+    with c2:
+        st.markdown(kpi_card(f"{fuel} L", "FUEL SAVED", "amber"), unsafe_allow_html=True)
+    with c3:
+        st.markdown(kpi_card(f"R{round(fuel*22,2)}", "MONEY SAVED", "blue"), unsafe_allow_html=True)
+    with c4:
+        st.markdown(kpi_card(trips, "TRIPS DONE"), unsafe_allow_html=True)
 
-  const landmarks = [
-    { x: 215, y: 270, label: "Home", icon: "🏠", color: G.green2 },
-    { x: 490, y: 130, label: "Menlyn Mall", icon: "🛍️", color: G.amber },
-    { x: 90,  y: 190, label: "University\nof Pretoria", icon: "🎓", color: G.blue },
-    { x: 280, y: 90,  label: "Mall", icon: "🏪", color: "#a78bfa" },
-    { x: 120, y: 370, label: "Church", icon: "⛪", color: G.muted },
-    { x: 310, y: 400, label: "High School", icon: "🏫", color: G.muted },
-  ];
+    st.markdown("")
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Your Climate Contribution</b><br><span style="color:#86efac;font-size:13px">By using MellowTech you help reduce urban air pollution and contribute to South Africa\'s climate goals. Every clean trip counts.</span></div>', unsafe_allow_html=True)
 
-  const blueStats = { congestion: "18%", time: "14 min", co2: "0.8 kg", quality: "Clean Air" };
-  const redStats  = { congestion: "74%", time: "28 min", co2: "2.1 kg", quality: "Smoky Air" };
+# ─── MAIN APP ─────────────────────────────────────────────────────────────────
+def main():
+    if not st.session_state["logged_in"]:
+        login_page()
+        return
 
-  return (
-    <div>
-      <PageHead emoji="🗺️" title="City Map" sub="Pretoria live route explorer — pick your destination" />
-      <div style={{ marginBottom: 14 }}>
-        <div className="lbl" style={{ marginBottom: 8 }}>SELECT DESTINATION</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {destinations.map(d => (
-            <button key={d} onClick={() => chooseDest(d)} style={{ background: dest === d ? "linear-gradient(135deg,#14532d,#166534)" : G.bg2, color: dest === d ? G.green2 : G.muted, border: `1px solid ${dest === d ? G.green : G.border}`, borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontWeight: 700, fontSize: 13 }}>{d}</button>
-          ))}
-        </div>
-      </div>
-      {dest === "Mall" && !selected && (
-        <div className="alert-green" style={{ marginBottom: 12 }}>
-          <b style={{ color: G.green }}>Two Routes Found to {dest}</b><br />
-          <span style={{ color: "#86efac", fontSize: 13 }}>Tap a route on the map or choose below to see details.</span>
-        </div>
-      )}
-      <div style={{ background: "linear-gradient(145deg,#060d1a,#0a1525)", border: `1px solid ${G.border}`, borderRadius: 16, overflow: "hidden", position: "relative", marginBottom: 14 }}>
-        <div style={{ position: "absolute", top: 12, left: 16, zIndex: 5, background: "rgba(3,7,18,0.8)", borderRadius: 8, padding: "4px 10px", border: `1px solid ${G.border}` }}>
-          <span style={{ color: G.green2, fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>PRETORIA CITY MAP</span>
-        </div>
-        {IS_RUSH && (
-          <div style={{ position: "absolute", top: 12, right: 16, zIndex: 5, background: "#1c0a0a", borderRadius: 8, padding: "4px 10px", border: `1px solid ${G.red}` }}>
-            <span style={{ color: G.red, fontSize: 11, fontWeight: 700 }}>RUSH HOUR</span>
-          </div>
-        )}
-        <svg key={animKey} viewBox="0 0 700 460" style={{ width: "100%", display: "block" }} xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0f1f35" strokeWidth="0.5" /></pattern>
-            <filter id="glow-blue"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-            <filter id="glow-red"><feGaussianBlur stdDeviation="3" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-            <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8" /></marker>
-            <marker id="arrow-red"  markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444" /></marker>
-          </defs>
-          <rect width="700" height="460" fill="#060d1a" />
-          <rect width="700" height="460" fill="url(#grid)" />
-          <rect x="50"  y="50"  width="120" height="80"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="220" y="40"  width="90"  height="50"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="380" y="50"  width="140" height="70"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="550" y="60"  width="110" height="90"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="40"  y="300" width="100" height="80"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="480" y="300" width="150" height="100" rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <rect x="180" y="360" width="200" height="70"  rx="6" fill="#0a1525" stroke="#0f2035" strokeWidth="1" />
-          <polyline points="215,0 215,460"  stroke="#0d1e30" strokeWidth="8" />
-          <polyline points="0,270 700,270"  stroke="#0d1e30" strokeWidth="8" />
-          <polyline points="380,0 380,460"  stroke="#0d1e30" strokeWidth="6" />
-          <polyline points="0,130 700,130"  stroke="#0d1e30" strokeWidth="6" />
-          {dest === "Mall" && (
-            <g onClick={() => setSelected("blue")} style={{ cursor: "pointer" }}>
-              <polyline points={bluePoints} fill="none" stroke="#38bdf8" strokeWidth="10" strokeOpacity="0.15" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-blue)" />
-              <polyline points={bluePoints} fill="none" stroke={selected === "blue" ? "#7dd3fc" : "#38bdf8"} strokeWidth={selected === "blue" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="12 6" markerEnd="url(#arrow-blue)" />
-              <rect x="270" y="96" width="80" height="20" rx="4" fill="rgba(6,13,26,0.85)" />
-              <text x="310" y="110" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">CLEAN ROUTE</text>
-            </g>
-          )}
-          {dest === "Mall" && (
-            <g onClick={() => setSelected("red")} style={{ cursor: "pointer" }}>
-              <polyline points={redPoints} fill="none" stroke="#ef4444" strokeWidth="10" strokeOpacity="0.15" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow-red)" />
-              <polyline points={redPoints} fill="none" stroke={selected === "red" ? "#fca5a5" : "#ef4444"} strokeWidth={selected === "red" ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="8 5" markerEnd="url(#arrow-red)" />
-              <rect x="310" y="230" width="90" height="20" rx="4" fill="rgba(28,10,10,0.9)" />
-              <text x="355" y="244" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">CONGESTED</text>
-            </g>
-          )}
-          {dest !== "Mall" && (
-            <g>
-              <polyline points="215,270 300,230 390,195 450,165 490,130" fill="none" stroke="#38bdf8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="12 6" />
-              <rect x="315" y="192" width="80" height="20" rx="4" fill="rgba(6,13,26,0.85)" />
-              <text x="355" y="206" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="700" fontFamily="'Share Tech Mono',monospace">ROUTE TO {dest.toUpperCase()}</text>
-            </g>
-          )}
-          {landmarks.map((lm, i) => (
-            <g key={i}>
-              <circle cx={lm.x} cy={lm.y} r="14" fill={lm.x === 215 && lm.y === 270 ? "#071a0e" : "#0a1525"} stroke={lm.color} strokeWidth="2" />
-              <text x={lm.x} y={lm.y + 5} textAnchor="middle" fontSize="12">{lm.icon}</text>
-              <text x={lm.x} y={lm.y + 28} textAnchor="middle" fill={lm.color} fontSize={lm.label.includes("\n") ? 9 : 10} fontWeight="700" fontFamily="'Share Tech Mono',monospace">
-                {lm.label.split("\n").map((line, li) => (<tspan key={li} x={lm.x} dy={li === 0 ? 0 : 11}>{line}</tspan>))}
-              </text>
-            </g>
-          ))}
-          <circle cx="215" cy="270" r="18" fill="none" stroke={G.green} strokeWidth="1.5" strokeOpacity="0.5" />
-          {dest === "Mall" && (
-            <g opacity="0.4">
-              <ellipse cx="350" cy="225" rx="22" ry="12" fill="#7f1d1d" />
-              <ellipse cx="400" cy="200" rx="18" ry="9"  fill="#7f1d1d" />
-              <ellipse cx="310" cy="235" rx="14" ry="7"  fill="#7f1d1d" />
-              <text x="360" y="195" textAnchor="middle" fill="#fca5a5" fontSize="9" fontFamily="monospace">SMOKE</text>
-            </g>
-          )}
-          <rect x="12" y="390" width="190" height="58" rx="8" fill="rgba(6,13,26,0.9)" stroke="#1e293b" strokeWidth="1" />
-          <line x1="22" y1="408" x2="52" y2="408" stroke="#38bdf8" strokeWidth="2.5" strokeDasharray="6 3" />
-          <text x="58" y="412" fill="#38bdf8" fontSize="10" fontFamily="'Share Tech Mono',monospace">Blue = Clean / Low Pollution</text>
-          <line x1="22" y1="428" x2="52" y2="428" stroke="#ef4444" strokeWidth="2.5" strokeDasharray="4 3" />
-          <text x="58" y="432" fill="#ef4444" fontSize="10" fontFamily="'Share Tech Mono',monospace">Red = Congested / Smoky</text>
-        </svg>
-      </div>
-      {dest === "Mall" && (
-        <div className="grid-2" style={{ gap: 12, marginBottom: 14 }}>
-          <div className="route-blue map-route-card" style={{ cursor: "pointer", boxShadow: selected === "blue" ? `0 0 24px #38bdf844` : "none", transform: selected === "blue" ? "scale(1.02)" : "scale(1)", transition: ".2s" }} onClick={() => setSelected("blue")}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 16, height: 4, background: G.blue, borderRadius: 2 }} />
-              <span style={{ fontSize: 14, fontWeight: 800, color: G.blue }}>CLEAN ROUTE</span>
-              {selected === "blue" && <span style={{ marginLeft: "auto", background: "#0d2318", color: G.green2, border: `1px solid ${G.green}`, borderRadius: 12, padding: "2px 8px", fontSize: 10 }}>SELECTED</span>}
-            </div>
-            <div style={{ color: "#7dd3fc", fontSize: 10, letterSpacing: 2, marginBottom: 12 }}>LOW EMISSIONS - RECOMMENDED</div>
-            <div className="grid-2" style={{ gap: 6 }}>
-              {[["Congestion", blueStats.congestion, G.blue], ["Travel Time", blueStats.time, G.blue], ["CO2 Output", blueStats.co2, G.green2], ["Air Quality", blueStats.quality, G.green2]].map(([l, v, c]) => (
-                <div key={l} style={{ background: "#071a2e", borderRadius: 8, padding: 8 }}>
-                  <div className="mono" style={{ fontSize: 16, fontWeight: 900, color: c }}>{v}</div>
-                  <div style={{ color: "#64748b", fontSize: 9, letterSpacing: 1 }}>{l.toUpperCase()}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 10, background: "#071520", borderRadius: 8, padding: 8, fontSize: 12, color: "#7dd3fc" }}>Smooth flow · Less cars · Earn +15 Green Points</div>
-          </div>
-          <div className="route-red map-route-card" style={{ cursor: "pointer", boxShadow: selected === "red" ? `0 0 24px #ef444444` : "none", transform: selected === "red" ? "scale(1.02)" : "scale(1)", transition: ".2s" }} onClick={() => setSelected("red")}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 16, height: 4, background: G.red, borderRadius: 2 }} />
-              <span style={{ fontSize: 14, fontWeight: 800, color: G.red }}>HIGH EMISSION ROUTE</span>
-              {selected === "red" && <span style={{ marginLeft: "auto", background: "#1c0a0a", color: G.red, border: `1px solid ${G.red}`, borderRadius: 12, padding: "2px 8px", fontSize: 10 }}>SELECTED</span>}
-            </div>
-            <div style={{ color: "#fca5a5", fontSize: 10, letterSpacing: 2, marginBottom: 12 }}>HEAVY TRAFFIC - AVOID</div>
-            <div className="grid-2" style={{ gap: 6 }}>
-              {[["Congestion", redStats.congestion, G.red], ["Travel Time", redStats.time, G.red], ["CO2 Output", redStats.co2, "#f87171"], ["Air Quality", redStats.quality, "#f87171"]].map(([l, v, c]) => (
-                <div key={l} style={{ background: "#1c0808", borderRadius: 8, padding: 8 }}>
-                  <div className="mono" style={{ fontSize: 16, fontWeight: 900, color: c }}>{v}</div>
-                  <div style={{ color: "#64748b", fontSize: 9, letterSpacing: 1 }}>{l.toUpperCase()}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 10, background: "#1c0808", borderRadius: 8, padding: 8, fontSize: 12, color: "#fca5a5" }}>Stop-and-go · Lots of cars · Smoke & pollution</div>
-          </div>
-        </div>
-      )}
-      {dest === "Mall" && selected && (
-        <div className={selected === "blue" ? "alert-green" : "alert-red"} style={{ marginBottom: 12 }}>
-          {selected === "blue"
-            ? <><b style={{ color: G.green }}>Smart Choice!</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>The Clean Route saves 1.3 kg CO2 and ~14 minutes travel time. You'll earn +15 Green Points for taking the eco-friendly path.</span></>
-            : <><b style={{ color: G.red }}>High Pollution Warning</b><br /><span style={{ color: "#fca5a5", fontSize: 13 }}>This route has heavy congestion, smoke exposure, and burns more fuel. Consider switching to the Blue Route for a healthier, faster trip.</span></>
-          }
-        </div>
-      )}
-      {dest === "Mall" && selected === "blue" && (
-        <button className="btn-green" onClick={() => navigate("routes")} style={{ marginTop: 4 }}>Navigate — Start Clean Route to {dest}</button>
-      )}
-      {dest !== "Mall" && (
-        <div className="alert-amber">
-          <b style={{ color: G.amber }}>Route Preview</b><br />
-          <span style={{ color: "#fde68a", fontSize: 13 }}>Showing estimated clean route to {dest}. Select Mall to see full dual-route comparison with emission data.</span>
-        </div>
-      )}
-    </div>
-  );
-}
+    sidebar_nav()
 
-// --- PAGE: SMART ROUTES ---
-function SmartRoutes({ state, setState }) {
-  const [origin,  setOrigin]  = useState("Home");
-  const [dest,    setDest]    = useState("Work");
-  const [leaveHr, setLeaveHr] = useState(HOUR);
-  const [tripMsg, setTripMsg] = useState("");
+    traffic_badge = (
+        f'<span style="color:#ef4444;font-size:13px;font-weight:700">⚠️ RUSH HOUR</span>'
+        if IS_RUSH else
+        f'<span style="color:#22c55e;font-size:13px;font-weight:700">✅ TRAFFIC CLEAR</span>'
+    )
+    st.markdown(traffic_badge, unsafe_allow_html=True)
 
-  const r     = seededRand(leaveHr + origin.charCodeAt(0) + dest.charCodeAt(0));
-  const congA = Math.min(100, Math.floor(r() * 35) + 10);
-  const congB = Math.min(100, Math.floor(r() * 40) + 50 + (IS_RUSH ? 25 : 0));
-  const distA = +(r() * 14 + 4).toFixed(1);
-  const distB = +(distA * (r() * 0.5 + 0.8)).toFixed(1);
-  const timeA = Math.round(distA * 1.5 + congA * 0.3);
-  const timeB = Math.round(distB * 1.5 + congB * 0.5);
-  const fuelA = +(distA * 0.08).toFixed(2);
-  const fuelB = +(distB * 0.08 + congB * 0.005).toFixed(2);
-  const co2A  = +(fuelA * 2.31).toFixed(2);
-  const co2B  = +(fuelB * 2.31).toFixed(2);
+    page = st.session_state["page"]
+    if   page == "dashboard": page_dashboard()
+    elif page == "routes":    page_routes()
+    elif page == "alerts":    page_alerts()
+    elif page == "analytics": page_analytics()
+    elif page == "ecoscore":  page_ecoscore()
+    elif page == "rewards":   page_rewards()
+    elif page == "profile":   page_profile()
 
-  function takeTrip() {
-    setState(s => ({ ...s, greenPoints: s.greenPoints + 15, trips: s.trips + 1, ecoScore: Math.min(100, s.ecoScore + 1) }));
-    setTripMsg("Trip started! +15 pts added.");
-    setTimeout(() => setTripMsg(""), 3000);
-  }
-
-  return (
-    <div>
-      <PageHead emoji="📍" title="Smart Routes" sub="Choose cleaner routes — reduce emissions, earn Green Points" />
-      <div className="grid-2" style={{ gap: 10, marginBottom: 10 }}>
-        <div>
-          <div className="lbl">ORIGIN</div>
-          <select className="sel" value={origin} onChange={e => setOrigin(e.target.value)}>
-            {LOC_NAMES.map(l => <option key={l}>{l}</option>)}
-          </select>
-        </div>
-        <div>
-          <div className="lbl">DESTINATION</div>
-          <select className="sel" value={dest} onChange={e => setDest(e.target.value)}>
-            {LOC_NAMES.filter(l => l !== origin).map(l => <option key={l}>{l}</option>)}
-          </select>
-        </div>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <div className="lbl">DEPARTURE HOUR: {leaveHr}:00</div>
-        <input type="range" min={0} max={23} value={leaveHr} onChange={e => setLeaveHr(+e.target.value)} />
-      </div>
-      <div className="grid-2" style={{ gap: 10, marginBottom: 14 }}>
-        <div className="route-blue">
-          <div style={{ fontSize: 14, fontWeight: 800, color: G.blue }}>✓ CLEAN ROUTE</div>
-          <div style={{ color: "#7dd3fc", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>LOW EMISSIONS - RECOMMENDED</div>
-          <div className="grid-2">
-            {[["Congestion", `${congA}%`, G.blue], ["Time", `${timeA} min`, G.blue], ["Distance", `${distA} km`, G.green2], ["CO2", `${co2A} kg`, G.green2]].map(([l, v, c]) => (
-              <div key={l}>
-                <div className="mono" style={{ fontSize: 22, fontWeight: 900, color: c }}>{v}</div>
-                <div style={{ color: "#64748b", fontSize: 10 }}>{l.toUpperCase()}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 10, background: "#0a1a2e", borderRadius: 8, padding: 8, fontSize: 12, color: "#7dd3fc" }}>Smooth flow — Earn +15 Green Points</div>
-        </div>
-        <div className="route-red">
-          <div style={{ fontSize: 14, fontWeight: 800, color: G.red }}>✕ HIGH EMISSION ROUTE</div>
-          <div style={{ color: "#fca5a5", fontSize: 10, letterSpacing: 2, marginBottom: 10 }}>HEAVY TRAFFIC - AVOID</div>
-          <div className="grid-2">
-            {[["Congestion", `${congB}%`, G.red], ["Time", `${timeB} min`, G.red], ["Distance", `${distB} km`, "#f87171"], ["CO2", `${co2B} kg`, "#f87171"]].map(([l, v, c]) => (
-              <div key={l}>
-                <div className="mono" style={{ fontSize: 22, fontWeight: 900, color: c }}>{v}</div>
-                <div style={{ color: "#64748b", fontSize: 10 }}>{l.toUpperCase()}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 10, background: "#1c0808", borderRadius: 8, padding: 8, fontSize: 12, color: "#fca5a5" }}>Stop-and-go — High idling — More fuel</div>
-        </div>
-      </div>
-      <div className="alert-green">
-        <b style={{ color: G.green }}>Smart Advisor</b><br />
-        <span style={{ color: "#86efac", fontSize: 13 }}>
-          Taking the Clean Route saves <b>{(co2B - co2A).toFixed(2)} kg CO2</b> and ~<b>R{((fuelB - fuelA) * 20).toFixed(2)}</b> in fuel. Earn <b>+15 Green Points</b>.
-        </span>
-      </div>
-      <button className="btn-green" style={{ marginTop: 14 }} onClick={takeTrip}>🚗 Take Clean Route — Start Trip</button>
-      {tripMsg && <div className="alert-green" style={{ marginTop: 8 }}><b style={{ color: G.green }}>{tripMsg}</b> Total: {state.greenPoints} pts</div>}
-    </div>
-  );
-}
-
-// --- PAGE: EMISSION ALERTS ---
-function EmissionAlerts() {
-  const r      = seededRand(HOUR * 3 + 7);
-  const emPct  = IS_RUSH ? Math.floor(r() * 75) + 20 : Math.floor(r() * 45) + 10;
-  const speed  = IS_RUSH ? Math.floor(r() * 30) + 15 : Math.floor(r() * 50) + 50;
-  const idle   = Math.floor(r() * 8);
-  const rpm    = Math.floor(r() * 3200) + 800;
-
-  const speedData = [0,10,20,30,40,50,60,70,80,90,100,110,120].map((s, i) => ({
-    speed: s, emission: [85,80,70,55,38,25,20,18,22,30,42,58,75][i],
-  }));
-
-  const actions = [
-    { title: "Check Engine Diagnostics",  desc: "Run OBD scan or visit mechanic if emissions stay high.",         color: G.red   },
-    { title: "Reduce Fuel Waste",          desc: "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM.",     color: G.amber },
-    { title: "Service Your Vehicle",       desc: "Oil change, air filter, fuel injector cleaning, exhaust check.", color: G.blue  },
-    { title: "Stop Unnecessary Idling",    desc: "Switch off engine after 1 minute of idling.",                    color: G.amber },
-    { title: "Switch to a Cleaner Route",  desc: "Less traffic = less emissions. Open City Map for options.",      color: G.green },
-  ];
-
-  return (
-    <div>
-      <PageHead emoji="⚠️" title="Emission Alerts" sub="Live diagnostics and driving behaviour intelligence" />
-      {emPct > 65
-        ? <div className="alert-red"><b style={{ color: G.red, fontSize: 16 }}>HIGH EMISSION DETECTED</b><br /><span style={{ color: "#fca5a5", fontSize: 13 }}>Above-normal emissions. Reduce speed and check diagnostics.</span></div>
-        : emPct > 40
-        ? <div className="alert-amber"><b style={{ color: G.amber, fontSize: 16 }}>MODERATE EMISSIONS</b><br /><span style={{ color: "#fde68a", fontSize: 13 }}>Slightly elevated — maintain steady speed and avoid sudden braking.</span></div>
-        : <div className="alert-green"><b style={{ color: G.green, fontSize: 16 }}>LOW EMISSIONS — CLEAN DRIVING</b><br /><span style={{ color: "#86efac", fontSize: 13 }}>Excellent! Keep it up and earn Green Points.</span></div>
-      }
-      <div className="grid-4" style={{ margin: "12px 0" }}>
-        <KpiCard value={`${emPct}%`}    label="EMISSION LEVEL" cls={emPct > 65 ? "card-red" : emPct > 40 ? "card-amber" : ""} kvcls={emPct > 65 ? "kv-red" : emPct > 40 ? "kv-amber" : "kv-green"} />
-        <KpiCard value={`${speed} km/h`} label="SPEED"         cls="card-blue" kvcls="kv-blue" />
-        <KpiCard value={`${idle} min`}   label="IDLE TIME"     cls={idle > 2 ? "card-amber" : ""}  kvcls={idle > 2 ? "kv-amber" : "kv-green"} />
-        <KpiCard value={rpm}             label="ENGINE RPM"    cls={rpm > 3000 ? "card-red" : ""}  kvcls={rpm > 3000 ? "kv-red" : "kv-green"} />
-      </div>
-      <div className="sec-head">Speed vs Emission Relationship</div>
-      <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 10 }}>
-        <ResponsiveContainer width="100%" height={160}>
-          <LineChart data={speedData}>
-            <XAxis dataKey="speed" tick={{ fill: G.muted, fontSize: 10 }} />
-            <YAxis tick={{ fill: G.muted, fontSize: 10 }} />
-            <Tooltip contentStyle={{ background: G.bg2, border: `1px solid ${G.border}`, borderRadius: 8 }} />
-            <Line type="monotone" dataKey="emission" stroke={G.green} strokeWidth={2} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="alert-green" style={{ marginTop: 8 }}>
-        <b style={{ color: G.green }}>Key Insight</b>{" "}
-        <span style={{ color: "#86efac", fontSize: 13 }}>Driving at a steady 60-80 km/h produces the least pollution. Stop-and-go and high speeds burn significantly more fuel.</span>
-      </div>
-      <div className="sec-head">Action Plan</div>
-      {actions.map(a => (
-        <div key={a.title} className="action-card" style={{ borderLeft: `3px solid ${a.color}` }}>
-          <div style={{ color: a.color, fontWeight: 700, fontSize: 14 }}>{a.title}</div>
-          <div style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>{a.desc}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// --- PAGE: ANALYTICS ---
-function Analytics() {
-  const [tab, setTab] = useState(0);
-  const TABS = ["Hourly Trends", "Zone Emissions", "Cost Impact", "Heatmap"];
-
-  const hourly = Array.from({ length: 24 }, (_, h) => {
-    const r = seededRand(h * 5 + 3);
-    let em = Math.floor(r() * 35) + 15;
-    if ((h >= 7 && h <= 9) || (h >= 16 && h <= 18)) em = Math.min(100, em + 35);
-    return { hour: `${h}:00`, emission: em, speed: Math.max(10, 85 - em / 2) };
-  });
-
-  const zones = LOC_NAMES.map((n, i) => {
-    const c = congestionFor(i * 11 + 2, HOUR);
-    return { name: n, congestion: c, ...emissionLevel(c) };
-  });
-
-  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  const HRS  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-  const heat = DAYS.map((d, di) => {
-    const row = { day: d };
-    HRS.forEach(h => {
-      const r = seededRand(di * 100 + h);
-      let v = Math.floor(r() * 70) + 10;
-      if ([7,8,17,18].includes(h) && di < 5) v = Math.min(100, v + 35);
-      row[`${h}:00`] = v;
-    });
-    return row;
-  });
-  const heatColor = v => v > 65 ? "#7f1d1d" : v > 40 ? "#78350f" : "#14532d";
-
-  const [weeklyKm,   setWeeklyKm]   = useState(200);
-  const [fuelPrice,  setFuelPrice]  = useState(22);
-  const [driveStyle, setDriveStyle] = useState("Moderate");
-  const cons    = { Aggressive: 12, Moderate: 8, Eco: 6 };
-  const litres  = weeklyKm / 100 * cons[driveStyle];
-  const costWk  = (litres * fuelPrice).toFixed(2);
-  const co2Wk   = (litres * 2.31).toFixed(2);
-  const ecoSave = Math.max(0, (litres - weeklyKm / 100 * 6) * fuelPrice).toFixed(2);
-
-  return (
-    <div>
-      <PageHead emoji="📊" title="Analytics" sub="Traffic and emission trends, zone status, cost impact" />
-      <div className="tabs">
-        {TABS.map((t, i) => <div key={i} className={`tab ${tab === i ? "active" : ""}`} onClick={() => setTab(i)}>{t}</div>)}
-      </div>
-
-      {tab === 0 && (
-        <div>
-          <div className="sec-head">24-Hour Emission & Speed Trends</div>
-          <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 10 }}>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={hourly}>
-                <XAxis dataKey="hour" tick={{ fill: G.muted, fontSize: 9 }} interval={3} />
-                <YAxis tick={{ fill: G.muted, fontSize: 9 }} />
-                <Tooltip contentStyle={{ background: G.bg2, border: `1px solid ${G.border}`, borderRadius: 8 }} />
-                <Line type="monotone" dataKey="emission" stroke={G.red}  strokeWidth={2} dot={false} name="Emission %" />
-                <Line type="monotone" dataKey="speed"    stroke={G.blue} strokeWidth={2} dot={false} name="Speed km/h" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="alert-amber" style={{ marginTop: 8 }}>
-            <b style={{ color: G.amber }}>Peak:</b>{" "}
-            <span style={{ color: "#fde68a", fontSize: 13 }}>Rush hours 07:00-09:00 and 16:00-18:00. Cleanest window: 10:00-15:00.</span>
-          </div>
-        </div>
-      )}
-
-      {tab === 1 && (
-        <div>
-          <div className="sec-head">Zone Emission Status</div>
-          {zones.map(z => (
-            <div key={z.name} style={{ background: "#0a0f1e", border: `1px solid ${G.border}`, borderRadius: 10, padding: 12, marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{z.name}</span>
-                <span style={{ background: z.color + "22", color: z.color, border: `1px solid ${z.color}55`, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>{z.label}</span>
-              </div>
-              <div className="pbar-bg"><div className="pbar-fill" style={{ width: `${z.congestion}%`, background: z.color }} /></div>
-              <div style={{ color: "#64748b", fontSize: 12 }}>{z.congestion}% congestion</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 2 && (
-        <div>
-          <div className="sec-head">Fuel Cost Impact Estimator</div>
-          <div style={{ marginBottom: 10 }}>
-            <div className="lbl">WEEKLY DRIVING: {weeklyKm} km</div>
-            <input type="range" min={50} max={500} value={weeklyKm} onChange={e => setWeeklyKm(+e.target.value)} />
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <div className="lbl">FUEL PRICE: R{fuelPrice}/L</div>
-            <input type="range" min={18} max={30} value={fuelPrice} onChange={e => setFuelPrice(+e.target.value)} />
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <div className="lbl">DRIVING STYLE</div>
-            <select className="sel" value={driveStyle} onChange={e => setDriveStyle(e.target.value)}>
-              {["Aggressive","Moderate","Eco"].map(s => <option key={s}>{s}</option>)}
-            </select>
-          </div>
-          <div className="grid-2" style={{ gap: 10 }}>
-            <KpiCard value={`R${costWk}`} label="WEEKLY FUEL COST" cls="card-amber" kvcls="kv-amber" />
-            <KpiCard value={`${co2Wk} kg`} label="CO2 PER WEEK" cls="card-red" kvcls="kv-red" />
-            <KpiCard value={`R${(+costWk * 4.3).toFixed(0)}`} label="MONTHLY COST" cls="card-red" kvcls="kv-red" />
-            <KpiCard value={`R${ecoSave}`} label="POTENTIAL SAVING/WK" />
-          </div>
-          {+ecoSave > 0 && (
-            <div className="alert-amber" style={{ marginTop: 10 }}>
-              <b style={{ color: G.amber }}>Tip:</b>{" "}
-              <span style={{ color: "#fde68a", fontSize: 13 }}>Switch to Eco driving to save R{ecoSave}/week (R{(+ecoSave * 52).toFixed(0)}/year).</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 3 && (
-        <div>
-          <div className="sec-head">Weekly Emission Heatmap</div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: "4px 8px", color: G.muted, textAlign: "left" }}>Day</th>
-                  {HRS.map(h => <th key={h} style={{ padding: "4px 6px", color: G.muted }}>{h}:00</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {heat.map(row => (
-                  <tr key={row.day}>
-                    <td style={{ padding: "4px 8px", color: G.text, fontWeight: 700 }}>{row.day}</td>
-                    {HRS.map(h => {
-                      const v = row[`${h}:00`];
-                      return <td key={h} style={{ padding: "4px 6px", background: heatColor(v), borderRadius: 4, textAlign: "center", color: "#ccc", fontFamily: "monospace" }}>{v}</td>;
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ color: G.muted, fontSize: 11, marginTop: 8 }}>Red = heavy congestion · Green = smooth flow</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --- PAGE: ECO SCORE ---
-function EcoScore({ state }) {
-  const s     = state.ecoScore;
-  const grade = s >= 80 ? "A" : s >= 65 ? "B" : s >= 50 ? "C" : "D";
-  const gCol  = s >= 80 ? G.green : s >= 65 ? G.green2 : s >= 50 ? G.amber : G.red;
-  const label = s >= 80 ? "Excellent Eco Driver" : s >= 65 ? "Good Eco Driver" : s >= 50 ? "Average Driver" : "High Emission Driver";
-
-  const weekLabels = ["6wk ago","5wk ago","4wk ago","3wk ago","2wk ago","Last wk","This wk"];
-  const weekData   = weekLabels.map((w, i) => ({ week: w, score: state.weeklyScores[i] }));
-
-  const factors = [
-    ["Route Choices",     78, G.green],  ["Speed Consistency",  65, G.green2],
-    ["Idle Management",   82, G.green],  ["Trip Efficiency",    70, G.amber],
-    ["Emission Level",    55, G.amber],  ["Carpooling Bonus",   40, G.red],
-  ];
-
-  const leaderboard = [
-    { rank: "1st", driver: "EcoDriver_01",  score: 96, pts: 1240, co2: 148 },
-    { rank: "2nd", driver: "GreenWheels",   score: 91, pts: 985,  co2: 118 },
-    { rank: "3rd", driver: "CleanCommuter", score: 88, pts: 872,  co2: 104 },
-    { rank: "4th", driver: state.username,  score: s,  pts: state.greenPoints, co2: +(state.greenPoints * 0.12).toFixed(1) },
-    { rank: "5th", driver: "QuickRacer",    score: 43, pts: 120,  co2: 14  },
-  ];
-
-  return (
-    <div>
-      <PageHead emoji="⭐" title="Eco Score" sub="Your environmental driving rating" />
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <div className="card" style={{ textAlign: "center", padding: 24, minWidth: 140 }}>
-          <div className="mono" style={{ fontSize: 64, fontWeight: 900, color: gCol }}>{grade}</div>
-          <div className="mono" style={{ fontSize: 32, fontWeight: 900, color: gCol }}>{s}/100</div>
-          <div style={{ color: "#64748b", fontSize: 10, letterSpacing: 2, marginTop: 8 }}>{label.toUpperCase()}</div>
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="sec-head">Weekly Performance</div>
-          <div style={{ background: G.bg1, border: `1px solid ${G.border}`, borderRadius: 12, padding: 10 }}>
-            <ResponsiveContainer width="100%" height={130}>
-              <LineChart data={weekData}>
-                <XAxis dataKey="week" tick={{ fill: G.muted, fontSize: 9 }} />
-                <YAxis domain={[40, 100]} tick={{ fill: G.muted, fontSize: 9 }} />
-                <Tooltip contentStyle={{ background: G.bg2, border: `1px solid ${G.border}`, borderRadius: 8 }} />
-                <Line type="monotone" dataKey="score" stroke={G.green} strokeWidth={2} dot={{ fill: G.green, r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-      <div className="sec-head">Score Breakdown</div>
-      {factors.map(([n, v, c]) => (
-        <div key={n} style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-            <span style={{ fontSize: 13 }}>{n}</span>
-            <span style={{ color: c, fontWeight: 700 }}>{v}/100</span>
-          </div>
-          <div className="pbar-bg"><div className="pbar-fill" style={{ width: `${v}%`, background: c }} /></div>
-        </div>
-      ))}
-      <div className="sec-head">Driver Leaderboard</div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${G.border}` }}>
-              {["Rank","Driver","Eco Score","Green Pts","CO2 Saved"].map(h => (
-                <th key={h} style={{ padding: "8px 10px", color: G.muted, textAlign: "left", fontSize: 11 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.map(row => (
-              <tr key={row.rank} style={{ borderBottom: `1px solid ${G.border}`, background: row.driver === state.username ? "#0d2318" : "transparent" }}>
-                <td style={{ padding: "8px 10px" }}>{row.rank}</td>
-                <td style={{ padding: "8px 10px", color: row.driver === state.username ? G.green2 : G.text, fontWeight: row.driver === state.username ? 700 : 400 }}>{row.driver}</td>
-                <td style={{ padding: "8px 10px", fontFamily: "monospace", color: G.green2 }}>{row.score}</td>
-                <td style={{ padding: "8px 10px", fontFamily: "monospace", color: G.amber  }}>{row.pts}</td>
-                <td style={{ padding: "8px 10px", fontFamily: "monospace", color: G.blue   }}>{row.co2} kg</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// --- PAGE: REWARDS ---
-function Rewards({ state }) {
-  const pts = state.greenPoints;
-  const rewardList = [
-    { name: "Fuel Voucher",          cost: 50,  desc: "Save R10 at participating fuel stations",  color: G.amber   },
-    { name: "Petrol Discount 10%",   cost: 120, desc: "10% off your next full tank",              color: G.amber   },
-    { name: "Shopping Voucher R50",  cost: 100, desc: "Redeem at partner retailers",              color: G.blue    },
-    { name: "Transport Credit",      cost: 80,  desc: "Bus or taxi credit for 5 trips",           color: G.green   },
-    { name: "Free Vehicle Check",    cost: 200, desc: "Emission diagnostic + engine check",       color: "#a78bfa" },
-    { name: "Tree Planting Credit",  cost: 30,  desc: "Sponsor a tree planted in your name",      color: G.green   },
-    { name: "Partner Discounts",     cost: 60,  desc: "Discounts at eco-friendly stores",         color: G.blue    },
-    { name: "Premium Eco Status",    cost: 500, desc: "Unlock premium leaderboard + extra pts",   color: G.amber   },
-  ];
-  const earnTips = [
-    ["Clean Routes","+15 pts/trip"], ["Steady Speed","+5 pts/trip"],
-    ["Public Transport","+20 pts/trip"], ["No Idling","+3 pts"],
-    ["Carpool","+25 pts/trip"], ["Vehicle Service","+50 pts"],
-  ];
-
-  return (
-    <div>
-      <PageHead emoji="🎁" title="Rewards" sub="Convert your Green Points into real-world rewards" />
-      <div style={{ background: "linear-gradient(135deg,#0f2a0a,#1a3a10)", border: "1px solid #166534", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-        <div style={{ fontFamily: "monospace", fontSize: 10, color: "#86efac", letterSpacing: 3 }}>MELLOWTECH REWARDS CARD</div>
-        <div className="mono" style={{ fontSize: 36, fontWeight: 900, color: G.green2, margin: "6px 0" }}>{pts} pts</div>
-        <div style={{ color: G.green, fontSize: 13 }}>{state.username}</div>
-        <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{DATE_STR} · ACTIVE</div>
-      </div>
-      <div className="grid-2">
-        {rewardList.map(rw => {
-          const can = pts >= rw.cost;
-          return (
-            <div key={rw.name} className="reward-card" style={{ borderColor: can ? rw.color + "55" : G.border }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: can ? G.text : "#334155" }}>{rw.name}</div>
-              <div style={{ color: "#64748b", fontSize: 12, margin: "4px 0" }}>{rw.desc}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                <span className="mono" style={{ fontSize: 18, fontWeight: 900, color: rw.color }}>{rw.cost} pts</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: can ? rw.color : "#334155" }}>{can ? "Tap to Redeem" : `Need ${rw.cost - pts} more`}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="sec-head">How to Earn Green Points</div>
-      <div className="grid-2">
-        {earnTips.map(([tip, val]) => (
-          <div key={tip} style={{ background: "#071a0e", border: "1px solid #14532d", borderRadius: 10, padding: 12, textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: G.green2 }}>{tip}</div>
-            <div className="mono" style={{ color: G.green, fontSize: 15, fontWeight: 900, marginTop: 4 }}>{val}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// --- PAGE: PROFILE ---
-function Profile({ state, setState }) {
-  const [name,  setName]  = useState(state.username);
-  const [home,  setHome]  = useState(state.home);
-  const [mode,  setMode]  = useState(state.drivingMode);
-  const [saved, setSaved] = useState(false);
-
-  const s     = state.ecoScore;
-  const grade = s >= 80 ? "A" : s >= 65 ? "B" : s >= 50 ? "C" : "D";
-  const gCol  = s >= 80 ? G.green : s >= 65 ? G.green2 : s >= 50 ? G.amber : G.red;
-  const co2   = +(state.greenPoints * 0.12).toFixed(2);
-  const fuel  = +(state.greenPoints * 0.05).toFixed(2);
-
-  function save() {
-    setState(prev => ({ ...prev, username: name, home, drivingMode: mode }));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  }
-
-  return (
-    <div>
-      <PageHead emoji="👤" title="Profile" sub="Your account and preferences" />
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <div className="card" style={{ textAlign: "center", padding: 24, minWidth: 160 }}>
-          <div style={{ fontSize: 44 }}>🌿</div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: G.green, marginTop: 8 }}>{state.username}</div>
-          <span className="badge" style={{ marginTop: 6 }}>GRADE {grade}</span>
-          <hr style={{ borderColor: G.border, margin: "12px 0" }} />
-          <div style={{ color: "#64748b", fontSize: 11 }}>Member since {now.toLocaleDateString("en-ZA", { month: "short", year: "numeric" })}</div>
-          <div className="mono" style={{ fontSize: 28, fontWeight: 900, color: gCol, marginTop: 10 }}>{s}/100</div>
-          <div style={{ color: "#64748b", fontSize: 10, letterSpacing: 2 }}>ECO SCORE</div>
-          <div className="mono" style={{ fontSize: 24, fontWeight: 900, color: G.green2, marginTop: 8 }}>{state.greenPoints}</div>
-          <div style={{ color: "#64748b", fontSize: 10, letterSpacing: 2 }}>GREEN POINTS</div>
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="sec-head">Preferences</div>
-          <div style={{ marginBottom: 10 }}>
-            <div className="lbl">DISPLAY NAME</div>
-            <input className="inp" value={name} onChange={e => setName(e.target.value)} />
-          </div>
-          <div style={{ marginBottom: 10 }}>
-            <div className="lbl">HOME LOCATION</div>
-            <select className="sel" value={home} onChange={e => setHome(e.target.value)}>
-              {LOC_NAMES.map(l => <option key={l}>{l}</option>)}
-            </select>
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <div className="lbl">DEFAULT DRIVING MODE</div>
-            <select className="sel" value={mode} onChange={e => setMode(e.target.value)}>
-              {["Eco Mode","Normal Mode","Fast Mode"].map(m => <option key={m}>{m}</option>)}
-            </select>
-          </div>
-          <button className="btn-green" onClick={save}>Save Preferences</button>
-          {saved && <div className="alert-green" style={{ marginTop: 8 }}><b style={{ color: G.green }}>Preferences saved!</b></div>}
-        </div>
-      </div>
-      <div className="sec-head">My Environmental Impact</div>
-      <div className="grid-4" style={{ gap: 10 }}>
-        <KpiCard value={`${co2} kg`}               label="CO2 SAVED" />
-        <KpiCard value={`${fuel} L`}                label="FUEL SAVED"   cls="card-amber" kvcls="kv-amber" />
-        <KpiCard value={`R${(fuel*22).toFixed(2)}`} label="MONEY SAVED"  cls="card-blue"  kvcls="kv-blue" />
-        <KpiCard value={state.trips}                label="TRIPS DONE" />
-      </div>
-      <div className="alert-green" style={{ marginTop: 12 }}>
-        <b style={{ color: G.green }}>Your Climate Contribution</b><br />
-        <span style={{ color: "#86efac", fontSize: 13 }}>By using MellowTech you help reduce urban air pollution and contribute to South Africa's climate goals. Every clean trip counts.</span>
-      </div>
-    </div>
-  );
-}
-
-// --- ROOT APP ---
-export default function App() {
-  const [loggedIn,  setLoggedIn]  = useState(false);
-  const [username,  setUsername]  = useState("");
-  const [password,  setPassword]  = useState("");
-  const [loginErr,  setLoginErr]  = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [page,       setPage]       = useState("dashboard");
-
-  const [appState, setAppState] = useState({
-    username:     "",
-    greenPoints:  0,
-    ecoScore:     72,
-    trips:        0,
-    home:         "Home",
-    drivingMode:  "Normal",
-    weeklyScores: [55, 61, 58, 67, 70, 68, 72],
-  });
-
-  const touchStartX = useRef(null);
-  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX; }
-  function onTouchEnd(e) {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (dx >  60) setDrawerOpen(true);
-    if (dx < -60) setDrawerOpen(false);
-    touchStartX.current = null;
-  }
-
-  function login() {
-    if (!username.trim()) { setLoginErr("Please enter a username."); return; }
-    if (!password)        { setLoginErr("Please enter a password."); return; }
-    setAppState(s => ({ ...s, username: username.trim() }));
-    setLoggedIn(true);
-  }
-
-  function navigate(id) { setPage(id); setDrawerOpen(false); }
-
-  const PAGES = {
-    dashboard: <Dashboard   state={appState} />,
-    citymap:   <CityMap     navigate={navigate} />,
-    routes:    <SmartRoutes state={appState} setState={setAppState} />,
-    qrscan:    <QRRedeem    state={appState} setState={setAppState} />,
-    alerts:    <EmissionAlerts />,
-    analytics: <Analytics />,
-    ecoscore:  <EcoScore    state={appState} />,
-    rewards:   <Rewards     state={appState} />,
-    profile:   <Profile     state={appState} setState={setAppState} />,
-  };
-
-  return (
-    <>
-      <style>{css}</style>
-
-      {!loggedIn ? (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 40, fontWeight: 900, color: G.green2, letterSpacing: 4, fontFamily: "Share Tech Mono" }}>MELLOWTECH</div>
-            <div style={{ color: G.muted, fontSize: 11, letterSpacing: 6, textTransform: "uppercase" }}>Smart Emission Intelligence System</div>
-          </div>
-          <div className="login-wrap">
-            <h3 style={{ color: G.green, fontWeight: 900, marginBottom: 4 }}>Sign In</h3>
-            <p style={{ color: G.muted, fontSize: 11, letterSpacing: 2, marginBottom: 20 }}>PROTECTING THE PLANET, ONE TRIP AT A TIME</p>
-            <input className="inp" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
-            <input className="inp" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} />
-            {loginErr && <div style={{ color: G.red, fontSize: 13, marginBottom: 8 }}>{loginErr}</div>}
-            <button className="btn-green" onClick={login}>Launch MellowTech</button>
-          </div>
-        </div>
-      ) : (
-        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ minHeight: "100vh" }}>
-          <div className={`drawer-overlay ${drawerOpen ? "" : "hidden"}`} onClick={() => setDrawerOpen(false)} />
-          <div className={`drawer ${drawerOpen ? "open" : ""}`}>
-            <div style={{ padding: "20px 20px 14px", borderBottom: `1px solid ${G.border}` }}>
-              <div style={{ color: G.green2, fontSize: 18, fontWeight: 900, letterSpacing: 3 }}>🌿 MELLOWTECH</div>
-              <div style={{ color: "#334155", fontSize: 9, letterSpacing: 2, marginTop: 2 }}>EMISSION INTELLIGENCE</div>
-            </div>
-            <div style={{ padding: "12px 20px", borderBottom: `1px solid ${G.border}` }}>
-              <div style={{ color: G.text, fontSize: 13, fontWeight: 600 }}>👤 {appState.username}</div>
-              <div style={{ color: G.green, fontSize: 11, marginTop: 2 }}>{appState.greenPoints} Green Points</div>
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-              {NAV.map(n => (
-                <div key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
-                  <span className="nav-icon">{n.icon}</span>
-                  <span>{n.label}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ padding: "12px 20px", borderTop: `1px solid ${G.border}` }}>
-              <div style={{ color: G.muted, fontSize: 10, letterSpacing: 2, marginBottom: 4 }}>ECO SCORE</div>
-              <div className="pbar-bg"><div className="pbar-fill" style={{ width: `${appState.ecoScore}%`, background: G.green }} /></div>
-              <div style={{ color: G.green2, fontSize: 13, fontWeight: 700, marginTop: 4 }}>{appState.ecoScore}/100</div>
-            </div>
-            <div style={{ padding: "12px 20px", borderTop: `1px solid ${G.border}` }}>
-              <button className="btn-sm" style={{ width: "100%" }} onClick={() => { setLoggedIn(false); setUsername(""); setPassword(""); setPage("dashboard"); }}>Sign Out</button>
-            </div>
-          </div>
-          <div className="topbar">
-            <button className="hamburger" onClick={() => setDrawerOpen(o => !o)} aria-label="Open menu">
-              <span /><span /><span />
-            </button>
-            <span className="topbar-title">MELLOWTECH</span>
-            <span style={{ marginLeft: "auto", color: IS_RUSH ? G.red : G.green, fontSize: 11, fontWeight: 700 }}>
-              {IS_RUSH ? "RUSH HOUR" : "TRAFFIC CLEAR"}
-            </span>
-          </div>
-          <main className="content" style={{ paddingTop: 16 }}>
-            {PAGES[page]}
-          </main>
-        </div>
-      )}
-    </>
-  );
-}
+if __name__ == "__main__":
+    main()
