@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 from datetime import datetime
 
 # ─── PAGE CONFIG ─────────────────────────────────────────────────────────────
@@ -36,11 +35,11 @@ html, body, [class*="css"] { font-family: 'Exo 2', sans-serif; }
 .kpi-card.amber::before { background: linear-gradient(90deg,transparent,#f59e0b,transparent); }
 .kpi-card.blue::before  { background: linear-gradient(90deg,transparent,#38bdf8,transparent); }
 
-.kpi-val   { font-family: 'Share Tech Mono', monospace; font-size: 1.7rem; font-weight: 900; color: #4ade80; }
-.kpi-val.red   { color: #ef4444; }
-.kpi-val.amber { color: #f59e0b; }
-.kpi-val.blue  { color: #38bdf8; }
-.kpi-lbl   { font-size: 9px; letter-spacing: 3px; color: #475569; text-transform: uppercase; margin-top: 4px; }
+.kpi-val        { font-family: 'Share Tech Mono', monospace; font-size: 1.7rem; font-weight: 900; color: #4ade80; }
+.kpi-val.red    { color: #ef4444; }
+.kpi-val.amber  { color: #f59e0b; }
+.kpi-val.blue   { color: #38bdf8; }
+.kpi-lbl        { font-size: 9px; letter-spacing: 3px; color: #475569; text-transform: uppercase; margin-top: 4px; }
 
 .alert-red   { background: #1c0a0a; border: 1px solid #7f1d1d; border-left: 4px solid #ef4444;
                border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
@@ -62,10 +61,6 @@ html, body, [class*="css"] { font-family: 'Exo 2', sans-serif; }
 .route-blue  { background:#071520; border:2px solid #38bdf8; border-radius:14px; padding:16px; }
 .route-red   { background:#1c0a0a; border:2px solid #ef4444; border-radius:14px; padding:16px; }
 .mono-val    { font-family:'Share Tech Mono',monospace; font-size:1.3rem; font-weight:900; }
-
-.lb-row      { background:#0a0f1e; border:1px solid #1e293b; border-radius:8px;
-               padding:10px 14px; margin-bottom:6px; display:flex; align-items:center; gap:14px; }
-.lb-row.me   { background:#0d2318; border-color:#166534; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -83,8 +78,7 @@ LOCATIONS = {
 LOC_NAMES = list(LOCATIONS.keys())
 
 def seeded_rand(seed):
-    """LCG pseudo-random generator matching JS version."""
-    s = [seed & 0xFFFFFFFF]
+    s = [int(seed) & 0xFFFFFFFF]
     def _next():
         s[0] = (s[0] * 1664525 + 1013904223) & 0xFFFFFFFF
         return s[0] / 0xFFFFFFFF
@@ -102,7 +96,7 @@ def emission_level(c):
         return {"label": "HIGH",   "color": "#ef4444"}
     if c > 40:
         return {"label": "MEDIUM", "color": "#f59e0b"}
-    return {"label": "LOW",    "color": "#22c55e"}
+    return {"label": "LOW",        "color": "#22c55e"}
 
 now      = datetime.now()
 HOUR     = now.hour
@@ -113,14 +107,14 @@ DATE_STR = now.strftime("%d %b %Y")
 # ─── SESSION STATE INIT ──────────────────────────────────────────────────────
 def init_state():
     defaults = {
-        "logged_in":    False,
-        "page":         "dashboard",
-        "username":     "",
-        "green_points": 0,
-        "eco_score":    72,
-        "trips":        0,
-        "home_loc":     "Home",
-        "driving_mode": "Normal Mode",
+        "logged_in":     False,
+        "page":          "dashboard",
+        "username":      "",
+        "green_points":  0,
+        "eco_score":     72,
+        "trips":         0,
+        "home_loc":      "Home",
+        "driving_mode":  "Normal Mode",
         "weekly_scores": [55, 61, 58, 67, 70, 68, 72],
     }
     for k, v in defaults.items():
@@ -129,13 +123,11 @@ def init_state():
 
 init_state()
 
-# ─── HELPER: KPI CARD HTML ───────────────────────────────────────────────────
+# ─── HTML HELPERS ─────────────────────────────────────────────────────────────
 def kpi_card(value, label, color_cls=""):
-    val_cls = color_cls if color_cls else ""
-    card_cls = color_cls if color_cls else ""
     return f"""
-    <div class="kpi-card {card_cls}">
-      <div class="kpi-val {val_cls}">{value}</div>
+    <div class="kpi-card {color_cls}">
+      <div class="kpi-val {color_cls}">{value}</div>
       <div class="kpi-lbl">{label}</div>
     </div>"""
 
@@ -150,7 +142,7 @@ def login_page():
     st.markdown('<div class="mt-title">🌿 MELLOWTECH</div>', unsafe_allow_html=True)
     st.markdown('<div class="mt-sub">Smart Emission Intelligence System</div>', unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    _, col2, _ = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("### 🔑 Sign In")
         st.caption("PROTECTING THE PLANET, ONE TRIP AT A TIME")
@@ -170,7 +162,7 @@ def login_page():
 # ─── SIDEBAR NAV ─────────────────────────────────────────────────────────────
 def sidebar_nav():
     with st.sidebar:
-        st.markdown(f"### 🌿 MELLOWTECH")
+        st.markdown("### 🌿 MELLOWTECH")
         st.caption("EMISSION INTELLIGENCE")
         st.divider()
         st.markdown(f"**👤 {st.session_state['username']}**")
@@ -201,10 +193,8 @@ def sidebar_nav():
         st.markdown(f"**{eco}/100**")
         st.divider()
         if st.button("🔓 Sign Out", use_container_width=True):
-            for k in ["logged_in", "username", "green_points", "eco_score",
-                      "trips", "home_loc", "driving_mode", "weekly_scores", "page"]:
-                if k in st.session_state:
-                    del st.session_state[k]
+            for k in list(st.session_state.keys()):
+                del st.session_state[k]
             init_state()
             st.rerun()
 
@@ -220,7 +210,6 @@ def page_dashboard():
     savings = round(gp * 0.12, 2)
     fuel    = round(gp * 0.05, 2)
 
-    # KPI row 1
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(kpi_card(TIME_STR, DATE_STR, "blue"), unsafe_allow_html=True)
@@ -235,9 +224,13 @@ def page_dashboard():
 
     st.markdown("")
     if IS_RUSH:
-        st.markdown('<div class="alert-red"><b style="color:#ef4444">⚠️ HIGH EMISSION ALERT</b><br><span style="color:#fca5a5;font-size:13px">Rush hour — consider delaying or choosing a clean route.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-red"><b style="color:#ef4444">⚠️ HIGH EMISSION ALERT</b><br>'
+                    '<span style="color:#fca5a5;font-size:13px">Rush hour — consider delaying or choosing a clean route.</span></div>',
+                    unsafe_allow_html=True)
     else:
-        st.markdown('<div class="alert-green"><b style="color:#22c55e">✅ LOW EMISSION CONDITIONS</b><br><span style="color:#86efac;font-size:13px">Traffic is clear — great time to travel and earn Green Points.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-green"><b style="color:#22c55e">✅ LOW EMISSION CONDITIONS</b><br>'
+                    '<span style="color:#86efac;font-size:13px">Traffic is clear — great time to travel and earn Green Points.</span></div>',
+                    unsafe_allow_html=True)
 
     st.markdown("**Real-Time City Emission Pulse**")
     pulse_data = [{"name": n, "value": congestion_for(i * 7 + 1, HOUR)} for i, n in enumerate(LOC_NAMES)]
@@ -253,7 +246,8 @@ def page_dashboard():
         plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e",
         font_color="#475569", height=220,
         margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(gridcolor="#1e293b"), yaxis=dict(gridcolor="#1e293b", range=[0, 100]),
+        xaxis=dict(gridcolor="#1e293b"),
+        yaxis=dict(gridcolor="#1e293b", range=[0, 100]),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -269,7 +263,9 @@ def page_dashboard():
         st.markdown(kpi_card(gp, "TOTAL GREEN POINTS"), unsafe_allow_html=True)
 
     st.markdown("")
-    st.markdown('<div class="alert-green"><b style="color:#22c55e">Why It Matters</b><br><span style="color:#86efac;font-size:13px">Every clean trip earns Green Points redeemable for real rewards while reducing urban air pollution.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Why It Matters</b><br>'
+                '<span style="color:#86efac;font-size:13px">Every clean trip earns Green Points redeemable for real rewards while reducing urban air pollution.</span></div>',
+                unsafe_allow_html=True)
 
 # ─── PAGE: SMART ROUTES ──────────────────────────────────────────────────────
 def page_routes():
@@ -315,8 +311,7 @@ def page_routes():
           <div style="margin-top:10px;background:#0a1a2e;border-radius:8px;padding:8px;font-size:12px;color:#7dd3fc">
             Smooth flow · Earn +15 Green Points
           </div>
-        </div>
-        """, unsafe_allow_html=True)
+        </div>""", unsafe_allow_html=True)
     with rc2:
         st.markdown(f"""
         <div class="route-red">
@@ -331,18 +326,20 @@ def page_routes():
           <div style="margin-top:10px;background:#1c0808;border-radius:8px;padding:8px;font-size:12px;color:#fca5a5">
             Stop-and-go · High idling · More fuel
           </div>
-        </div>
-        """, unsafe_allow_html=True)
+        </div>""", unsafe_allow_html=True)
 
     st.markdown("")
     co2_diff  = round(co2_b - co2_a, 2)
     fuel_diff = round((fuel_b - fuel_a) * 20, 2)
-    st.markdown(f'<div class="alert-green"><b style="color:#22c55e">Smart Advisor</b><br><span style="color:#86efac;font-size:13px">Taking the Clean Route saves <b>{co2_diff} kg CO2</b> and ~<b>R{fuel_diff}</b> in fuel. Earn <b>+15 Green Points</b>.</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="alert-green"><b style="color:#22c55e">Smart Advisor</b><br>'
+                f'<span style="color:#86efac;font-size:13px">Taking the Clean Route saves <b>{co2_diff} kg CO2</b> '
+                f'and ~<b>R{fuel_diff}</b> in fuel. Earn <b>+15 Green Points</b>.</span></div>',
+                unsafe_allow_html=True)
 
     if st.button("🚗 Take Clean Route — Start Trip", type="primary", use_container_width=True):
         st.session_state["green_points"] += 15
         st.session_state["trips"]        += 1
-        st.session_state["eco_score"]    = min(100, st.session_state["eco_score"] + 1)
+        st.session_state["eco_score"]     = min(100, st.session_state["eco_score"] + 1)
         st.success(f"✅ Trip started! +15 pts added. Total: {st.session_state['green_points']} pts")
         st.rerun()
 
@@ -359,24 +356,31 @@ def page_alerts():
     rpm    = int(r() * 3200) + 800
 
     if em_pct > 65:
-        st.markdown('<div class="alert-red"><b style="color:#ef4444;font-size:16px">🔴 HIGH EMISSION DETECTED</b><br><span style="color:#fca5a5;font-size:13px">Above-normal emissions. Reduce speed and check diagnostics.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-red"><b style="color:#ef4444;font-size:16px">🔴 HIGH EMISSION DETECTED</b><br>'
+                    '<span style="color:#fca5a5;font-size:13px">Above-normal emissions. Reduce speed and check diagnostics.</span></div>',
+                    unsafe_allow_html=True)
     elif em_pct > 40:
-        st.markdown('<div class="alert-amber"><b style="color:#f59e0b;font-size:16px">🟡 MODERATE EMISSIONS</b><br><span style="color:#fde68a;font-size:13px">Slightly elevated — maintain steady speed and avoid sudden braking.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-amber"><b style="color:#f59e0b;font-size:16px">🟡 MODERATE EMISSIONS</b><br>'
+                    '<span style="color:#fde68a;font-size:13px">Slightly elevated — maintain steady speed and avoid sudden braking.</span></div>',
+                    unsafe_allow_html=True)
     else:
-        st.markdown('<div class="alert-green"><b style="color:#22c55e;font-size:16px">🟢 LOW EMISSIONS — CLEAN DRIVING</b><br><span style="color:#86efac;font-size:13px">Excellent! Keep it up and earn Green Points.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-green"><b style="color:#22c55e;font-size:16px">🟢 LOW EMISSIONS — CLEAN DRIVING</b><br>'
+                    '<span style="color:#86efac;font-size:13px">Excellent! Keep it up and earn Green Points.</span></div>',
+                    unsafe_allow_html=True)
+
+    em_cls  = "red"   if em_pct > 65 else ("amber" if em_pct > 40 else "")
+    id_cls  = "amber" if idle > 2     else ""
+    rpm_cls = "red"   if rpm > 3000   else ""
 
     c1, c2, c3, c4 = st.columns(4)
-    em_cls = "red" if em_pct > 65 else ("amber" if em_pct > 40 else "")
-    id_cls = "amber" if idle > 2 else ""
-    rpm_cls = "red" if rpm > 3000 else ""
     with c1:
-        st.markdown(kpi_card(f"{em_pct}%", "EMISSION LEVEL", em_cls), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"{em_pct}%",   "EMISSION LEVEL", em_cls),  unsafe_allow_html=True)
     with c2:
-        st.markdown(kpi_card(f"{speed} km/h", "SPEED", "blue"), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"{speed} km/h", "SPEED",          "blue"),  unsafe_allow_html=True)
     with c3:
-        st.markdown(kpi_card(f"{idle} min", "IDLE TIME", id_cls), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"{idle} min",   "IDLE TIME",       id_cls), unsafe_allow_html=True)
     with c4:
-        st.markdown(kpi_card(rpm, "ENGINE RPM", rpm_cls), unsafe_allow_html=True)
+        st.markdown(kpi_card(rpm,             "ENGINE RPM",      rpm_cls),unsafe_allow_html=True)
 
     st.markdown("")
     st.markdown("**Speed & Emission Relationship**")
@@ -391,10 +395,13 @@ def page_alerts():
         font_color="#475569", height=200,
         margin=dict(l=10, r=10, t=10, b=10),
         xaxis=dict(title="Speed (km/h)", gridcolor="#1e293b"),
-        yaxis=dict(title="Emission %", gridcolor="#1e293b"),
+        yaxis=dict(title="Emission %",   gridcolor="#1e293b"),
     )
     st.plotly_chart(fig, use_container_width=True)
-    st.markdown('<div class="alert-green"><b style="color:#22c55e">Key Insight</b> <span style="color:#86efac;font-size:13px">Driving at a steady 60-80 km/h produces the least pollution. Stop-and-go and high speeds burn significantly more fuel.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Key Insight</b> '
+                '<span style="color:#86efac;font-size:13px">Driving at a steady 60-80 km/h produces the least pollution. '
+                'Stop-and-go and high speeds burn significantly more fuel.</span></div>',
+                unsafe_allow_html=True)
 
     st.markdown("**Action Plan**")
     actions = [
@@ -419,12 +426,11 @@ def page_analytics():
 
     tab0, tab1, tab2, tab3 = st.tabs(["📈 Hourly Trends", "🗺️ Zone Emissions", "💰 Cost Impact", "🔥 Heatmap"])
 
-    # TAB 0 — Hourly trends
     with tab0:
         st.markdown("**24-Hour Emission & Speed Trends**")
         hourly = []
         for h in range(24):
-            r = seeded_rand(h * 5 + 3)
+            r  = seeded_rand(h * 5 + 3)
             em = int(r() * 35) + 15
             if (7 <= h <= 9) or (16 <= h <= 18):
                 em = min(100, em + 35)
@@ -432,9 +438,9 @@ def page_analytics():
         df_h = pd.DataFrame(hourly)
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df_h["hour"], y=df_h["emission"], name="Emission %",
-                                  line=dict(color="#ef4444", width=2), mode="lines"))
+                                 line=dict(color="#ef4444", width=2), mode="lines"))
         fig.add_trace(go.Scatter(x=df_h["hour"], y=df_h["speed"],    name="Speed km/h",
-                                  line=dict(color="#38bdf8", width=2), mode="lines"))
+                                 line=dict(color="#38bdf8", width=2), mode="lines"))
         fig.update_layout(
             plot_bgcolor="#0a0f1e", paper_bgcolor="#0a0f1e", font_color="#475569",
             height=240, margin=dict(l=10, r=10, t=10, b=10),
@@ -443,13 +449,14 @@ def page_analytics():
             legend=dict(bgcolor="#0a0f1e", bordercolor="#1e293b"),
         )
         st.plotly_chart(fig, use_container_width=True)
-        st.markdown('<div class="alert-amber"><b style="color:#f59e0b">Peak:</b> <span style="color:#fde68a;font-size:13px">Rush hours 07:00–09:00 and 16:00–18:00. Cleanest window: 10:00–15:00.</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="alert-amber"><b style="color:#f59e0b">Peak:</b> '
+                    '<span style="color:#fde68a;font-size:13px">Rush hours 07:00–09:00 and 16:00–18:00. '
+                    'Cleanest window: 10:00–15:00.</span></div>', unsafe_allow_html=True)
 
-    # TAB 1 — Zone emissions
     with tab1:
         st.markdown("**Zone Emission Status**")
         for i, name in enumerate(LOC_NAMES):
-            c = congestion_for(i * 11 + 2, HOUR)
+            c  = congestion_for(i * 11 + 2, HOUR)
             el = emission_level(c)
             st.markdown(f"""
             <div style="background:#0a0f1e;border:1px solid #1e293b;border-radius:10px;padding:12px;margin-bottom:8px">
@@ -462,11 +469,10 @@ def page_analytics():
               <div style="color:#64748b;font-size:12px">{c}% congestion</div>
             </div>""", unsafe_allow_html=True)
 
-    # TAB 2 — Cost Impact
     with tab2:
         st.markdown("**Fuel Cost Impact Estimator**")
         weekly_km   = st.slider("Weekly Driving (km)", 50, 500, 200, key="ana_km")
-        fuel_price  = st.slider("Fuel Price (R/L)",    18, 30,  22,  key="ana_fp")
+        fuel_price  = st.slider("Fuel Price (R/L)",    18, 30,   22, key="ana_fp")
         drive_style = st.selectbox("Driving Style", ["Aggressive", "Moderate", "Eco"], index=1, key="ana_ds")
         cons_map    = {"Aggressive": 12, "Moderate": 8, "Eco": 6}
         litres   = weekly_km / 100 * cons_map[drive_style]
@@ -476,24 +482,25 @@ def page_analytics():
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.markdown(kpi_card(f"R{cost_wk}", "WEEKLY FUEL COST", "amber"), unsafe_allow_html=True)
+            st.markdown(kpi_card(f"R{cost_wk}",              "WEEKLY FUEL COST",  "amber"), unsafe_allow_html=True)
         with c2:
-            st.markdown(kpi_card(f"{co2_wk} kg", "CO2 PER WEEK", "red"), unsafe_allow_html=True)
+            st.markdown(kpi_card(f"{co2_wk} kg",             "CO2 PER WEEK",      "red"),   unsafe_allow_html=True)
         with c3:
-            st.markdown(kpi_card(f"R{round(cost_wk * 4.3)}", "MONTHLY COST", "red"), unsafe_allow_html=True)
+            st.markdown(kpi_card(f"R{round(cost_wk*4.3)}",   "MONTHLY COST",      "red"),   unsafe_allow_html=True)
         with c4:
-            st.markdown(kpi_card(f"R{eco_save}", "POTENTIAL SAVING/WK"), unsafe_allow_html=True)
+            st.markdown(kpi_card(f"R{eco_save}",             "POTENTIAL SAVING/WK"),         unsafe_allow_html=True)
 
         if eco_save > 0:
-            st.markdown(f'<div class="alert-amber" style="margin-top:10px"><b style="color:#f59e0b">Tip:</b> <span style="color:#fde68a;font-size:13px">Switch to Eco driving to save R{eco_save}/week (R{round(eco_save*52)}/year).</span></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="alert-amber" style="margin-top:10px"><b style="color:#f59e0b">Tip:</b> '
+                        f'<span style="color:#fde68a;font-size:13px">Switch to Eco driving to save R{eco_save}/week '
+                        f'(R{round(eco_save*52)}/year).</span></div>', unsafe_allow_html=True)
 
-    # TAB 3 — Heatmap
     with tab3:
         st.markdown("**Weekly Emission Heatmap**")
         DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
         HRS  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
         z_data = []
-        for di, d in enumerate(DAYS):
+        for di, _ in enumerate(DAYS):
             row = []
             for h in HRS:
                 r = seeded_rand(di * 100 + h)
@@ -526,14 +533,14 @@ def page_ecoscore():
     st.caption("Your environmental driving rating")
     st.divider()
 
-    s       = st.session_state["eco_score"]
-    gp      = st.session_state["green_points"]
-    uname   = st.session_state["username"]
-    grade   = "A" if s >= 80 else ("B" if s >= 65 else ("C" if s >= 50 else "D"))
-    g_col   = "#22c55e" if s >= 80 else ("#4ade80" if s >= 65 else ("#f59e0b" if s >= 50 else "#ef4444"))
-    label   = ("Excellent Eco Driver" if s >= 80 else
-               "Good Eco Driver"      if s >= 65 else
-               "Average Driver"       if s >= 50 else "High Emission Driver")
+    s     = st.session_state["eco_score"]
+    gp    = st.session_state["green_points"]
+    uname = st.session_state["username"]
+    grade = "A" if s >= 80 else ("B" if s >= 65 else ("C" if s >= 50 else "D"))
+    g_col = "#22c55e" if s >= 80 else ("#4ade80" if s >= 65 else ("#f59e0b" if s >= 50 else "#ef4444"))
+    label = ("Excellent Eco Driver" if s >= 80 else
+             "Good Eco Driver"      if s >= 65 else
+             "Average Driver"       if s >= 50 else "High Emission Driver")
 
     weekly_scores = st.session_state["weekly_scores"]
     week_labels   = ["6wk ago","5wk ago","4wk ago","3wk ago","2wk ago","Last wk","This wk"]
@@ -563,18 +570,18 @@ def page_ecoscore():
 
     st.markdown("**Score Breakdown**")
     factors = [
-        ("Route Choices",    78, "#22c55e"),
-        ("Speed Consistency",65, "#4ade80"),
-        ("Idle Management",  82, "#22c55e"),
-        ("Trip Efficiency",  70, "#f59e0b"),
-        ("Emission Level",   55, "#f59e0b"),
-        ("Carpooling Bonus", 40, "#ef4444"),
+        ("Route Choices",     78, "#22c55e"),
+        ("Speed Consistency", 65, "#4ade80"),
+        ("Idle Management",   82, "#22c55e"),
+        ("Trip Efficiency",   70, "#f59e0b"),
+        ("Emission Level",    55, "#f59e0b"),
+        ("Carpooling Bonus",  40, "#ef4444"),
     ]
-    for name, val, color in factors:
+    for fname, val, color in factors:
         st.markdown(f"""
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:13px;color:#e2e8f0">{name}</span>
+            <span style="font-size:13px;color:#e2e8f0">{fname}</span>
             <span style="color:{color};font-weight:700">{val}/100</span>
           </div>
           {progress_bar(val, color)}
@@ -582,28 +589,30 @@ def page_ecoscore():
 
     st.markdown("**Driver Leaderboard**")
     leaderboard = [
-        {"rank": "🥇 1st", "driver": "EcoDriver_01",   "score": 96, "pts": 1240, "co2": 148},
-        {"rank": "🥈 2nd", "driver": "GreenWheels",     "score": 91, "pts": 985,  "co2": 118},
-        {"rank": "🥉 3rd", "driver": "CleanCommuter",   "score": 88, "pts": 872,  "co2": 104},
-        {"rank": "4th",    "driver": uname,              "score": s,  "pts": gp,   "co2": round(gp * 0.12, 1)},
-        {"rank": "5th",    "driver": "QuickRacer",       "score": 43, "pts": 120,  "co2": 14},
+        {"rank": "🥇 1st", "driver": "EcoDriver_01",  "score": 96, "pts": 1240, "co2": 148},
+        {"rank": "🥈 2nd", "driver": "GreenWheels",    "score": 91, "pts": 985,  "co2": 118},
+        {"rank": "🥉 3rd", "driver": "CleanCommuter",  "score": 88, "pts": 872,  "co2": 104},
+        {"rank": "4th",    "driver": uname,             "score": s,  "pts": gp,   "co2": round(gp * 0.12, 1)},
+        {"rank": "5th",    "driver": "QuickRacer",      "score": 43, "pts": 120,  "co2": 14},
     ]
-    headers = ["Rank", "Driver", "Eco Score", "Green Pts", "CO2 Saved"]
-    header_html = "".join(f'<th style="padding:8px 10px;color:#475569;text-align:left;font-size:11px">{h}</th>' for h in headers)
+    headers     = ["Rank", "Driver", "Eco Score", "Green Pts", "CO2 Saved"]
+    header_html = "".join(f'<th style="padding:8px 10px;color:#475569;text-align:left;font-size:11px">{h}</th>'
+                          for h in headers)
     rows_html = ""
     for row in leaderboard:
-        is_me  = row["driver"] == uname
-        bg     = "#0d2318" if is_me else "transparent"
-        dcol   = "#4ade80" if is_me else "#e2e8f0"
-        dweight= "700"     if is_me else "400"
-        rows_html += f"""
-        <tr style="border-bottom:1px solid #1e293b;background:{bg}">
-          <td style="padding:8px 10px;color:#e2e8f0">{row['rank']}</td>
-          <td style="padding:8px 10px;color:{dcol};font-weight:{dweight}">{row['driver']}</td>
-          <td style="padding:8px 10px;font-family:monospace;color:#4ade80">{row['score']}</td>
-          <td style="padding:8px 10px;font-family:monospace;color:#f59e0b">{row['pts']}</td>
-          <td style="padding:8px 10px;font-family:monospace;color:#38bdf8">{row['co2']} kg</td>
-        </tr>"""
+        is_me   = row["driver"] == uname
+        bg      = "#0d2318"  if is_me else "transparent"
+        dcol    = "#4ade80"  if is_me else "#e2e8f0"
+        dweight = "700"      if is_me else "400"
+        rows_html += (
+            f'<tr style="border-bottom:1px solid #1e293b;background:{bg}">'
+            f'<td style="padding:8px 10px;color:#e2e8f0">{row["rank"]}</td>'
+            f'<td style="padding:8px 10px;color:{dcol};font-weight:{dweight}">{row["driver"]}</td>'
+            f'<td style="padding:8px 10px;font-family:monospace;color:#4ade80">{row["score"]}</td>'
+            f'<td style="padding:8px 10px;font-family:monospace;color:#f59e0b">{row["pts"]}</td>'
+            f'<td style="padding:8px 10px;font-family:monospace;color:#38bdf8">{row["co2"]} kg</td>'
+            f'</tr>'
+        )
     st.markdown(f"""
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -631,17 +640,17 @@ def page_rewards():
     </div>""", unsafe_allow_html=True)
 
     rewards = [
-        ("⛽ Fuel Voucher",        50,  "Save R10 at participating fuel stations",   "#f59e0b"),
-        ("💳 Petrol Discount 10%", 120, "10% off your next full tank",               "#f59e0b"),
-        ("🛍️ Shopping Voucher R50",100, "Redeem at partner retailers",               "#38bdf8"),
-        ("🚌 Transport Credit",    80,  "Bus or taxi credit for 5 trips",            "#22c55e"),
-        ("🔧 Free Vehicle Check",  200, "Emission diagnostic + engine check",        "#a78bfa"),
-        ("🌳 Tree Planting Credit",30,  "Sponsor a tree planted in your name",       "#22c55e"),
-        ("🏪 Partner Discounts",   60,  "Discounts at eco-friendly stores",          "#38bdf8"),
-        ("👑 Premium Eco Status",  500, "Unlock premium leaderboard + extra pts",    "#f59e0b"),
+        ("⛽ Fuel Voucher",         50,  "Save R10 at participating fuel stations",  "#f59e0b"),
+        ("💳 Petrol Discount 10%",  120, "10% off your next full tank",              "#f59e0b"),
+        ("🛍️ Shopping Voucher R50", 100, "Redeem at partner retailers",              "#38bdf8"),
+        ("🚌 Transport Credit",     80,  "Bus or taxi credit for 5 trips",           "#22c55e"),
+        ("🔧 Free Vehicle Check",   200, "Emission diagnostic + engine check",       "#a78bfa"),
+        ("🌳 Tree Planting Credit", 30,  "Sponsor a tree planted in your name",      "#22c55e"),
+        ("🏪 Partner Discounts",    60,  "Discounts at eco-friendly stores",         "#38bdf8"),
+        ("👑 Premium Eco Status",   500, "Unlock premium leaderboard + extra pts",   "#f59e0b"),
     ]
     cols = st.columns(2)
-    for idx, (name, cost, desc, color) in enumerate(rewards):
+    for idx, (rname, cost, desc, color) in enumerate(rewards):
         can    = pts >= cost
         border = f"{color}55" if can else "#1e293b"
         ncol   = "#e2e8f0"    if can else "#334155"
@@ -650,7 +659,7 @@ def page_rewards():
         with cols[idx % 2]:
             st.markdown(f"""
             <div class="reward-card" style="border-color:{border}">
-              <div style="font-weight:700;font-size:14px;color:{ncol}">{name}</div>
+              <div style="font-weight:700;font-size:14px;color:{ncol}">{rname}</div>
               <div style="color:#64748b;font-size:12px;margin:4px 0">{desc}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
                 <span style="font-family:monospace;font-size:1.1rem;font-weight:900;color:{color}">{cost} pts</span>
@@ -662,10 +671,10 @@ def page_rewards():
     earn_tips = [
         ("🗺️ Clean Routes",     "+15 pts/trip"),
         ("⚡ Steady Speed",      "+5 pts/trip"),
-        ("🚌 Public Transport", "+20 pts/trip"),
-        ("🚫 No Idling",        "+3 pts"),
-        ("🤝 Carpool",          "+25 pts/trip"),
-        ("🔧 Vehicle Service",  "+50 pts"),
+        ("🚌 Public Transport",  "+20 pts/trip"),
+        ("🚫 No Idling",         "+3 pts"),
+        ("🤝 Carpool",           "+25 pts/trip"),
+        ("🔧 Vehicle Service",   "+50 pts"),
     ]
     tip_cols = st.columns(2)
     for i, (tip, val) in enumerate(earn_tips):
@@ -709,32 +718,38 @@ def page_profile():
 
     with c2:
         st.markdown("**Preferences**")
-        new_name = st.text_input("Display Name", value=st.session_state["username"], key="prof_name")
+        new_name = st.text_input("Display Name",
+                                 value=st.session_state["username"], key="prof_name")
         new_home = st.selectbox("Home Location", LOC_NAMES,
-                                index=LOC_NAMES.index(st.session_state["home_loc"]), key="prof_home")
-        new_mode = st.selectbox("Default Driving Mode", ["Eco Mode", "Normal Mode", "Fast Mode"],
-                                index=["Eco Mode","Normal Mode","Fast Mode"].index(st.session_state["driving_mode"]),
+                                index=LOC_NAMES.index(st.session_state["home_loc"]),
+                                key="prof_home")
+        modes    = ["Eco Mode", "Normal Mode", "Fast Mode"]
+        new_mode = st.selectbox("Default Driving Mode", modes,
+                                index=modes.index(st.session_state["driving_mode"]),
                                 key="prof_mode")
         if st.button("💾 Save Preferences", type="primary"):
-            st.session_state["username"]     = new_name
-            st.session_state["home_loc"]     = new_home
-            st.session_state["driving_mode"] = new_mode
+            st.session_state["username"]    = new_name
+            st.session_state["home_loc"]    = new_home
+            st.session_state["driving_mode"]= new_mode
             st.success("✅ Preferences saved!")
             st.rerun()
 
     st.markdown("**My Environmental Impact**")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(kpi_card(f"{co2} kg", "CO2 SAVED"), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"{co2} kg",            "CO2 SAVED"),              unsafe_allow_html=True)
     with c2:
-        st.markdown(kpi_card(f"{fuel} L", "FUEL SAVED", "amber"), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"{fuel} L",             "FUEL SAVED",   "amber"), unsafe_allow_html=True)
     with c3:
-        st.markdown(kpi_card(f"R{round(fuel*22,2)}", "MONEY SAVED", "blue"), unsafe_allow_html=True)
+        st.markdown(kpi_card(f"R{round(fuel*22,2)}", "MONEY SAVED",  "blue"),  unsafe_allow_html=True)
     with c4:
-        st.markdown(kpi_card(trips, "TRIPS DONE"), unsafe_allow_html=True)
+        st.markdown(kpi_card(trips,                   "TRIPS DONE"),            unsafe_allow_html=True)
 
     st.markdown("")
-    st.markdown('<div class="alert-green"><b style="color:#22c55e">Your Climate Contribution</b><br><span style="color:#86efac;font-size:13px">By using MellowTech you help reduce urban air pollution and contribute to South Africa\'s climate goals. Every clean trip counts.</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="alert-green"><b style="color:#22c55e">Your Climate Contribution</b><br>'
+                '<span style="color:#86efac;font-size:13px">By using MellowTech you help reduce urban air pollution '
+                "and contribute to South Africa's climate goals. Every clean trip counts.</span></div>",
+                unsafe_allow_html=True)
 
 # ─── MAIN APP ─────────────────────────────────────────────────────────────────
 def main():
@@ -744,12 +759,12 @@ def main():
 
     sidebar_nav()
 
-    traffic_badge = (
-        f'<span style="color:#ef4444;font-size:13px;font-weight:700">⚠️ RUSH HOUR</span>'
-        if IS_RUSH else
-        f'<span style="color:#22c55e;font-size:13px;font-weight:700">✅ TRAFFIC CLEAR</span>'
-    )
-    st.markdown(traffic_badge, unsafe_allow_html=True)
+    if IS_RUSH:
+        st.markdown('<span style="color:#ef4444;font-size:13px;font-weight:700">⚠️ RUSH HOUR</span>',
+                    unsafe_allow_html=True)
+    else:
+        st.markdown('<span style="color:#22c55e;font-size:13px;font-weight:700">✅ TRAFFIC CLEAR</span>',
+                    unsafe_allow_html=True)
 
     page = st.session_state["page"]
     if   page == "dashboard": page_dashboard()
@@ -760,5 +775,4 @@ def main():
     elif page == "rewards":   page_rewards()
     elif page == "profile":   page_profile()
 
-if __name__ == "__main__":
-    main()
+main()
