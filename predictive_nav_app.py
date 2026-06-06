@@ -56,8 +56,23 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Share+Tech+Mono&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif; overflow-x: hidden; }
-::-webkit-scrollbar { width: 5px; }
+body { background: ${G.bg0}; color: ${G.text}; font-family: 'Exo 2', sans-serif; overflow-x: hidden;
+st.markdown("""
+<style>
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0f1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1e3a4f;
+    border-radius: 4px;
+}
+</style>
+""", unsafe_allow_html=True)
 ::-webkit-scrollbar-track { background: ${G.bg1}; }
 ::-webkit-scrollbar-thumb { background: #1e3a4f; border-radius: 4px; }
 .mono { font-family: 'Share Tech Mono', monospace; }
