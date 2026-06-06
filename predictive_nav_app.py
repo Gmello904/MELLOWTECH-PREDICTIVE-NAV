@@ -10,6 +10,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ------------------------------------------------
+# SESSION STATE
+# ------------------------------------------------
 defaults = {
     "logged_in": False,
     "username": "",
@@ -32,11 +35,9 @@ if not st.session_state.loaded:
         time.sleep(0.8)
     st.session_state.loaded = True
 
-ICONS = {
-    "leaf": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>""",
-    "profile": """<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>""",
-}
-
+# ------------------------------------------------
+# STYLE
+# ------------------------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;800;900&family=Share+Tech+Mono&display=swap');
@@ -63,18 +64,19 @@ st.markdown("""
     background: #080d1a !important;
     border-right: 1px solid var(--border) !important;
 }
-[data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
+[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
 
+/* --- NAV RADIO --- */
 div[role="radiogroup"] { gap: 0 !important; }
 
 div[role="radiogroup"] > label {
     display: flex !important;
     align-items: center !important;
-    padding: 11px 20px !important;
+    padding: 12px 20px !important;
     margin: 2px 8px !important;
     border-radius: 10px !important;
     color: #64748b !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     background: transparent !important;
@@ -83,35 +85,30 @@ div[role="radiogroup"] > label {
     letter-spacing: 0.3px !important;
     width: calc(100% - 16px) !important;
 }
-
 div[role="radiogroup"] > label:hover {
     background: #0d1f2e !important;
     color: #94a3b8 !important;
 }
-
 div[role="radiogroup"] > label:has(input:checked) {
     background: linear-gradient(90deg, #0d2318, #0a1f14) !important;
     color: #4ade80 !important;
     border-left: 3px solid #22c55e !important;
     padding-left: 17px !important;
 }
-
-div[role="radiogroup"] > label > div:first-child {
-    display: none !important;
-}
-
+div[role="radiogroup"] > label > div:first-child { display: none !important; }
 div[role="radiogroup"] > label > div:last-child p {
     font-family: 'Exo 2', sans-serif !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.3px !important;
     margin: 0 !important;
     color: inherit !important;
 }
 
+/* --- TITLE --- */
 .mt-title { font-size: 44px; font-weight: 900; color: var(--green2); text-shadow: 0 0 30px #22c55e88; letter-spacing: 3px; text-align: center; line-height: 1; }
 .mt-sub   { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 28px; }
 
+/* --- CARDS --- */
 .card { background: linear-gradient(135deg, var(--bg1), var(--bg2)); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
 .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
 .card-red::before   { background: linear-gradient(90deg, transparent, var(--red), transparent); }
@@ -125,16 +122,18 @@ div[role="radiogroup"] > label > div:last-child p {
 .kv-blue  { color: var(--blue);   text-shadow: 0 0 15px #38bdf866; }
 .kl { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
 
+/* --- ALERTS --- */
 .alert-red   { background:#1c0a0a; border:1px solid #7f1d1d; border-left:4px solid var(--red);   border-radius:12px; padding:16px 20px; margin:10px 0; }
 .alert-green { background:#071a0e; border:1px solid #14532d; border-left:4px solid var(--green); border-radius:12px; padding:16px 20px; margin:10px 0; }
 .alert-amber { background:#1a1203; border:1px solid #78350f; border-left:4px solid var(--amber); border-radius:12px; padding:16px 20px; margin:10px 0; }
 
+/* --- ROUTES --- */
 .route-red  { background:#1c0a0a; border:2px solid #ef4444; border-radius:14px; padding:18px; }
 .route-blue { background:#071520; border:2px solid #38bdf8; border-radius:14px; padding:18px; }
 
+/* --- MISC --- */
 .pbar-bg   { background:var(--border); border-radius:20px; height:8px; margin:8px 0; }
 .pbar-fill { height:8px; border-radius:20px; }
-
 .badge { display:inline-block; background:#0d2318; color:var(--green2); border:1px solid #166534; border-radius:20px; padding:4px 14px; font-size:11px; letter-spacing:2px; }
 .sep { border:none; border-top:1px solid var(--border); margin:24px 0; }
 
@@ -148,9 +147,7 @@ div[role="radiogroup"] > label > div:last-child p {
     font-family: 'Exo 2' !important; letter-spacing: 1px !important;
 }
 .stButton > button:hover { box-shadow: 0 0 20px #22c55e44 !important; }
-
 .login-wrap { max-width:420px; margin:50px auto; background:var(--bg1); border:1px solid var(--border); border-radius:24px; padding:44px; text-align:center; }
-
 div[data-testid="stMetricValue"] { color: var(--green2) !important; font-family: 'Share Tech Mono' !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -162,7 +159,6 @@ div[data-testid="stMetricValue"] { color: var(--green2) !important; font-family:
 if not st.session_state.logged_in:
     st.markdown("<div class='mt-title'>MELLOWTECH</div>", unsafe_allow_html=True)
     st.markdown("<div class='mt-sub'>Smart Emission Intelligence System</div>", unsafe_allow_html=True)
-
     _, mid, _ = st.columns([1, 1.2, 1])
     with mid:
         st.markdown("<div class='login-wrap'>", unsafe_allow_html=True)
@@ -189,61 +185,44 @@ if not st.session_state.logged_in:
 
 
 # ================================================
-# SIDEBAR
+# SIDEBAR — simple radio like the original
 # ================================================
-NAV_ITEMS = [
-    ("🏠  Dashboard",        "dashboard"),
-    ("🗺️  Smart Routes",     "routes"),
-    ("⚠️  Emission Alerts",  "alerts"),
-    ("📊  Analytics",        "analytics"),
-    ("⭐  Eco Score",        "score"),
-    ("🎁  Rewards",          "rewards"),
-    ("👤  Profile",          "profile"),
-]
-
 with st.sidebar:
-    st.markdown(f"""
-    <div style='padding:24px 20px 16px;border-bottom:1px solid var(--border);'>
-      <div style='display:flex;align-items:center;gap:10px;'>
-        <div style='color:#22c55e;width:28px;height:28px;'>{ICONS["leaf"]}</div>
-        <div>
-          <div style='color:#22c55e;font-size:18px;font-weight:900;letter-spacing:3px;line-height:1;'>MELLOWTECH</div>
-          <div style='color:#334155;font-size:9px;letter-spacing:2px;'>EMISSION INTELLIGENCE</div>
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div style='padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;'>
-      <div style='width:34px;height:34px;background:#0d2318;border:1px solid #166534;border-radius:50%;
-                  display:flex;align-items:center;justify-content:center;color:#22c55e;flex-shrink:0;'>
-        {ICONS["profile"]}
-      </div>
-      <div>
-        <div style='color:#e2e8f0;font-size:13px;font-weight:600;'>{st.session_state.username}</div>
-        <div style='color:#22c55e;font-size:11px;'>{st.session_state.green_points} Green Points</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div style='padding:8px 0;'>", unsafe_allow_html=True)
-
-    nav_labels = [item[0] for item in NAV_ITEMS]
-    menu_choice = st.radio("", nav_labels, key="main_nav", label_visibility="collapsed")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown("""
-    <div style='position:absolute;bottom:0;left:0;right:0;padding:16px;
-                border-top:1px solid var(--border);background:#080d1a;'>
+    <div style='padding:24px 20px 16px; border-bottom:1px solid #1e293b;'>
+      <div style='color:#22c55e; font-size:20px; font-weight:900; letter-spacing:3px;'>🌿 MELLOWTECH</div>
+      <div style='color:#334155; font-size:9px; letter-spacing:2px; margin-top:2px;'>EMISSION INTELLIGENCE</div>
+    </div>
     """, unsafe_allow_html=True)
-    if st.button("Sign Out", use_container_width=True, key="logout_btn"):
+
+    st.markdown(f"""
+    <div style='padding:12px 20px; border-bottom:1px solid #1e293b;'>
+      <div style='color:#e2e8f0; font-size:13px; font-weight:600;'>👤 {st.session_state.username}</div>
+      <div style='color:#22c55e; font-size:11px; margin-top:2px;'>{st.session_state.green_points} Green Points</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+
+    menu = st.sidebar.radio(
+        "",
+        [
+            "🏠  Dashboard",
+            "🗺️  Smart Routes",
+            "⚠️  Emission Alerts",
+            "📊  Analytics",
+            "⭐  Eco Score",
+            "🎁  Rewards",
+            "👤  Profile",
+        ],
+        label_visibility="collapsed"
+    )
+
+    st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+
+    if st.sidebar.button("🔓 Sign Out", use_container_width=True):
         st.session_state.logged_in = False
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-menu = menu_choice
 
 
 # ================================================
@@ -269,28 +248,28 @@ def congestion_for(seed, hr):
     return min(100, v + 30 if 7 <= hr <= 9 or 16 <= hr <= 18 else v)
 
 def emission_level(cong):
-    if cong > 65: return "HIGH",   "#ef4444", "HIGH"
-    if cong > 40: return "MEDIUM", "#f59e0b", "MED"
-    return "LOW", "#22c55e", "LOW"
+    if cong > 65: return "HIGH",   "#ef4444"
+    if cong > 40: return "MEDIUM", "#f59e0b"
+    return "LOW", "#22c55e"
 
-def page_header(emoji, title, subtitle, color="#e2e8f0"):
-    return f"""
+def page_header(emoji, title, subtitle):
+    st.markdown(f"""
     <div style='display:flex;align-items:center;gap:12px;margin-bottom:8px;'>
-      <div style='font-size:28px;'>{emoji}</div>
+      <div style='font-size:30px;'>{emoji}</div>
       <div>
         <h1 style='color:#e2e8f0;font-weight:900;margin:0;font-size:28px;'>{title}</h1>
         <p style='color:#475569;font-size:13px;margin:0;'>{subtitle}</p>
       </div>
     </div>
-    <hr class='sep' style='margin-top:12px;margin-bottom:20px;'>
-    """
+    <hr style='border:none;border-top:1px solid #1e293b;margin:12px 0 20px;'>
+    """, unsafe_allow_html=True)
 
 
 # ================================================
 # DASHBOARD
 # ================================================
 if "Dashboard" in menu:
-    st.markdown(page_header("🏠", "Dashboard", "Live emission intelligence overview", "#22c55e"), unsafe_allow_html=True)
+    page_header("🏠", "Dashboard", "Live emission intelligence overview")
 
     time_str = dt.now().strftime("%H:%M")
     date_str = dt.now().strftime("%d %b %Y")
@@ -311,14 +290,13 @@ if "Dashboard" in menu:
     st.markdown("<br>", unsafe_allow_html=True)
 
     if is_rush:
-        st.markdown("""<div class='alert-red'><b style='color:#ef4444;font-size:16px;'>HIGH EMISSION ALERT</b><br>
+        st.markdown("""<div class='alert-red'><b style='color:#ef4444;font-size:16px;'>⚠️ HIGH EMISSION ALERT</b><br>
             <span style='color:#fca5a5;font-size:14px;'>Rush hour detected — Consider delaying your trip or choosing a clean route.</span></div>""", unsafe_allow_html=True)
     else:
-        st.markdown("""<div class='alert-green'><b style='color:#22c55e;font-size:16px;'>LOW EMISSION CONDITIONS</b><br>
+        st.markdown("""<div class='alert-green'><b style='color:#22c55e;font-size:16px;'>✅ LOW EMISSION CONDITIONS</b><br>
             <span style='color:#86efac;font-size:14px;'>Traffic is clear — great time to travel and earn Green Points.</span></div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     col_left, col_right = st.columns([2, 1])
     with col_left:
         st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>Real-Time City Emission Pulse</h3>", unsafe_allow_html=True)
@@ -326,17 +304,15 @@ if "Dashboard" in menu:
         congs = [congestion_for(i * 7, hour_now) for i in range(len(locs))]
         pulse = pd.DataFrame({"Zone": locs, "Emission Level %": congs})
         st.bar_chart(pulse.set_index("Zone"))
-
     with col_right:
         st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>Today's Impact</h3>", unsafe_allow_html=True)
         savings_co2 = round(st.session_state.green_points * 0.12, 2)
         fuel_saved  = round(st.session_state.green_points * 0.05, 2)
-        trips       = st.session_state.trips_today
         st.markdown(f"""<div class='card' style='margin-bottom:12px;'><div class='kv kv-green'>{savings_co2} kg</div><div class='kl'>CO2 Saved Today</div></div>""", unsafe_allow_html=True)
         st.markdown(f"""<div class='card card-amber' style='margin-bottom:12px;'><div class='kv kv-amber'>R{fuel_saved}</div><div class='kl'>Fuel Cost Saved</div></div>""", unsafe_allow_html=True)
-        st.markdown(f"""<div class='card card-blue'><div class='kv kv-blue'>{trips}</div><div class='kl'>Trips Completed</div></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div class='card card-blue'><div class='kv kv-blue'>{st.session_state.trips_today}</div><div class='kl'>Trips Completed</div></div>""", unsafe_allow_html=True)
 
-    st.markdown("<hr class='sep'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border:none;border-top:1px solid #1e293b;margin:24px 0;'>", unsafe_allow_html=True)
     st.markdown("""<div class='alert-green'><b style='color:#22c55e;'>Why It Matters</b><br>
         <span style='color:#86efac;font-size:14px;'>Vehicle emissions are a leading cause of urban air pollution. Every clean trip earns Green Points you can redeem for real rewards.</span></div>""", unsafe_allow_html=True)
 
@@ -345,7 +321,7 @@ if "Dashboard" in menu:
 # SMART ROUTES
 # ================================================
 elif "Smart Routes" in menu:
-    st.markdown(page_header("🗺️", "Smart Route Intelligence", "Choose cleaner routes — reduce emissions, earn Green Points", "#38bdf8"), unsafe_allow_html=True)
+    page_header("🗺️", "Smart Route Intelligence", "Choose cleaner routes — reduce emissions, earn Green Points")
 
     locs = list(locations_coords.keys())
     c1, c2, c3 = st.columns(3)
@@ -371,7 +347,7 @@ elif "Smart Routes" in menu:
     colA, colB = st.columns(2)
     with colA:
         st.markdown(f"""<div class='route-blue'>
-            <div style='font-size:16px;font-weight:800;color:#38bdf8;'>CLEAN ROUTE — RECOMMENDED</div>
+            <div style='font-size:16px;font-weight:800;color:#38bdf8;'>✅ CLEAN ROUTE — RECOMMENDED</div>
             <div style='color:#7dd3fc;font-size:11px;letter-spacing:2px;margin-bottom:16px;'>LOW EMISSIONS · LESS TRAFFIC</div>
             <div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;'>
                 <div><div style='font-size:26px;font-weight:900;color:#38bdf8;font-family:Share Tech Mono;'>{cong_a}%</div><div style='color:#64748b;font-size:11px;'>CONGESTION</div></div>
@@ -383,10 +359,9 @@ elif "Smart Routes" in menu:
                 Smooth flow · Lower fuel burn · Earn +15 Green Points
             </div>
         </div>""", unsafe_allow_html=True)
-
     with colB:
         st.markdown(f"""<div class='route-red'>
-            <div style='font-size:16px;font-weight:800;color:#ef4444;'>HIGH EMISSION ROUTE — AVOID</div>
+            <div style='font-size:16px;font-weight:800;color:#ef4444;'>⛔ HIGH EMISSION ROUTE — AVOID</div>
             <div style='color:#fca5a5;font-size:11px;letter-spacing:2px;margin-bottom:16px;'>HEAVY TRAFFIC · MORE FUEL</div>
             <div style='display:grid;grid-template-columns:1fr 1fr;gap:12px;'>
                 <div><div style='font-size:26px;font-weight:900;color:#ef4444;font-family:Share Tech Mono;'>{cong_b}%</div><div style='color:#64748b;font-size:11px;'>CONGESTION</div></div>
@@ -405,7 +380,7 @@ elif "Smart Routes" in menu:
         approximately <b>R{round((fuel_b - fuel_a)*20, 2)}</b> in fuel. You will earn <b>+15 Green Points</b>.</span></div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Take Clean Route — Start Trip", use_container_width=True):
+    if st.button("🚗 Take Clean Route — Start Trip", use_container_width=True):
         st.session_state.green_points += 15
         st.session_state.trips_today  += 1
         st.session_state.eco_score     = min(100, st.session_state.eco_score + 1)
@@ -418,7 +393,7 @@ elif "Smart Routes" in menu:
     map_df    = pd.DataFrame(route_pts, columns=["lat", "lon"])
     st.map(map_df, zoom=12)
     for i, stop in enumerate(route):
-        marker = "Start" if i == 0 else ("End" if i == len(route)-1 else "Stop")
+        marker = "🟢 Start" if i == 0 else ("🏁 End" if i == len(route)-1 else "📍 Stop")
         st.markdown(f"**{marker}:** {stop}")
 
 
@@ -426,7 +401,7 @@ elif "Smart Routes" in menu:
 # EMISSION ALERTS
 # ================================================
 elif "Emission Alerts" in menu:
-    st.markdown(page_header("⚠️", "Emission Alerts", "Live diagnostics and driving behaviour intelligence", "#ef4444"), unsafe_allow_html=True)
+    page_header("⚠️", "Emission Alerts", "Live diagnostics and driving behaviour intelligence")
 
     np.random.seed(hour_now * 3)
     emission_pct = np.random.randint(20, 95) if is_rush else np.random.randint(10, 55)
@@ -435,18 +410,18 @@ elif "Emission Alerts" in menu:
     rpm          = np.random.randint(800, 4000)
 
     if emission_pct > 65:
-        st.markdown(f"""<div class='alert-red'>
-            <div style='font-size:18px;font-weight:900;color:#ef4444;'>HIGH EMISSION DETECTED</div>
+        st.markdown("""<div class='alert-red'>
+            <div style='font-size:18px;font-weight:900;color:#ef4444;'>🔴 HIGH EMISSION DETECTED</div>
             <div style='color:#fca5a5;margin-top:6px;font-size:14px;'>Your vehicle is producing above-normal emissions. Reduce speed and check engine diagnostics.</div>
         </div>""", unsafe_allow_html=True)
     elif emission_pct > 40:
-        st.markdown(f"""<div class='alert-amber'>
-            <div style='font-size:18px;font-weight:900;color:#f59e0b;'>MODERATE EMISSIONS</div>
+        st.markdown("""<div class='alert-amber'>
+            <div style='font-size:18px;font-weight:900;color:#f59e0b;'>🟡 MODERATE EMISSIONS</div>
             <div style='color:#fde68a;margin-top:6px;font-size:14px;'>Emissions slightly elevated — maintain steady speed and avoid sudden braking.</div>
         </div>""", unsafe_allow_html=True)
     else:
-        st.markdown(f"""<div class='alert-green'>
-            <div style='font-size:18px;font-weight:900;color:#22c55e;'>LOW EMISSIONS — CLEAN DRIVING</div>
+        st.markdown("""<div class='alert-green'>
+            <div style='font-size:18px;font-weight:900;color:#22c55e;'>🟢 LOW EMISSIONS — CLEAN DRIVING</div>
             <div style='color:#86efac;margin-top:6px;font-size:14px;'>Excellent! Your vehicle is running efficiently. Keep it up and earn Green Points.</div>
         </div>""", unsafe_allow_html=True)
 
@@ -477,11 +452,11 @@ elif "Emission Alerts" in menu:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>Action Plan</h3>", unsafe_allow_html=True)
     actions = [
-        ("Check Engine Diagnostics",   "Run an OBD scan or visit a mechanic if emissions remain high.", "#ef4444"),
-        ("Reduce Fuel Waste",          "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM, coast to slow down.", "#f59e0b"),
-        ("Service Your Vehicle",       "Oil change, air filter, fuel injector cleaning, exhaust system check.", "#38bdf8"),
-        ("Stop Unnecessary Idling",    "Switch off engine after 1 minute of idling to prevent fuel waste.", "#f59e0b"),
-        ("Switch to a Cleaner Route",  "Less traffic means less emissions. Open Smart Routes for alternatives.", "#22c55e"),
+        ("🔧 Check Engine Diagnostics",   "Run an OBD scan or visit a mechanic if emissions remain high.", "#ef4444"),
+        ("⛽ Reduce Fuel Waste",           "Avoid rapid acceleration, maintain 60-80 km/h, reduce RPM, coast to slow down.", "#f59e0b"),
+        ("🔩 Service Your Vehicle",        "Oil change, air filter, fuel injector cleaning, exhaust system check.", "#38bdf8"),
+        ("🚫 Stop Unnecessary Idling",     "Switch off engine after 1 minute of idling to prevent fuel waste.", "#f59e0b"),
+        ("🗺️ Switch to a Cleaner Route",  "Less traffic means less emissions. Open Smart Routes for alternatives.", "#22c55e"),
     ]
     for title, desc, color in actions:
         st.markdown(f"""<div style='background:#0a0f1e;border:1px solid #1e293b;border-left:3px solid {color};border-radius:10px;padding:14px;margin-bottom:8px;'>
@@ -494,9 +469,9 @@ elif "Emission Alerts" in menu:
 # ANALYTICS
 # ================================================
 elif "Analytics" in menu:
-    st.markdown(page_header("📊", "Analytics", "Traffic and emission trends, zone status, cost impact", "#38bdf8"), unsafe_allow_html=True)
+    page_header("📊", "Analytics", "Traffic and emission trends, zone status, cost impact")
 
-    tab1, tab2, tab3, tab4 = st.tabs(["Hourly Trends", "Zone Emissions", "Cost Impact", "Weekly Heatmap"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Hourly Trends", "🗺️ Zone Emissions", "💰 Cost Impact", "🔥 Weekly Heatmap"])
 
     with tab1:
         hours = list(range(24))
@@ -510,15 +485,14 @@ elif "Analytics" in menu:
         st.line_chart(df_hourly)
         peak_h = hours[np.argmax(emissions)]
         st.warning(f"Peak emissions at **{peak_h}:00** ({max(emissions)}%) — morning/evening rush hour.")
-        st.success("Cleanest travel window: **10:00-15:00** and **20:00-06:00**")
+        st.success("Cleanest travel window: **10:00–15:00** and **20:00–06:00**")
 
     with tab2:
         locs  = list(locations_coords.keys())
-        np.random.seed(33)
         congs = [congestion_for(i * 11, hour_now) for i in range(len(locs))]
         st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>Zone Emission Status</h3>", unsafe_allow_html=True)
         for i, loc in enumerate(locs):
-            lvl, col, _ = emission_level(congs[i])
+            lvl, col = emission_level(congs[i])
             pct = congs[i]
             st.markdown(f"""<div style='background:#0a0f1e;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:8px;'>
                 <div style='display:flex;justify-content:space-between;align-items:center;'>
@@ -543,9 +517,9 @@ elif "Analytics" in menu:
         eco_cost    = round(eco_litres * fuel_price, 2)
         saving      = round(cost_week - eco_cost, 2)
         ca, cb, cc, cd = st.columns(4)
-        ca.metric("Weekly Fuel Cost", f"R{cost_week}")
-        cb.metric("Monthly Fuel Cost", f"R{cost_month}")
-        cc.metric("CO2 per Week", f"{co2_week} kg")
+        ca.metric("Weekly Fuel Cost",       f"R{cost_week}")
+        cb.metric("Monthly Fuel Cost",      f"R{cost_month}")
+        cc.metric("CO2 per Week",           f"{co2_week} kg")
         cd.metric("Potential Weekly Saving", f"R{max(0, saving)}")
         if saving > 0:
             st.markdown(f"""<div class='alert-amber'><b style='color:#f59e0b;'>Cost Intelligence</b>
@@ -570,7 +544,7 @@ elif "Analytics" in menu:
 # ECO SCORE
 # ================================================
 elif "Eco Score" in menu:
-    st.markdown(page_header("⭐", "Eco Score", "Your environmental driving rating", "#22c55e"), unsafe_allow_html=True)
+    page_header("⭐", "Eco Score", "Your environmental driving rating")
 
     score = st.session_state.eco_score
     if score >= 80:   grade, grade_col, grade_label = "A", "#22c55e", "Excellent Eco Driver"
@@ -581,7 +555,7 @@ elif "Eco Score" in menu:
     c1, c2 = st.columns([1, 2])
     with c1:
         st.markdown(f"""<div class='card' style='text-align:center;padding:30px;'>
-            <div style='font-size:80px;font-weight:900;color:{grade_col};font-family:Share Tech Mono;text-shadow:0 0 30px {grade_col}88;'>{grade}</div>
+            <div style='font-size:80px;font-weight:900;color:{grade_col};font-family:Share Tech Mono;'>{grade}</div>
             <div style='font-size:40px;font-weight:900;color:{grade_col};font-family:Share Tech Mono;'>{score}/100</div>
             <div style='color:#64748b;font-size:11px;letter-spacing:2px;margin-top:8px;'>{grade_label.upper()}</div>
         </div>""", unsafe_allow_html=True)
@@ -618,11 +592,11 @@ elif "Eco Score" in menu:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>Driver Leaderboard</h3>", unsafe_allow_html=True)
     lb_data = {
-        "Rank": ["1st","2nd","3rd","4th","5th"],
-        "Driver": ["EcoDriver_01","GreenWheels","CleanCommuter", st.session_state.username, "QuickRacer"],
-        "Eco Score": [96, 91, 88, score, 43],
-        "Green Points": [1240, 985, 872, st.session_state.green_points, 120],
-        "CO2 Saved (kg)": [148, 118, 104, round(st.session_state.green_points * 0.12, 1), 14],
+        "Rank":          ["🥇 1st","🥈 2nd","🥉 3rd","4th","5th"],
+        "Driver":        ["EcoDriver_01","GreenWheels","CleanCommuter", st.session_state.username, "QuickRacer"],
+        "Eco Score":     [96, 91, 88, score, 43],
+        "Green Points":  [1240, 985, 872, st.session_state.green_points, 120],
+        "CO2 Saved (kg)":[148, 118, 104, round(st.session_state.green_points * 0.12, 1), 14],
     }
     st.dataframe(pd.DataFrame(lb_data), use_container_width=True, hide_index=True)
 
@@ -631,10 +605,10 @@ elif "Eco Score" in menu:
 # REWARDS
 # ================================================
 elif "Rewards" in menu:
-    st.markdown(page_header("🎁", "Rewards", "Convert your Green Points into real-world rewards", "#f59e0b"), unsafe_allow_html=True)
+    page_header("🎁", "Rewards", "Convert your Green Points into real-world rewards")
 
     pts = st.session_state.green_points
-    st.markdown(f"""<div style='background:linear-gradient(135deg,#0f2a0a,#1a3a10);border:1px solid #166534;border-radius:20px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;'>
+    st.markdown(f"""<div style='background:linear-gradient(135deg,#0f2a0a,#1a3a10);border:1px solid #166534;border-radius:20px;padding:28px;margin-bottom:24px;'>
         <div style='font-family:Share Tech Mono;font-size:11px;color:#86efac;letter-spacing:3px;'>MELLOWTECH REWARDS CARD</div>
         <div style='font-size:42px;font-weight:900;color:#4ade80;margin:8px 0;font-family:Share Tech Mono;'>{pts} pts</div>
         <div style='color:#22c55e;font-size:14px;'>{st.session_state.username}</div>
@@ -642,20 +616,20 @@ elif "Rewards" in menu:
     </div>""", unsafe_allow_html=True)
 
     rewards = [
-        ("Fuel Voucher",            50,  "Save R10 at participating fuel stations",  "#f59e0b"),
-        ("Petrol Discount 10%",     120, "10% off your next full tank",              "#f59e0b"),
-        ("Shopping Voucher R50",    100, "Redeem at partner retailers",              "#38bdf8"),
-        ("Public Transport Credit", 80,  "Bus or taxi credit for 5 trips",           "#22c55e"),
-        ("Free Vehicle Check",      200, "Emission diagnostic + engine check",       "#a78bfa"),
-        ("Tree Planting Credit",    30,  "Sponsor a tree planted in your name",      "#22c55e"),
-        ("Partner Discounts",       60,  "Discounts at eco-friendly stores",         "#38bdf8"),
-        ("Premium Eco Status",      500, "Unlock premium leaderboard + extra points","#f59e0b"),
+        ("⛽ Fuel Voucher",            50,  "Save R10 at participating fuel stations",  "#f59e0b"),
+        ("💳 Petrol Discount 10%",     120, "10% off your next full tank",              "#f59e0b"),
+        ("🛍️ Shopping Voucher R50",    100, "Redeem at partner retailers",              "#38bdf8"),
+        ("🚌 Public Transport Credit", 80,  "Bus or taxi credit for 5 trips",           "#22c55e"),
+        ("🔧 Free Vehicle Check",      200, "Emission diagnostic + engine check",       "#a78bfa"),
+        ("🌳 Tree Planting Credit",    30,  "Sponsor a tree planted in your name",      "#22c55e"),
+        ("🏪 Partner Discounts",       60,  "Discounts at eco-friendly stores",         "#38bdf8"),
+        ("👑 Premium Eco Status",      500, "Unlock premium leaderboard + extra points","#f59e0b"),
     ]
     cols = st.columns(2)
     for i, (name, cost, desc, color) in enumerate(rewards):
         with cols[i % 2]:
             can_afford = pts >= cost
-            lock_text  = "Tap to Redeem" if can_afford else f"Need {cost - pts} more pts"
+            lock_text  = "Tap to Redeem ✅" if can_afford else f"Need {cost - pts} more pts"
             lock_col   = color if can_afford else "#334155"
             border_col = color + "44" if can_afford else "#1e293b"
             st.markdown(f"""<div style='background:#0a0f1e;border:1px solid {border_col};border-radius:14px;padding:16px;margin-bottom:12px;'>
@@ -670,12 +644,12 @@ elif "Rewards" in menu:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>How to Earn Green Points</h3>", unsafe_allow_html=True)
     earn_tips = [
-        ("Choose Clean Routes",    "+15 pts per trip"),
-        ("Maintain Steady Speed",  "+5 pts per clean trip"),
-        ("Use Public Transport",   "+20 pts per trip"),
-        ("No Idling",              "+3 pts under 1 min idle"),
-        ("Carpool / Rideshare",    "+25 pts per shared trip"),
-        ("Service Your Vehicle",   "+50 pts after check-up"),
+        ("🗺️ Choose Clean Routes",   "+15 pts per trip"),
+        ("⚡ Maintain Steady Speed", "+5 pts per clean trip"),
+        ("🚌 Use Public Transport",  "+20 pts per trip"),
+        ("🚫 No Idling",             "+3 pts under 1 min idle"),
+        ("🤝 Carpool / Rideshare",   "+25 pts per shared trip"),
+        ("🔧 Service Your Vehicle",  "+50 pts after check-up"),
     ]
     cols2 = st.columns(3)
     for i, (tip, pts_earn) in enumerate(earn_tips):
@@ -690,7 +664,7 @@ elif "Rewards" in menu:
 # PROFILE
 # ================================================
 elif "Profile" in menu:
-    st.markdown(page_header("👤", "Profile", "Your account and preferences", "#38bdf8"), unsafe_allow_html=True)
+    page_header("👤", "Profile", "Your account and preferences")
 
     c1, c2 = st.columns([1, 2])
     with c1:
@@ -719,10 +693,10 @@ elif "Profile" in menu:
         home_loc   = st.selectbox("Home Location", list(locations_coords.keys()),
                                   index=list(locations_coords.keys()).index(st.session_state.home_location))
         drive_pref = st.selectbox("Default Driving Mode", ["Eco Mode", "Normal Mode", "Fast Mode"])
-        notifs     = st.toggle("Enable Emission Alerts", value=True)
-        pub_trans  = st.toggle("Promote Public Transport Routes", value=True)
+        st.toggle("Enable Emission Alerts", value=True)
+        st.toggle("Promote Public Transport Routes", value=True)
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Save Preferences", use_container_width=True):
+        if st.button("💾 Save Preferences", use_container_width=True):
             st.session_state.username      = new_name
             st.session_state.home_location = home_loc
             st.session_state.driving_mode  = drive_pref
@@ -730,7 +704,7 @@ elif "Profile" in menu:
             time.sleep(0.4)
             st.rerun()
 
-    st.markdown("<hr class='sep'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border:none;border-top:1px solid #1e293b;margin:24px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:12px;'>My Environmental Impact</h3>", unsafe_allow_html=True)
     co2_total   = round(st.session_state.green_points * 0.12, 2)
     fuel_total  = round(st.session_state.green_points * 0.05, 2)
